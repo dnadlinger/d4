@@ -11,28 +11,28 @@ import d4.util.Application;
 abstract class SdlApplication : Application {
 protected:
    this() {
-      Stdout( "Loading SDL library..." ).newline;      
+      Stdout( "Loading SDL library..." ).newline;
       DerelictSDL.load();
-      
+
       initVideo();
-      
+
       SDL_WM_SetCaption( toStringz( "d4" ), null );
    }
-   
+
    ~this() {
       destroyVideo();
       SDL_Quit();
       DerelictSDL.unload();
    }
-   
+
    final override uint currentTicks() {
       return SDL_GetTicks();
    }
-   
+
    final override Surface screen() {
       return m_screen;
    }
-   
+
    final override void processEvents() {
       SDL_Event event;
 
@@ -41,11 +41,11 @@ protected:
             case SDL_QUIT:
                exit();
                break;
-               
+
             case SDL_KEYDOWN:
                handleKeyDown( event.key.keysym.sym );
                break;
-               
+
             case SDL_KEYUP:
                handleKeyUp( event.key.keysym.sym );
                break;
@@ -55,30 +55,30 @@ protected:
          }
       }
    }
-   
-private:   
+
+private:
    void initVideo() {
       Stdout( "Initializing SDL video subsystem." ).newline;
-      
+
       // TODO: Make configurable.
       const uint screenWidth = 800;
       const uint screenHeight = 500;
       const uint videoFlags = SDL_HWSURFACE | SDL_DOUBLEBUF;
       const uint bitsPerPixel = 32;
-      
+
       if ( SDL_InitSubSystem( SDL_INIT_VIDEO ) != 0 ) {
          throw new Exception( "Could not initialize SDL video subsystem: " ~ fromStringz( SDL_GetError() ) );
       }
-      
+
       SDL_Surface* surface = SDL_SetVideoMode( screenWidth, screenHeight, bitsPerPixel, videoFlags );
       if ( !surface ) {
          throw new Exception( "Could not set SDL video mode: " ~ fromStringz( SDL_GetError() ) );
       }
-      
+
       if ( surface.format.BitsPerPixel != bitsPerPixel ) {
          throw new Exception( "Could not initialze SDL video surface in the correct bit depth." );
       }
-      
+
       if ( ( surface.format.Rmask != Color.RED_MASK ) ||
          ( surface.format.Gmask != Color.GREEN_MASK ) ||
          ( surface.format.Bmask != Color.BLUE_MASK ) ) {
@@ -88,18 +88,18 @@ private:
             surface.format.Bmask, surface.format.Amask ).newline;
          throw new Exception( "SDL video surface pixel format mismatch." );
       }
-      
+
       if ( SDL_MUSTLOCK( surface ) ) {
          throw new Exception( "SDL video surface has to be locked, which is not implemeted yet." );
       }
-      
+
       m_screen = new SdlSurface( surface );
    }
-   
+
    void destroyVideo() {
       Stdout( "Shutting down SDL video subsystem." ).newline;
       SDL_QuitSubSystem( SDL_INIT_VIDEO );
    }
-   
+
    SdlSurface m_screen;
 }
