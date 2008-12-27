@@ -2,7 +2,7 @@ module d4.util.Application;
 
 import tango.io.Stdout;
 import d4.output.Surface;
-import d4.util.keys;
+import d4.util.Key;
 
 abstract class Application {
 public:
@@ -70,7 +70,7 @@ protected:
       return m_totalTicksPassed / 1000.f;
    }
 
-   final bool isKeyDown( Keycode key ) {
+   final bool isKeyDown( Key key ) {
       return m_keyDownList[ key ];
    }
 
@@ -78,18 +78,17 @@ protected:
       return m_fps;
    }
 
-   final void handleKeyDown( Keycode key ) {
+   void handleKeyDown( Key key ) {
       m_keyDownList[ key ] = true;
    }
 
-   final void handleKeyUp( Keycode key ) {
+   void handleKeyUp( Key key ) {
       m_keyDownList[ key ] = false;
 
-      if ( key == KEY_ESCAPE ) {
+      if ( key == Key.ESCAPE ) {
          exit();
       }
    }
-
 
 private:
    uint m_totalTicksPassed;
@@ -100,5 +99,5 @@ private:
    uint m_framesInSample;
    float m_fps;
 
-   bool[ KEY_LAST ] m_keyDownList;
+   bool[ Key.LAST ] m_keyDownList;
 }

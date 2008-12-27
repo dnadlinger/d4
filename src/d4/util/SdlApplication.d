@@ -7,9 +7,10 @@ import d4.math.Color;
 import d4.output.SdlSurface;
 import d4.output.Surface;
 import d4.util.Application;
+import d4.util.Key;
 
 abstract class SdlApplication : Application {
-protected:
+public:
    this() {
       Stdout( "Loading SDL library..." ).newline;
       DerelictSDL.load();
@@ -25,6 +26,7 @@ protected:
       DerelictSDL.unload();
    }
 
+protected:
    final override uint currentTicks() {
       return SDL_GetTicks();
    }
@@ -43,11 +45,11 @@ protected:
                break;
 
             case SDL_KEYDOWN:
-               handleKeyDown( event.key.keysym.sym );
+               handleKeyDown( cast( Key )event.key.keysym.sym );
                break;
 
             case SDL_KEYUP:
-               handleKeyUp( event.key.keysym.sym );
+               handleKeyUp( cast( Key )event.key.keysym.sym );
                break;
 
             default:
