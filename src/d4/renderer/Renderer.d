@@ -8,8 +8,8 @@ import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.Rasterizer;
-import d4.renderer.Vertex;
 import d4.renderer.ZBuffer;
+import d4.scene.Vertex;
 
 class Renderer {
 public:

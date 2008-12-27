@@ -5,14 +5,15 @@ import tango.math.Math : abs;
 import d4.math.Color;
 import d4.math.Vector3;
 import d4.renderer.Rasterizer;
-import d4.renderer.Vertex;
+import d4.scene.Vertex;
 
 class SimpleWireframeRasterizer : Rasterizer {
 public:
    void drawTriangle( Vertex v0, Vertex v1, Vertex v2 ) {
-      drawLine( v0.position, v1.position, v0.color );
-      drawLine( v1.position, v2.position, v1.color );
-      drawLine( v2.position, v0.position, v2.color );
+      Color color = Color( 255, 255, 255 );
+      drawLine( v0.position, v1.position, color );
+      drawLine( v1.position, v2.position, color );
+      drawLine( v2.position, v0.position, color );
    }
 
 private:
