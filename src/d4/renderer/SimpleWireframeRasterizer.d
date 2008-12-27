@@ -3,21 +3,22 @@ module d4.renderer.SimpleWireframeRasterizer;
 import tango.io.Stdout;
 import tango.math.Math : abs;
 import d4.math.Color;
-import d4.math.Vector3;
+import d4.math.Vector4;
 import d4.renderer.Rasterizer;
+import d4.renderer.TransformedTriangle;
 import d4.scene.Vertex;
 
 class SimpleWireframeRasterizer : Rasterizer {
 public:
-   void drawTriangle( Vertex v0, Vertex v1, Vertex v2 ) {
+   void drawTriangle( TransformedTriangle triangle ) {
       Color color = Color( 255, 255, 255 );
-      drawLine( v0.position, v1.position, color );
-      drawLine( v1.position, v2.position, color );
-      drawLine( v2.position, v0.position, color );
+      drawLine( triangle.pos0, triangle.pos1, color );
+      drawLine( triangle.pos1, triangle.pos2, color );
+      drawLine( triangle.pos2, triangle.pos0, color );
    }
 
 private:
-   void drawLine( Vector3 startPos, Vector3 endPos, Color color ) {
+   void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
       int startX = cast( int ) startPos.x;
       int startY = cast( int ) startPos.y;
 
