@@ -9,8 +9,8 @@ public:
    abstract void drawTriangle( Vertex v0, Vertex v1, Vertex v2 );
 
    void setRenderTarget( Surface renderTarget, ZBuffer zBuffer ) {
-      assert( renderTarget.width == zBuffer.width );
-      assert( renderTarget.height == zBuffer.height );
+      assert( renderTarget.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
+      assert( renderTarget.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
 
       m_renderTarget = renderTarget;
       m_zBuffer = zBuffer;

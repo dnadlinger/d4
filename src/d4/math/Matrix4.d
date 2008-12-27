@@ -138,7 +138,7 @@ struct Matrix4 {
       float fovScale = 1 / tan( fovRadians * 0.5 );
       if ( fovScale < 0.01 ) {
          throw new Exception( "Could not create perspective projection matrix: " ~
-            "Field of view opening angle too small." );
+            "Field of view opening angle too big." );
       }
 
       Matrix4 m = identity();

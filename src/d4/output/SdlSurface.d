@@ -42,11 +42,11 @@ public:
    }
 
    void setPixel( uint x, uint y, Color color ) {
-      assert( m_locked );
-      assert( 0 <= x );
-      assert( x < width);
-      assert( 0 <= y );
-      assert( y < height );
+      assert( m_locked, "The surface must be locked to set pixel values." );
+      assert( 0 <= x, "The x-coordinate must not be negative." );
+      assert( x < width, "The x-coordinate must not exceed surface size." );
+      assert( 0 <= y, "The y-coordinate must not be negative." );
+      assert( y < height, "The y-coordinate must not exceed surface size." );
       pixels()[ y * width() + x ] = color;
    }
 
