@@ -27,10 +27,12 @@ public:
       m_renderTarget = renderTarget;
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
+      
+      m_triangleOrientation = TriangleOrientation.CW;
 
       m_activeRasterizer = new WireframeRasterizer!( DefaultShader )();
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
-      setProjection( PI / 2, 0.1f, 10.f );
+      setProjection( PI / 2, 0.1f, 20.f );
 
       m_rendering = false;
    }

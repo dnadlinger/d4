@@ -13,5 +13,12 @@ template DefaultShader() {
       // No variables needed for this shader.
    }
    
-   // VertexVariables interpolate( ... ) {}
+   VertexVariables interpolateLinear( VertexVariables first, VertexVariables second, float position ) {
+      VertexVariables result;
+      return result;
+   }
+   
+   void scale( VertexVariables target, float factor ) {
+      // No variables needed for this shader.
+   }
 }

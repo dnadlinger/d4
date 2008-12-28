@@ -1,5 +1,6 @@
 module d4.renderer.WireframeRasterizer;
 
+import tango.io.Stdout;
 import tango.math.Math : abs;
 import d4.math.Color;
 import d4.math.Vector4;

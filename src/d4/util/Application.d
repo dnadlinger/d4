@@ -39,7 +39,7 @@ public:
          // Detect slow frames – frames that have took siginficantely longer
          // than the previous one. Could be a hint to certain problems like
          // unwanted garbage collector activity.
-         const triggerLevel = 8;
+         const triggerLevel = 10;
          if ( deltaTicks > ( lastDeltaTicks * triggerLevel ) ) {
             Stdout.format( "Possible slow frame detected ({} ms).", deltaTicks ).newline;
          }

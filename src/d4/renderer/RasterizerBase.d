@@ -3,6 +3,7 @@ module d4.renderer.Rasterizer;
 import tango.io.Stdout;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.Plane;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
@@ -17,7 +18,7 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
       
-      m_backfaceCulling = BackfaceCulling.CW;
+      m_backfaceCulling = BackfaceCulling.CCW;
    }
    
    /**
@@ -33,62 +34,21 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
    void renderTriangleList( Vertex[] vertices, uint[] indices ) {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
 
-      // Clipping
-
-      Vector4[] positions;
-      VertexVariables[] variables;
+      // Invoke vertex shader to get the positions in clipping coordinates
+      // and to compute any additional per-vertex data.
+      TransformedVertex[] transformed;
       
       foreach ( vertex; vertices ) {
-         Vector4 currentPosition;
-         VertexVariables currentVariables;
+         TransformedVertex current;
          
-         vertexShader( vertex, currentPosition, currentVariables );
+         vertexShader( vertex, current.pos, current.vars );
+         // Note: The positions are still not divided by w (»homogenzied«).
          
-         currentPosition.homogenize();
-         
-         positions ~= currentPosition;
-         variables ~= currentVariables;
-      }
-
-      // Clipping?
-      
-      // Transform the projected positions into viewport coordinates.
-      float halfViewportWidth = m_colorBuffer.width / 2;
-      float halfViewportHeight = m_colorBuffer.height / 2;
-      foreach ( inout pos; positions ) {
-         pos.x += 1;
-         pos.y += 1;
-         pos.x *= halfViewportWidth;
-         pos.y *= halfViewportHeight;
+         transformed ~= current;
       }
       
       for ( uint i = 0; i < indices.length; i += 3 ) {
-         uint i0 = indices[ i ];
-         uint i1 = indices[ i + 1 ];
-         uint i2 = indices[ i + 2 ];
-         
-         Vector4 p0 = positions[ i0 ];
-         Vector4 p1 = positions[ i1 ];
-         Vector4 p2 = positions[ i2 ];
-
-         // As we already have screen coordinates, looking at the z component
-         // of the cross product of two triangle sides is enough. If it is positive,
-         // the triangle normal is pointing away from the camera (screen) which 
-         // means that the triangle can be culled.
-         if ( m_backfaceCulling == BackfaceCulling.CCW ) {
-            if ( ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x ) > 0 ) {
-               continue;
-            }
-         } else if ( m_backfaceCulling == BackfaceCulling.CW ) {
-            if ( ( p0.x - p1.x ) * ( p0.y - p2.y ) - ( p0.y - p1.y ) * ( p0.x - p2.x ) > 0 ) {
-               continue;
-            }
-         }
-         
-//       Stdout.format( "Drawing triangle: ({}, {}); ({}, {}); ({}, {})",
-//            p0.x, p0.y, p1.x, p1.y, p2.x, p2.y ).newline;
-         
-         drawTriangle( p0, variables[ i0 ], p1, variables[ i1 ], p2, variables[ i2 ] );
+         renderTriangle( transformed[ indices[ i ] ], transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }
    }
    
@@ -150,6 +110,14 @@ protected:
    mixin Shader;
    
    /**
+    * Convinience struct for storing the transformed vertices.
+    */
+   struct TransformedVertex {
+      Vector4 pos;
+      VertexVariables vars;
+   }
+   
+   /**
     * Rasters the specified triangle to the screen.
     * 
     * The values of the per-vertex data at the pixel position are interpolated and
@@ -194,6 +162,121 @@ private:
    void updateWorldViewProjMatrix() {
       m_worldViewProjMatrix = m_projMatrix * m_worldViewMatrix;
    }
+   
+   void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
+      TransformedVertex[] vertices = [ vertex0, vertex1, vertex2 ];
+      
+      const CLIPPING_PLANES = [
+         Plane( 1, 0, 0, 1 ),   // Left
+         Plane( -1, 0, 0, 1 ),  // Right
+         Plane( 0, -1, 0, 1 ),  // Top
+         Plane( 0, 1, 0, 1 ),   // Bottom
+         Plane( 0, 0, 1, 0 ),   // Near
+         Plane( 0, 0, 1, 1 )   // Far
+      ];
+      
+      foreach ( i, plane; CLIPPING_PLANES ) {
+         vertices = clipToPlane( vertices, plane );
+         if ( vertices.length < 3 ) {
+            // There is nothing left to be drawn.
+            return;
+         }
+      }
+      
+      foreach ( inout vertex; vertices ) {
+         // Divide the vertex coordinates by w to get the »normal« (projected) positions.
+         float invW = 1 / vertex.pos.w;
+         vertex.pos.x *= invW;
+         vertex.pos.y *= invW;
+         vertex.pos.z *= invW;
+         
+         // Additionally, divide all vertex variables by w so that we can linearely
+         // interpolate between them in screen space. Save invW to the w coordinate
+         // so that we can reconstruct the original values later.
+         scale( vertex.vars, invW );
+         vertex.pos.w = invW;
+         
+         // Transform the position into viewport coordinates. We have to invert the
+         // y-coordinate because the y-axis is pointing in the other direction in 
+         // the viewport coordinate system.
+         vertex.pos.x = ( vertex.pos.x + 1 ) / 2 * m_colorBuffer.width; 
+         vertex.pos.y = ( 1 - vertex.pos.y ) / 2 * m_colorBuffer.height;
+      }
+      
+      // As we already have screen coordinates, looking at the z component
+      // of the cross product of two triangle sides is enough. If it is positive,
+      // the triangle normal is pointing away from the camera (screen) which 
+      // means that the triangle can be culled.
+      // TODO: Better position for this.
+      if ( m_backfaceCulling != BackfaceCulling.NONE ) {
+         Vector4 p0 = vertices[ 0 ].pos;
+         Vector4 p1 = vertices[ 1 ].pos;
+         Vector4 p2 = vertices[ 2 ].pos;
+         
+         float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
+         if ( ( m_backfaceCulling == BackfaceCulling.CCW ) && ( crossZ > 0 ) ) {
+            return;
+         }
+         
+         if ( ( m_backfaceCulling == BackfaceCulling.CW ) && ( crossZ < 0 ) ) {
+            return;
+         }
+      }
+      
+      uint triangleCount = vertices.length - 2;
+      for ( uint i = 0; i < triangleCount; ++i ) {
+         drawTriangle(
+            vertices[ i ].pos, vertices[ i ].vars,
+            vertices[ i + 1 ].pos, vertices[ i + 1 ].vars,
+            vertices[ i + 2 ].pos, vertices[ i + 2 ].vars
+         );
+      }
+   }
+   
+   
+   TransformedVertex[] clipToPlane( TransformedVertex[] vertices, Plane plane ) {
+      // Due to some function overloading strangeness, we have to alias the other
+      // interpolation functions.
+      // TODO: Why is this necessary?
+      alias d4.math.Vector4.interpolateLinear lerpVector;
+      alias interpolateLinear lerpVars;  // This refers to Shader.interpolateLinear ( VertexVariables, ... )
+      
+      TransformedVertex interpolateLinear( TransformedVertex first, TransformedVertex second, float position ) {
+         TransformedVertex result;
+         result.pos = lerpVector( first.pos, second.pos, position );
+         result.vars = lerpVars( first.vars, second.vars, position );
+         return result;
+      }
+      
+      TransformedVertex[] result;
+      
+      for ( uint i = 0, j = 1; i < vertices.length; ++i, ++j ) {
+         if ( j == vertices.length ) {
+            // "Wrap" over the end to clip the last->first edge.
+            j = 0;
+         }
+         
+         // Distances of the current and the next vertex to the clipping plane.
+         float currDist = plane.classifyHomogenous( vertices[ i ].pos );
+         float nextDist = plane.classifyHomogenous( vertices[ j ].pos );
+         
+         if ( currDist >= 0.f ) {
+            // The current vertex is »inside«, append it to the result.
+            result ~= vertices[ i ];
+            
+            if ( nextDist < 0.f ) {
+               // The edge to the next vertex is crossing the plane, interpolate the 
+               // vertex which is exactly on the plane and append it to the result.
+               result ~= interpolateLinear( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+            }
+         } else if ( nextDist >= 0.f ) {
+            // The next vertex is inside, also append the vertex on the plane.
+            result ~= interpolateLinear( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+         }
+      }
+      
+      return result;
+   }   
    
    Matrix4 m_worldMatrix;
    Matrix4 m_viewMatrix;

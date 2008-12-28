@@ -29,25 +29,17 @@ struct Vector4 {
       w *= factor;
    }
 
-   void homogenize() {
-      float invW = ( w != 0 ) ? ( 1 / w ) : 1;
-      x *= invW;
-      y *= invW;
-      z *= invW;
-      w = 1;
-   }
-
-   Vector3 homogenized() {
-      float invW = ( w != 0 ) ? ( 1 / w ) : 1;
-      return Vector3(
-         x * invW,
-         y * invW,
-         z * invW
-      );
-   }
-
    float x;
    float y;
    float z;
    float w;
+}
+
+Vector4 interpolateLinear( Vector4 first, Vector4 second, float position ) {
+   Vector4 result;
+   result.x = first.x + ( second.x - first.x ) * position;
+   result.y = first.y + ( second.y - first.y ) * position;
+   result.z = first.z + ( second.z - first.z ) * position;
+   result.w = first.w + ( second.w - first.w ) * position;
+   return result;
 }
