@@ -6,14 +6,26 @@ import d4.util.Key;
 
 abstract class Application {
 public:
+   /**
+    * Executes the application main (event) loop.
+    * 
+    * This function returns when the application has been closed.
+    */
    final void run() {
+      m_appFinished = false;
+      
       init();
 
       m_totalTicksPassed = 0;
       m_fpsSamplingDuration = 0;
       m_framesInSample = 0;
-      m_appFinished = false;
+      
+      // The tick count when the last frame started to measure the elapsed time.
       uint lastStartTicks = currentTicks();
+      
+      // The duration of the last frame to detect "slow" frames. Initialized
+      // with 30 in lack of a better value (there have been no previous frames).
+      uint lastDeltaTicks = 30;
 
       while ( !m_appFinished ) {
          // Calculate the time elapsed since the last frame start.
@@ -23,6 +35,15 @@ public:
 
          // Keep track of the total time the app is running.
          m_totalTicksPassed += deltaTicks;
+         
+         // Detect slow frames – frames that have took siginficantely longer
+         // than the previous one. Could be a hint to certain problems like
+         // unwanted garbage collector activity.
+         const triggerLevel = 8;
+         if ( deltaTicks > ( lastDeltaTicks * triggerLevel ) ) {
+            Stdout.format( "Possible slow frame detected ({} ms).", deltaTicks ).newline;
+         }
+         lastDeltaTicks = deltaTicks;
 
          // Average the framerate over FPS_UPDATE_INTERVAL.
          m_fpsSamplingDuration += deltaTicks;
