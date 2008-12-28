@@ -2,12 +2,19 @@ module d4.scene.Vertex;
 
 import d4.math.Vector3;
 
-struct Vertex {
-  static Vertex opCall( Vector3 position = Vector3() ) {
-      Vertex result;
-      result.position = position;
-      return result;
+class Vertex {
+   this( Vector3 position = Vector3() ) {
+      m_position = position;
    }
 
-   Vector3 position;
+   Vector3 position() {
+      return m_position;
+   }
+
+   void position( Vector3 position ) {
+      m_position = position;
+   }
+
+private:
+   Vector3 m_position;
 }

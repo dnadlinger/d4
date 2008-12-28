@@ -69,7 +69,7 @@ private:
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
 
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
-         Vertex vertex;
+         Vertex vertex = new Vertex();
 
          aiVector3D pos = mesh.mVertices[ i ];
          vertex.position = Vector3( pos.x, pos.y, pos.z );

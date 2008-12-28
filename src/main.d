@@ -6,7 +6,6 @@ import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
-import d4.renderer.SimpleWireframeRasterizer;
 import d4.scene.Node;
 import d4.scene.Vertex;
 import d4.util.Key;
@@ -26,10 +25,8 @@ protected:
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
-      m_renderer.triangleRasterizer = new SimpleWireframeRasterizer();
-      m_renderer.clearColor = Color( 0, 0, 0 );
       m_renderer.viewMatrix = Matrix4.lookAt( Vector3( 0, 0, -10 ), Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
-      m_renderer.backfaceCulling = true;
+      m_renderer.cullBackfaces = true;
 
       m_rotateWorld = false;
       m_animateBackground = true;
@@ -56,7 +53,7 @@ protected:
       super.handleKeyUp( key );
       switch ( key ) {
          case Key.c:
-            m_renderer.backfaceCulling = !m_renderer.backfaceCulling;
+            m_renderer.cullBackfaces = !m_renderer.cullBackfaces;
             break;
          case Key.v:
             m_rotateWorld = !m_rotateWorld;

@@ -1,23 +1,23 @@
-module d4.renderer.SimpleWireframeRasterizer;
+module d4.renderer.WireframeRasterizer;
 
-import tango.io.Stdout;
 import tango.math.Math : abs;
 import d4.math.Color;
-import d4.math.Vector3;
-import d4.renderer.Rasterizer;
-import d4.scene.Vertex;
+import d4.math.Vector4;
+import d4.renderer.RasterizerBase;
 
-class SimpleWireframeRasterizer : Rasterizer {
-public:
-   void drawTriangle( Vertex v0, Vertex v1, Vertex v2 ) {
+final class WireframeRasterizer( alias Shader ) : RasterizerBase!( Shader ) {
+protected:
+   void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
+      VertexVariables vars1, Vector4 pos2, VertexVariables vars2 ) {
+      
       Color color = Color( 255, 255, 255 );
-      drawLine( v0.position, v1.position, color );
-      drawLine( v1.position, v2.position, color );
-      drawLine( v2.position, v0.position, color );
+      drawLine( pos0, pos1, color );
+      drawLine( pos1, pos2, color );
+      drawLine( pos2, pos0, color );
    }
-
+   
 private:
-   void drawLine( Vector3 startPos, Vector3 endPos, Color color ) {
+   void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
       int startX = cast( int ) startPos.x;
       int startY = cast( int ) startPos.y;
 
@@ -47,7 +47,7 @@ private:
          errorResetStep = 2 * error;
 
          while ( x != endX ) {
-            m_renderTarget.setPixel( x, y, color );
+            m_colorBuffer.setPixel( x, y, color );
             error += errorPerPixel;
 
             if ( error > 0 ) {
@@ -63,7 +63,7 @@ private:
          errorResetStep = 2 * error;
 
          while ( y != endY ) {
-            m_renderTarget.setPixel( x, y, color );
+            m_colorBuffer.setPixel( x, y, color );
             error += errorPerPixel;
 
             if ( error > 0 ) {
@@ -75,6 +75,6 @@ private:
          }
       }
 
-      m_renderTarget.setPixel( endX, endY, color );
+      m_colorBuffer.setPixel( endX, endY, color );
    }
 }
