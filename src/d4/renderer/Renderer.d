@@ -9,6 +9,7 @@ import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.DefaultShader;
 import d4.renderer.IRasterizer;
+import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
@@ -30,7 +31,7 @@ public:
       
       m_triangleOrientation = TriangleOrientation.CW;
 
-      m_activeRasterizer = new WireframeRasterizer!( DefaultShader )();
+      m_activeRasterizer = new SolidGouraudRasterizer!( DefaultShader )();
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 20.f );
 

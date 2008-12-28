@@ -13,12 +13,22 @@ template DefaultShader() {
       // No variables needed for this shader.
    }
    
-   VertexVariables interpolateLinear( VertexVariables first, VertexVariables second, float position ) {
+   VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
+      return add( first, scale( substract( second, first ), position ) );
+   }
+   
+   VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
       return result;
    }
    
-   void scale( VertexVariables target, float factor ) {
-      // No variables needed for this shader.
+   VertexVariables add( VertexVariables first, VertexVariables second ) {
+      VertexVariables result;
+      return result;
+   }
+   
+   VertexVariables substract( VertexVariables first, VertexVariables second ) {
+      VertexVariables result;
+      return result;
    }
 }

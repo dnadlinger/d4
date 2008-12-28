@@ -25,7 +25,7 @@ protected:
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
-      m_renderer.viewMatrix = Matrix4.lookAt( Vector3( 0, 0, -4 ), Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
+      m_renderer.viewMatrix = Matrix4.lookAt( Vector3( 0, 0, -5 ), Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
       m_renderer.cullBackfaces = true;
 
       m_rotateWorld = false;

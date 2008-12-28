@@ -35,7 +35,7 @@ struct Vector4 {
    float w;
 }
 
-Vector4 interpolateLinear( Vector4 first, Vector4 second, float position ) {
+Vector4 lerp( Vector4 first, Vector4 second, float position ) {
    Vector4 result;
    result.x = first.x + ( second.x - first.x ) * position;
    result.y = first.y + ( second.y - first.y ) * position;

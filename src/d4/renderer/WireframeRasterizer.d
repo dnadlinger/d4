@@ -8,13 +8,11 @@ import d4.renderer.RasterizerBase;
 
 final class WireframeRasterizer( alias Shader ) : RasterizerBase!( Shader ) {
 protected:
-   void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
-      VertexVariables vars1, Vector4 pos2, VertexVariables vars2 ) {
-      
+   void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       Color color = Color( 255, 255, 255 );
-      drawLine( pos0, pos1, color );
-      drawLine( pos1, pos2, color );
-      drawLine( pos2, pos0, color );
+      drawLine( positions[ 0 ], positions[ 1 ], color );
+      drawLine( positions[ 1 ], positions[ 2 ], color );
+      drawLine( positions[ 2 ], positions[ 0 ], color );
    }
    
 private:

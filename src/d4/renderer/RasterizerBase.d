@@ -121,21 +121,13 @@ protected:
     * Rasters the specified triangle to the screen.
     * 
     * The values of the per-vertex data at the pixel position are interpolated and
-    * feeded into the pixel shader to compute the color value. 
+    * feeded into the pixel shader to compute the color value.
     * 
     * Params:
-    *     pos0 = Position of the first vertex. 
-    *     vars0 = Variable values of the first vertex.
-    *     pos1 = Position of the second vertex.
-    *     vars1 = Variable values of the second vertex.
-    *     pos2 = Position of the third vertex.
-    *     vars2 = Variable values of the third vertex.
+    *   positions = The vertex positions in screen coordinates.
+    *   variables = The per-vertex variables.
     */
-   abstract void drawTriangle(
-      Vector4 pos0, VertexVariables vars0,
-      Vector4 pos1, VertexVariables vars1,
-      Vector4 pos2, VertexVariables vars2
-   );
+   abstract void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables );
    
    /**
     * The color buffer to write the output to.
@@ -199,8 +191,9 @@ private:
          // Transform the position into viewport coordinates. We have to invert the
          // y-coordinate because the y-axis is pointing in the other direction in 
          // the viewport coordinate system.
-         vertex.pos.x = ( vertex.pos.x + 1 ) / 2 * m_colorBuffer.width; 
-         vertex.pos.y = ( 1 - vertex.pos.y ) / 2 * m_colorBuffer.height;
+         // FIXME: width and height -1 is a temporary workaround for off-by-one error. 
+         vertex.pos.x = ( vertex.pos.x + 1 ) / 2 * ( m_colorBuffer.width - 1 );
+         vertex.pos.y = ( 1 - vertex.pos.y ) / 2 * ( m_colorBuffer.height - 1 );
       }
       
       // As we already have screen coordinates, looking at the z component
@@ -225,11 +218,8 @@ private:
       
       uint triangleCount = vertices.length - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
-         drawTriangle(
-            vertices[ i ].pos, vertices[ i ].vars,
-            vertices[ i + 1 ].pos, vertices[ i + 1 ].vars,
-            vertices[ i + 2 ].pos, vertices[ i + 2 ].vars
-         );
+         drawTriangle( [ vertices[ i ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
+            [ vertices[ i ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
       }
    }
    
@@ -238,10 +228,10 @@ private:
       // Due to some function overloading strangeness, we have to alias the other
       // interpolation functions.
       // TODO: Why is this necessary?
-      alias d4.math.Vector4.interpolateLinear lerpVector;
-      alias interpolateLinear lerpVars;  // This refers to Shader.interpolateLinear ( VertexVariables, ... )
+      alias d4.math.Vector4.lerp lerpVector;
+      alias lerp lerpVars;  // This refers to Shader.interpolateLinear ( VertexVariables, ... )
       
-      TransformedVertex interpolateLinear( TransformedVertex first, TransformedVertex second, float position ) {
+      TransformedVertex lerp( TransformedVertex first, TransformedVertex second, float position ) {
          TransformedVertex result;
          result.pos = lerpVector( first.pos, second.pos, position );
          result.vars = lerpVars( first.vars, second.vars, position );
@@ -267,11 +257,11 @@ private:
             if ( nextDist < 0.f ) {
                // The edge to the next vertex is crossing the plane, interpolate the 
                // vertex which is exactly on the plane and append it to the result.
-               result ~= interpolateLinear( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+               result ~= lerp( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
             }
          } else if ( nextDist >= 0.f ) {
             // The next vertex is inside, also append the vertex on the plane.
-            result ~= interpolateLinear( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+            result ~= lerp( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
          }
       }
       
