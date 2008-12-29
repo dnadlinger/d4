@@ -14,10 +14,7 @@ import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
 
-enum TriangleOrientation {
-   CCW,
-   CW
-}
+alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
 
 /**
  * The central interface to the rendering system.
@@ -28,8 +25,6 @@ public:
       m_renderTarget = renderTarget;
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
-      
-      m_triangleOrientation = TriangleOrientation.CW;
 
       m_activeRasterizer = new SolidGouraudRasterizer!( DefaultShader )();
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
@@ -95,6 +90,14 @@ public:
          farDistance
       );
    }
+   
+   BackfaceCulling backfaceCulling() {
+      return m_activeRasterizer.backfaceCulling;
+   }
+   
+   void backfaceCulling( BackfaceCulling cullingMode ) {
+      m_activeRasterizer.backfaceCulling = cullingMode;
+   }
 
    Color clearColor() {
       return m_clearColor;
@@ -102,36 +105,6 @@ public:
 
    void clearColor( Color clearColor ) {
       m_clearColor = clearColor;
-   }
-
-   bool cullBackfaces() {
-      if ( m_triangleOrientation == TriangleOrientation.CCW ) {
-         return m_activeRasterizer.backfaceCulling == BackfaceCulling.CW;
-      } else if ( m_triangleOrientation == TriangleOrientation.CW ) {
-         return m_activeRasterizer.backfaceCulling == BackfaceCulling.CCW;
-      }
-   }
-
-   void cullBackfaces( bool performCulling ) {
-      if( performCulling ) {
-         if ( m_triangleOrientation == TriangleOrientation.CCW ) {
-            m_activeRasterizer.backfaceCulling = BackfaceCulling.CW;
-         } else if ( m_triangleOrientation == TriangleOrientation.CW ) {
-            m_activeRasterizer.backfaceCulling = BackfaceCulling.CCW;
-         }
-      } else {
-         m_activeRasterizer.backfaceCulling = BackfaceCulling.NONE;
-      }
-   }
-
-   TriangleOrientation triangleOrientation() {
-      return m_triangleOrientation;
-   }
-
-   void triangleOrientation( TriangleOrientation orientation ) {
-      bool performCulling = cullBackfaces();
-      m_triangleOrientation = orientation;
-      cullBackfaces( performCulling );
    }
    
 private:
@@ -142,6 +115,4 @@ private:
 
    Color m_clearColor;
    bool m_rendering;
-
-   TriangleOrientation m_triangleOrientation;
 }

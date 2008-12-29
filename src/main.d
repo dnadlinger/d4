@@ -1,5 +1,6 @@
 module main;
 
+import tango.core.Array;
 import tango.math.Math : sin;
 import d4.format.AssimpLoader;
 import d4.math.Color;
@@ -16,19 +17,26 @@ public:
    void modelFile( char[] fileName ) {
       m_modelFileName = fileName;
    }
+   
+   void fakeColor( bool fakeColor ) {
+      m_fakeColor = fakeColor;
+   }
+   
+   void smoothNormals( bool smoothNormals ) {
+      m_smoothNormals = smoothNormals;
+   }
 
 protected:
    override void init() {
       assert( m_modelFileName.length > 0 );
 
-      auto loader = new AssimpLoader( m_modelFileName );
+      auto loader = new AssimpLoader( m_modelFileName, m_smoothNormals, m_fakeColor );
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
-      m_renderer.triangleOrientation = TriangleOrientation.CW;
+      m_renderer.backfaceCulling = BackfaceCulling.CULL_CCW;
       m_renderer.setProjection( PI / 2, 0.5f, 200f );
       m_cameraPosition = Vector3( 0, 0, -10 );
-      m_renderer.cullBackfaces = true;
 
       m_rotateWorld = false;
       m_animateBackground = false;
@@ -74,7 +82,8 @@ protected:
       super.handleKeyUp( key );
       switch ( key ) {
          case Key.c:
-            m_renderer.cullBackfaces = !m_renderer.cullBackfaces;
+            m_renderer.backfaceCulling = cast( BackfaceCulling )
+               ( ( m_renderer.backfaceCulling + 1 ) % ( BackfaceCulling.max + 1 ) );
             break;
          case Key.v:
             m_rotateWorld = !m_rotateWorld;
@@ -110,6 +119,8 @@ private:
    }
 
    char[] m_modelFileName;
+   bool m_smoothNormals;
+   bool m_fakeColor;
 
    Renderer m_renderer;
    Node m_rootNode;
@@ -123,10 +134,20 @@ private:
 
 void main( char[][] args ) {
    scope auto app = new MainApplication();
+   
    try {
       app.modelFile = args[ 1 ];
    } catch ( Exception e ) {
       throw new Exception( "Please specify a model file at the command line" );
    }
+   
+   if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
+      app.smoothNormals = true;
+   }
+   
+   if ( contains( args[ 2..$ ], "fakeColor" ) ) {
+      app.fakeColor = true;
+   }
+   
    app.run();
 }

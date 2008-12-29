@@ -7,8 +7,8 @@ import d4.scene.Vertex;
 
 enum BackfaceCulling {
    NONE,
-   CW,
-   CCW
+   CULL_CW,
+   CULL_CCW
 }
 
 interface IRasterizer {

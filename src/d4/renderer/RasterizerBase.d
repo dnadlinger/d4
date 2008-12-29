@@ -20,7 +20,7 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
       
-      m_backfaceCulling = BackfaceCulling.CCW;
+      m_backfaceCulling = BackfaceCulling.CULL_CW;
    }
    
    /**
@@ -214,11 +214,11 @@ private:
          Vector4 p2 = vertices[ 2 ].pos;
          
          float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
-         if ( ( m_backfaceCulling == BackfaceCulling.CCW ) && ( crossZ > 0 ) ) {
+         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ > 0 ) ) {
             return;
          }
          
-         if ( ( m_backfaceCulling == BackfaceCulling.CW ) && ( crossZ < 0 ) ) {
+         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CW ) && ( crossZ < 0 ) ) {
             return;
          }
       }

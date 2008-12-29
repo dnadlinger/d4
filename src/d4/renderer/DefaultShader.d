@@ -6,10 +6,13 @@ template DefaultShader() {
       ColoredVertex cv = cast( ColoredVertex ) vertex;
       assert( cv !is null );
       
+      // Assumes that the world matrix does not scale the normal, otherwise we
+      // would have to normalize the vector.
+      // Should probably use the inverse transposed matrix instead.
       Vector3 worldNormal = m_worldMatrix.rotateVector( cv.normal );
-      float lightIntensity = worldNormal.dot( Vector3( 0, 0.707106781187, -0.707106781187 ) );
-      if ( lightIntensity < 0.1 ) {
-         lightIntensity = 0.1;
+      float lightIntensity = worldNormal.dot( Vector3( 0, -0.707106781187, 0.707106781187 ) );
+      if ( lightIntensity < 0.2 ) {
+         lightIntensity = 0.2;
       }
       position = m_worldViewProjMatrix * cv.position;
       variables.color = cv.color * lightIntensity;

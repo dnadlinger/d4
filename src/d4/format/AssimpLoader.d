@@ -14,19 +14,26 @@ import d4.scene.Vertex;
 import d4.scene.ColoredVertex;
 
 class AssimpLoader {
-   this( char[] fileName ) {
-      aiScene* scene = aiImportFile( toStringz( fileName ),
-         aiProcess.JoinIdenticalVertices |
-         aiProcess.ConvertToLeftHanded |
-         aiProcess.Triangulate |
-         aiProcess.FixInfacingNormals |
-         aiProcess.GenNormals |
-         aiProcess.ValidateDataStructure |
-         aiProcess.ImproveCacheLocality |
-         aiProcess.RemoveRedundantMaterials /*|
-         aiProcess.OptimizeGraph |
-         aiProcess.GenUVCoords */
-      );
+   this( char[] fileName, bool smoothNormals = false, bool fakeColor = false ) {
+      uint importFlags =
+         aiProcess.JoinIdenticalVertices
+         | aiProcess.ConvertToLeftHanded
+         | aiProcess.Triangulate
+         | aiProcess.FixInfacingNormals
+         | aiProcess.ValidateDataStructure
+         | aiProcess.RemoveRedundantMaterials
+         | aiProcess.ImproveCacheLocality
+//         | aiProcess.OptimizeGraph
+//         | aiProcess.GenUVCoords
+      ;
+      
+      if ( smoothNormals ) {
+         importFlags |= aiProcess.GenSmoothNormals;
+      } else {
+         importFlags |= aiProcess.GenNormals;
+      }
+      
+      aiScene* scene = aiImportFile( toStringz( fileName ), importFlags );
 
       if ( scene == null ) {
          throw new Exception( "Failed to load scene from file (" ~ fileName ~ "): " ~ fromStringz( aiGetErrorString() ) );
@@ -41,7 +48,7 @@ class AssimpLoader {
       }
 
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
-         m_meshes ~= importMesh( *( scene.mMeshes[ i ] ) );
+         m_meshes ~= importMesh( *( scene.mMeshes[ i ] ), fakeColor );
       }
 
       m_rootNode = importNode( *( scene.mRootNode ) );
@@ -62,9 +69,17 @@ private:
       return result;
    }
 
-   Mesh importMesh( aiMesh mesh ) {
+   Mesh importMesh( aiMesh mesh, bool fakeColor ) {
       Mesh result = new Mesh();
       
+      // If assimp's preprocessing worked correctly, the mesh should not be
+      // empty and it should only contain triangles by now.
+      assert( mesh.mNumFaces > 0 );
+      assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
+      
+      // The fake color mechanism assigns a color from the list to each vertex.
+      // If two vertices within colorLookbackLimit have the same position, they 
+      // get the same color.
       Color[] colors = [
          Color( 255, 0, 0 ),
          Color( 0, 255, 0 ),
@@ -74,32 +89,36 @@ private:
          Color( 0, 255, 255 ),
          Color( 255, 255, 255 )
       ];
-
-      // If assimp's preprocessing worked correctly, the mesh should not be
-      // empty and it should only contain triangles by now.
-      assert( mesh.mNumFaces > 0 );
-      assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
-
-      // Other buffer to get rid of casts.
-      ColoredVertex[] vertices;
+      ColoredVertex[ 6 ] fakeColorBuffer;
+      
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
          ColoredVertex vertex = new ColoredVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         vertex.normal = importVector3( mesh.mNormals[ i ] );
-         vertex.color = Color( 255, 255, 255 );
-//         foreach( oldVertex; vertices ) {
-//            if ( vertex.position == oldVertex.position ) {
-//               vertex.color = oldVertex.color;
-//               break;
-//            }
-//         }
+         // FIXME: Why does vertex.normal.normalize() not work?
+         vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
+         
+         if ( fakeColor ) {
+            vertex.color = colors[ i % $ ];
+            foreach ( oldVertex; fakeColorBuffer ) {
+               if ( oldVertex is null ) {
+                  break;
+               }
+               if ( vertex.position == oldVertex.position ) {
+                  vertex.color = oldVertex.color;
+                  break;
+               }
+            }
+            fakeColorBuffer[ i % $ ] = vertex;
+         } else {
+            // TODO: Import color.
+            vertex.color = Color( 255, 255, 255 );
+         }
+         
          // TODO: Import other data.
 
-         vertices ~= vertex;
+         result.vertices ~= vertex;
       }
-      
-      result.vertices = vertices;
 
       for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
          aiFace face = mesh.mFaces[ i ];
