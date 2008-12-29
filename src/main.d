@@ -25,12 +25,15 @@ protected:
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
-      m_renderer.viewMatrix = Matrix4.lookAt( Vector3( 0, 0, -5 ), Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
+      m_renderer.triangleOrientation = TriangleOrientation.CW;
+      m_renderer.setProjection( PI / 2, 1f, 200f );
+      m_cameraPosition = Vector3( 0, 0, -10 );
       m_renderer.cullBackfaces = true;
 
       m_rotateWorld = false;
-      m_animateBackground = true;
+      m_animateBackground = false;
       m_backgroundTime = 0;
+      updateRainbowBackground( 0 );
    }
 
    override void render( float deltaTime ) {
@@ -40,6 +43,20 @@ protected:
       if ( m_rotateWorld ) {
          updateRotatingWorld( deltaTime );
       }
+      
+      if ( isKeyDown( Key.w ) ) {
+         m_cameraPosition.z += deltaTime * 5;
+      }
+      if ( isKeyDown( Key.s ) ) {
+         m_cameraPosition.z -= deltaTime * 5;
+      }
+      if ( isKeyDown( Key.a ) ) {
+         m_cameraPosition.x -= deltaTime * 5;
+      }
+      if ( isKeyDown( Key.d ) ) {
+         m_cameraPosition.x += deltaTime * 5;
+      }
+      updateViewMatrix();
 
       m_renderer.beginScene();
       m_rootNode.render( m_renderer );
@@ -83,6 +100,10 @@ private:
 
       m_rootNode.transformation = rotation * m_rootNode.transformation;
    }
+   
+   void updateViewMatrix() {
+      m_renderer.viewMatrix = Matrix4.lookAt( m_cameraPosition, Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
+   }
 
    char[] m_modelFileName;
 
@@ -92,6 +113,8 @@ private:
    bool m_rotateWorld;
    bool m_animateBackground;
    float m_backgroundTime;
+   
+   Vector3 m_cameraPosition;
 }
 
 void main( char[][] args ) {
