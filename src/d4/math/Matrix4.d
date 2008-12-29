@@ -1,5 +1,6 @@
 module d4.math.Matrix4;
 
+import tango.io.Stdout;
 import tango.math.Math : sin, cos, tan;
 import d4.math.Vector3;
 import d4.math.Vector4;
@@ -99,17 +100,17 @@ struct Matrix4 {
       m.m11 = right.x;
       m.m12 = up.x;
       m.m13 = direction.x;
-      m.m14 = -position.x;
+      m.m14 = -right.dot( position );
 
       m.m21 = right.y;
       m.m22 = up.y;
       m.m23 = direction.y;
-      m.m24 = -position.y;
+      m.m24 = -up.dot( position );
 
       m.m31 = right.z;
       m.m32 = up.z;
       m.m33 = direction.z;
-      m.m34 = -position.z;
+      m.m34 = -direction.dot( position );
 
       return m;
    }
@@ -279,6 +280,14 @@ struct Matrix4 {
          m21 * rhs.x + m22 * rhs.y + m23 * rhs.z + m24,
          m31 * rhs.x + m32 * rhs.y + m33 * rhs.z + m34,
          m41 * rhs.x + m42 * rhs.y + m43 * rhs.z + m44
+      );
+   }
+   
+   Vector3 rotateVector( Vector3 rhs ) {
+      return Vector3(
+         m11 * rhs.x + m12 * rhs.y + m13 * rhs.z,
+         m21 * rhs.x + m22 * rhs.y + m23 * rhs.z,
+         m31 * rhs.x + m32 * rhs.y + m33 * rhs.z
       );
    }
 

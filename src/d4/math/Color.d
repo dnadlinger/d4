@@ -14,7 +14,7 @@ struct Color {
    }
 
    static Color opCall( ubyte r = 255, ubyte g = 255, ubyte b = 255, ubyte a = 255 ) {
-      Color color;
+      Color color = void;
       color.r = r;
       color.g = g;
       color.b = b;
@@ -23,8 +23,16 @@ struct Color {
    }
 
    static Color opCall( uint value ) {
-      Color color;
+      Color color = void;
       color.value = value;
+      return color;
+   }
+   
+   Color opMul( float factor ) {
+      Color color = void;
+      color.r = cast( ubyte )( r * factor );
+      color.g = cast( ubyte )( g * factor );
+      color.b = cast( ubyte )( b * factor );
       return color;
    }
 

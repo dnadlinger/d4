@@ -3,6 +3,7 @@ module d4.format.AssimpLoader;
 import tango.stdc.stringz : fromStringz, toStringz;
 import tango.io.Stdout;
 import assimp.all;
+import assimp.postprocess;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
@@ -10,6 +11,7 @@ import d4.scene.Material;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Vertex;
+import d4.scene.ColoredVertex;
 
 class AssimpLoader {
    this( char[] fileName ) {
@@ -18,8 +20,8 @@ class AssimpLoader {
          aiProcess.ConvertToLeftHanded |
          aiProcess.Triangulate |
          aiProcess.FixInfacingNormals |
-         /* aiProcess.GenSmoothNormals | */
-         /* aiProcess.ValidateDataStructure | */
+         aiProcess.GenNormals |
+         aiProcess.ValidateDataStructure |
          aiProcess.ImproveCacheLocality |
          aiProcess.RemoveRedundantMaterials /*|
          aiProcess.OptimizeGraph |
@@ -62,22 +64,42 @@ private:
 
    Mesh importMesh( aiMesh mesh ) {
       Mesh result = new Mesh();
+      
+      Color[] colors = [
+         Color( 255, 0, 0 ),
+         Color( 0, 255, 0 ),
+         Color( 0, 0, 255 ),
+         Color( 255, 255, 0 ),
+         Color( 255, 0, 255 ),         
+         Color( 0, 255, 255 ),
+         Color( 255, 255, 255 )
+      ];
 
       // If assimp's preprocessing worked correctly, the mesh should not be
       // empty and it should only contain triangles by now.
       assert( mesh.mNumFaces > 0 );
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
 
+      // Other buffer to get rid of casts.
+      ColoredVertex[] vertices;
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
-         Vertex vertex = new Vertex();
+         ColoredVertex vertex = new ColoredVertex();
 
-         aiVector3D pos = mesh.mVertices[ i ];
-         vertex.position = Vector3( pos.x, pos.y, pos.z );
-
+         vertex.position = importVector3( mesh.mVertices[ i ] );
+         vertex.normal = importVector3( mesh.mNormals[ i ] );
+         vertex.color = Color( 255, 255, 255 );
+//         foreach( oldVertex; vertices ) {
+//            if ( vertex.position == oldVertex.position ) {
+//               vertex.color = oldVertex.color;
+//               break;
+//            }
+//         }
          // TODO: Import other data.
 
-         result.vertices ~= vertex;
+         vertices ~= vertex;
       }
+      
+      result.vertices = vertices;
 
       for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
          aiFace face = mesh.mFaces[ i ];
@@ -140,6 +162,10 @@ private:
       r.m44 = m.d4;
 
       return r;
+   }
+   
+   Vector3 importVector3( aiVector3D v ) {
+      return Vector3( v.x, v.y, v.z );
    }
 
    Mesh[] m_meshes;

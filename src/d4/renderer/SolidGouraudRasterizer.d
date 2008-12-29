@@ -8,6 +8,9 @@ import d4.renderer.RasterizerBase;
 
 final class SolidGouraudRasterizer( alias Shader ) : RasterizerBase!( Shader ) {
 protected:
+   /**
+    * Inspired by Muli3D.
+    */
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       // Calculate the triangle »gradients«.
       // The vertex at index 0 is the base vertex for the gradient calculations.
@@ -39,7 +42,10 @@ protected:
       void rasterizeScanline( uint y, uint startX, uint endX,
          float startZ, float startW, VertexVariables startVariables ) {
          
-         assert( startX <= endX );
+         if ( startX > endX ) {
+            Stdout( "Wrong x order: start {}, end {}.", startX, endX ).newline;
+            assert( startX <= endX );
+         }
          
          uint currentX = startX;
          float currentZ = startZ;
@@ -48,12 +54,10 @@ protected:
          
          while ( currentX < endX ) {
             // Perform depth-test.
-//            if ( !m_zBuffer.testAndUpdate( x, y, z ) ) {
-//               continue;
-//            }
-            
-            Color currentColor = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
-            m_colorBuffer.setPixel( currentX, y, currentColor );
+            if ( m_zBuffer.testAndUpdate( currentX, y, currentZ ) ) {
+               Color currentColor = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
+               m_colorBuffer.setPixel( currentX, y, currentColor );
+            }
 
             currentZ += dzPerDx;
             currentW += dwPerDx;

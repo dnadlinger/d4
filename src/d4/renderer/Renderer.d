@@ -33,18 +33,21 @@ public:
 
       m_activeRasterizer = new SolidGouraudRasterizer!( DefaultShader )();
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
-      setProjection( PI / 2, 0.1f, 20.f );
+      setProjection( PI / 2, 0.1f, 100.f );
 
       m_rendering = false;
    }
 
-   void beginScene( bool clear = true ) {
+   void beginScene( bool clearColor = true, bool clearZ = true ) {
       assert( !m_rendering );
       m_rendering = true;
       m_renderTarget.lock();
 
-      if ( clear ) {
+      if ( clearColor ) {
          m_renderTarget.clear( m_clearColor );
+      }
+      if ( clearZ ) {
+         m_zBuffer.clear();
       }
    }
 
