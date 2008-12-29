@@ -18,7 +18,19 @@ struct Vector3 {
          z + rhs.z
       );
    }
+   
+   void opAddAssign( Vector3 rhs ) {
+      x += rhs.x;
+      y += rhs.y;
+      z += rhs.z;
+   }
 
+   void opSubAssign( Vector3 rhs ) {
+      x -= rhs.x;
+      y -= rhs.y;
+      z -= rhs.z;
+   }
+   
    Vector3 opSub( Vector3 rhs ) {
       return Vector3(
          x - rhs.x,

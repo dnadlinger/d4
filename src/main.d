@@ -26,7 +26,7 @@ protected:
 
       m_renderer = new Renderer( screen() );
       m_renderer.triangleOrientation = TriangleOrientation.CW;
-      m_renderer.setProjection( PI / 2, 1f, 200f );
+      m_renderer.setProjection( PI / 2, 0.5f, 200f );
       m_cameraPosition = Vector3( 0, 0, -10 );
       m_renderer.cullBackfaces = true;
 
@@ -44,17 +44,21 @@ protected:
          updateRotatingWorld( deltaTime );
       }
       
+      Vector3 toCenter = Vector3( 0, 0, 0 ) - m_cameraPosition;
+      toCenter.normalize();
+      Vector3 toRight = Vector3( 0, 1, 0 ).cross( toCenter );
+      const movementSpeed = 10;
       if ( isKeyDown( Key.w ) ) {
-         m_cameraPosition.z += deltaTime * 5;
+         m_cameraPosition += toCenter * deltaTime * movementSpeed;
       }
       if ( isKeyDown( Key.s ) ) {
-         m_cameraPosition.z -= deltaTime * 5;
+         m_cameraPosition -= toCenter * deltaTime * movementSpeed;
       }
       if ( isKeyDown( Key.a ) ) {
-         m_cameraPosition.x -= deltaTime * 5;
+         m_cameraPosition += toRight * deltaTime * movementSpeed;
       }
       if ( isKeyDown( Key.d ) ) {
-         m_cameraPosition.x += deltaTime * 5;
+         m_cameraPosition -= toRight * deltaTime * movementSpeed;
       }
       updateViewMatrix();
 
