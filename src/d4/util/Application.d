@@ -120,5 +120,5 @@ private:
    uint m_framesInSample;
    float m_fps;
 
-   bool[ Key.LAST ] m_keyDownList;
+   bool[ Key.max + 1 ] m_keyDownList;
 }

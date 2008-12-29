@@ -253,9 +253,7 @@ enum Key {
    MENU       = 319,
    POWER      = 320, // Power Macintosh power key.
    EURO       = 321, // Some European keyboard have this.
-   UNDO       = 322, // The atari keyboard has an "Undo" key.
-
-   LAST
+   UNDO       = 322 // The atari keyboard has an "Undo" key.
 }
 
 enum KeyModifier {
