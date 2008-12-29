@@ -31,6 +31,9 @@ public:
       setProjection( PI / 2, 0.1f, 100.f );
 
       m_rendering = false;
+      
+      m_rasterizers[ RASTERIZER_SOLID_GOURAUD ] =  new SolidGouraudRasterizer!( DefaultShader )();
+      m_rasterizers[ RASTERIZER_WIREFRAME ] = new WireframeRasterizer!( DefaultShader )();
    }
 
    void beginScene( bool clearColor = true, bool clearZ = true ) {
@@ -98,6 +101,18 @@ public:
    void backfaceCulling( BackfaceCulling cullingMode ) {
       m_activeRasterizer.backfaceCulling = cullingMode;
    }
+   
+   bool wireframe() {
+      return m_activeRasterizer == m_rasterizers[ RASTERIZER_WIREFRAME ];
+   }
+   
+   void wireframe( bool wireframe ) {
+      if ( wireframe ) {
+         setActiveRasterizer( m_rasterizers[ RASTERIZER_WIREFRAME ] );
+      } else {
+         setActiveRasterizer( m_rasterizers[ RASTERIZER_SOLID_GOURAUD ] );
+      }
+   }
 
    Color clearColor() {
       return m_clearColor;
@@ -108,7 +123,25 @@ public:
    }
    
 private:
+   void setActiveRasterizer( IRasterizer rasterizer ) {
+      if ( rasterizer == m_activeRasterizer ) {
+         return;
+      }
+      
+      rasterizer.worldMatrix = m_activeRasterizer.worldMatrix;
+      rasterizer.viewMatrix = m_activeRasterizer.viewMatrix;
+      rasterizer.projectionMatrix = m_activeRasterizer.projectionMatrix;
+      rasterizer.backfaceCulling = m_activeRasterizer.backfaceCulling;
+      
+      m_activeRasterizer = rasterizer;
+      m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
+   }
+   
+   IRasterizer[ 2 ] m_rasterizers;
    IRasterizer m_activeRasterizer;
+   
+   const RASTERIZER_SOLID_GOURAUD = 0;
+   const RASTERIZER_WIREFRAME = 1;
 
    Surface m_renderTarget;
    ZBuffer m_zBuffer;

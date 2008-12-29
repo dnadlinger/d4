@@ -51,7 +51,7 @@ protected:
       if ( m_rotateWorld ) {
          updateRotatingWorld( deltaTime );
       }
-      
+
       Vector3 toCenter = Vector3( 0, 0, 0 ) - m_cameraPosition;
       toCenter.normalize();
       Vector3 toRight = Vector3( 0, 1, 0 ).cross( toCenter );
@@ -81,6 +81,9 @@ protected:
    override void handleKeyUp( Key key ) {
       super.handleKeyUp( key );
       switch ( key ) {
+         case Key.x:
+            m_renderer.wireframe = !m_renderer.wireframe;
+            break;
          case Key.c:
             m_renderer.backfaceCulling = cast( BackfaceCulling )
                ( ( m_renderer.backfaceCulling + 1 ) % ( BackfaceCulling.max + 1 ) );
