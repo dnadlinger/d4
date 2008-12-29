@@ -1,6 +1,7 @@
 module d4.renderer.Rasterizer;
 
 import tango.io.Stdout;
+import tango.math.IEEE : RoundingMode, setIeeeRounding;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
@@ -9,6 +10,7 @@ import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
+import d4.scene.ColoredVertex;
 
 abstract class RasterizerBase( alias Shader ) : IRasterizer {
    this() {
@@ -33,6 +35,11 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
     */
    void renderTriangleList( Vertex[] vertices, uint[] indices ) {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
+      
+      // Set the FPU to truncation rounding. We have to restore the old state
+      // when leaving the function.
+      auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
+      scope ( exit ) setIeeeRounding( oldRoundingMode );
 
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
@@ -185,13 +192,13 @@ private:
          // Additionally, divide all vertex variables by w so that we can linearely
          // interpolate between them in screen space. Save invW to the w coordinate
          // so that we can reconstruct the original values later.
-         scale( vertex.vars, invW );
+         vertex.vars = scale( vertex.vars, invW );
          vertex.pos.w = invW;
          
          // Transform the position into viewport coordinates. We have to invert the
          // y-coordinate because the y-axis is pointing in the other direction in 
          // the viewport coordinate system.
-         // FIXME: width and height -1 is a temporary workaround for off-by-one error. 
+         // FIXME: The substaction of 1 is a temporary workaround for off-by-one error. 
          vertex.pos.x = ( vertex.pos.x + 1 ) / 2 * ( m_colorBuffer.width - 1 );
          vertex.pos.y = ( 1 - vertex.pos.y ) / 2 * ( m_colorBuffer.height - 1 );
       }
@@ -218,8 +225,8 @@ private:
       
       uint triangleCount = vertices.length - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
-         drawTriangle( [ vertices[ i ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
-            [ vertices[ i ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
+         drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
+            [ vertices[ 0 ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
       }
    }
    
