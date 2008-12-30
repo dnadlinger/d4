@@ -2,6 +2,7 @@ module d4.renderer.Rasterizer;
 
 import tango.io.Stdout;
 import tango.math.IEEE : RoundingMode, setIeeeRounding;
+import util.ArrayAllocation;
 import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -45,19 +46,22 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
       TransformedVertex[] transformed;
+      allocate( transformed, vertices.length );
       
-      foreach ( vertex; vertices ) {
+      foreach ( i, vertex; vertices ) {
          TransformedVertex current;
          
          vertexShader( vertex, current.pos, current.vars );
          // Note: The positions are still not divided by w (»homogenzied«).
          
-         transformed ~= current;
+         transformed[ i ] = current;
       }
       
       for ( uint i = 0; i < indices.length; i += 3 ) {
          renderTriangle( transformed[ indices[ i ] ], transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }
+
+      free( transformed );
    }
    
    void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
