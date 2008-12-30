@@ -14,7 +14,7 @@ enum BackfaceCulling {
 interface IRasterizer {
    void renderTriangleList( Vertex[] vertices, uint[] indices );
    
-   void setRenderTarget( Surface frameBuffer, ZBuffer zBuffer );
+   void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer );
    
    Matrix4 worldMatrix();
    void worldMatrix( Matrix4 worldMatrix );

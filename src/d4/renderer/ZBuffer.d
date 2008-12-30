@@ -34,6 +34,10 @@ class ZBuffer {
       return m_height;
    }
 
+   float* data() {
+      return cast( float* )m_buffer;
+   }
+
 private:
    uint m_width;
    uint m_height;

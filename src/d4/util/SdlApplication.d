@@ -4,8 +4,8 @@ import tango.io.Stdout;
 import tango.stdc.stringz : fromStringz, toStringz;
 import derelict.sdl.sdl;
 import d4.math.Color;
-import d4.output.SdlSurface;
 import d4.output.Surface;
+import d4.output.SdlSurface;
 import d4.util.Application;
 import d4.util.Key;
 
