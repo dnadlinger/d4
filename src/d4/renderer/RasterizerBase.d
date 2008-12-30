@@ -112,9 +112,48 @@ protected:
     * The shader has to provide:
     *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
     *  - Color pixelShader( VertexVariables variables );
-    *  - VertexVariables interpolate( ... );
+    *  - struct VertexVariables
     */
    mixin Shader;
+   
+   // TODO: String-unroll the loops.
+   
+   VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
+      return add( first, scale( substract( second, first ), position ) );
+   }
+   
+   VertexVariables scale( VertexVariables variables, float factor ) {
+      VertexVariables result;
+      for ( uint i = 0; i < result.values.length; ++i ) {
+         result.values[ i ] = variables.values[ i ] * factor;
+      }
+      return result;
+   }
+   
+   VertexVariables add( VertexVariables first, VertexVariables second ) {
+      VertexVariables result;
+      for ( uint i = 0; i < result.values.length; ++i ) {
+         result.values[ i ] = first.values[ i ] + second.values[ i ];
+      }
+      return result;
+   }
+   
+   VertexVariables substract( VertexVariables first, VertexVariables second ) {
+      VertexVariables result;
+      for ( uint i = 0; i < result.values.length; ++i ) {
+         result.values[ i ] = first.values[ i ] - second.values[ i ];
+      }
+      return result;
+   }
+   
+   /+template scaleComponent( variables, float factor, uint index ) {
+      variables.values;
+      static if ( index > 0 ) {
+         const scaleComponent = scaleComponent!( variables, factor, index - 1 );
+      } else {
+         const scaleComponent = variables;
+      }
+   }+/
    
    /**
     * Convinience struct for storing the transformed vertices.
@@ -236,9 +275,9 @@ private:
       // interpolation functions.
       // TODO: Why is this necessary?
       alias d4.math.Vector4.lerp lerpVector;
-      alias lerp lerpVars;  // This refers to Shader.interpolateLinear ( VertexVariables, ... )
+      alias lerp lerpVars;
       
-      TransformedVertex lerp( TransformedVertex first, TransformedVertex second, float position ) {
+      TransformedVertex lerpVertex( TransformedVertex first, TransformedVertex second, float position ) {
          TransformedVertex result;
          result.pos = lerpVector( first.pos, second.pos, position );
          result.vars = lerpVars( first.vars, second.vars, position );
@@ -264,11 +303,11 @@ private:
             if ( nextDist < 0.f ) {
                // The edge to the next vertex is crossing the plane, interpolate the 
                // vertex which is exactly on the plane and append it to the result.
-               result ~= lerp( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+               result ~= lerpVertex( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
             }
          } else if ( nextDist >= 0.f ) {
             // The next vertex is inside, also append the vertex on the plane.
-            result ~= lerp( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+            result ~= lerpVertex( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
          }
       }
       
@@ -276,10 +315,51 @@ private:
    }   
    
    Matrix4 m_worldMatrix;
+   Matrix4 m_worldNormalMatrix;
    Matrix4 m_viewMatrix;
    Matrix4 m_projMatrix;
    Matrix4 m_worldViewMatrix;
    Matrix4 m_worldViewProjMatrix;
    
    BackfaceCulling m_backfaceCulling;
+}
+
+char[] str( uint number ) {
+   char digits[];
+   if ( number > 10 ) {
+      digits = str( number / 10 );
+   }
+   
+   digits ~= cast( char )( '0' + number % 10 );
+   return digits;
+}
+
+template vector3Variable( char[] name, uint index ) {
+   const char[] vector3Variable =
+      "Vector3 " ~ name ~ "() { "
+         "return Vector3( values[" ~ str( index ) ~  "], values[" ~ str( index + 1 ) ~ "], values[" ~ str( index + 2 ) ~ "] );"
+      "}"
+      "void " ~ name ~ "( Vector3 vector ) { "
+         "values[" ~ str( index ) ~  "] = vector.x;"
+         "values[" ~ str( index + 1 ) ~  "] = vector.y;"
+         "values[" ~ str( index + 2 ) ~  "] = vector.z;"
+      "}";
+}
+
+template colorVariable( char[] name, uint index ) {
+   const char[] colorVariable =
+      "Color " ~ name ~ "() {"
+         "Color result;"
+         "result.a = cast( ubyte )( values[" ~ str( index ) ~  "] * 255 );"
+         "result.r = cast( ubyte )( values[" ~ str( index + 1 ) ~  "] * 255 );"
+         "result.g = cast( ubyte )( values[" ~ str( index + 2 ) ~  "] * 255 );"
+         "result.b = cast( ubyte )( values[" ~ str( index + 3 ) ~  "] * 255 );"
+         "return result;"
+      "}"
+      "void " ~ name ~ "( Color color ) {"
+         "values[" ~ str( index ) ~  "] = cast( float ) color.a / 255f;"
+         "values[" ~ str( index + 1 ) ~  "] = cast( float ) color.r / 255f;"
+         "values[" ~ str( index + 2 ) ~  "] = cast( float ) color.g / 255f;"
+         "values[" ~ str( index + 3 ) ~  "] = cast( float ) color.b / 255f;"
+      "}";
 }
