@@ -2,9 +2,8 @@ module d4.output.SdlSurface;
 
 import derelict.sdl.sdl;
 import d4.math.Color;
-import d4.output.Surface;
 
-final class SdlSurface : Surface {
+final class SdlSurface {
 public:
    this( SDL_Surface* sdlSurface ) {
       m_sdlSurface = sdlSurface;

@@ -6,7 +6,7 @@ import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
 import d4.math.Vector4;
-import d4.output.Surface;
+import d4.output.SdlSurface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
@@ -59,7 +59,7 @@ abstract class RasterizerBase( alias Shader ) : IRasterizer {
       }
    }
    
-   void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
+   void setRenderTarget( SdlSurface colorBuffer, ZBuffer zBuffer ) {
       assert( colorBuffer.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
       assert( colorBuffer.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
 
@@ -179,7 +179,7 @@ protected:
     * The color buffer to write the output to.
     * It is set by setRenderTarget.
     */
-   Surface m_colorBuffer;
+   SdlSurface m_colorBuffer;
    /**
     * The Z buffer to use for the visibility calculations.
     * It is set by <code>setRenderTarget</code>.
