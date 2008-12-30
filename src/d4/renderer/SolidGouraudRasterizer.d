@@ -39,32 +39,28 @@ protected:
       VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
       VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
       
-      void rasterizeScanline( uint y, uint startX, uint endX,
+      void rasterizeScanline( uint pixelCount, uint startBufferIndex,
          float startZ, float startW, VertexVariables startVariables ) {
          
-         if ( startX > endX ) {
-            Stdout( "Wrong x order: start {}, end {}.", startX, endX ).newline;
-            assert( startX <= endX );
-         }
+         Color* currentPixel = &m_colorBuffer.pixels[ startBufferIndex ];
+         float* currentDepth = &m_zBuffer.data[ startBufferIndex ];
          
-         Color* currentPixel = &m_colorBuffer.pixels[ y * m_colorBuffer.width + startX ];
-         
-         uint currentX = startX;
          float currentZ = startZ;
          float currentW = startW;
          VertexVariables currentVars = startVariables;
          
-         while ( currentX < endX ) {
+         while ( pixelCount-- ) {
             // Perform depth-test.
-            if ( m_zBuffer.testAndUpdate( currentX, y, currentZ ) ) {
+            if ( currentZ < (*currentDepth) ) {
+               (*currentDepth) = currentZ;
                (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
             }
 
             currentZ += dzPerDx;
             currentW += dwPerDx;
             currentVars = add( currentVars, dVarsPerDx );
-            ++currentX;
             ++currentPixel;
+            ++currentDepth;
          }
       }
       
@@ -122,25 +118,38 @@ protected:
       float yPreStep = cast( float ) y0 - p0.y;
       x0 += xDelta0 * yPreStep;
       x1 += xDelta1 * yPreStep;
-      
+
+      uint bufferLineStride = m_colorBuffer.width;
+      uint lineStartBufferIndex =  y0 * bufferLineStride;
+
       while ( y0 < y1 ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
-         // We used vertex 0 as base for the gradient calculations.
-         float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-         float relativeY = cast( float ) y0 - positions[ 0 ].y;
+         uint pixelCount = intX1 - intX0;
          
-         float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
-         float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-         VertexVariables lineStartVars = add( variables[ 0 ],
-            add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
+         if ( pixelCount < 0 ) {
+            Stdout( "Wrong x order: intX0 {}, intX1 {}.", intX0, intX1 ).newline;
+            assert( pixelCount >= 0 );
+         }
          
-         rasterizeScanline( y0, intX0, intX1, lineStartZ, lineStartW, lineStartVars );
-         
+         if ( pixelCount > 0 ) {
+            // We used vertex 0 as base for the gradient calculations.
+            float relativeX = cast( float ) intX0 - positions[ 0 ].x;
+            float relativeY = cast( float ) y0 - positions[ 0 ].y;
+
+            float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
+            float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
+            VertexVariables lineStartVars = add( variables[ 0 ],
+               add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
+
+            rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+         }
+
          ++y0;
          x0 += xDelta0;
          x1 += xDelta1;
+         lineStartBufferIndex += bufferLineStride;
       }
       
       // Now draw the lower part ( y0 is now the previous y1 ).
@@ -156,25 +165,35 @@ protected:
          xDelta1 = xStep1;
          x0 = p1.x + xDelta0 * yPreStep;
       }
-      
+
       while ( y0 < y1 ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
-         // We used vertex 0 as base for the gradient calculations.
-         float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-         float relativeY = cast( float ) y0 - positions[ 0 ].y;
+         uint pixelCount = intX1 - intX0;
          
-         float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
-         float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-         VertexVariables lineStartVars = add( variables[ 0 ],
-            add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
+         if ( pixelCount < 0 ) {
+            Stdout( "Wrong x order: intX0 {}, intX1 {}.", intX0, intX1 ).newline;
+            assert( pixelCount >= 0 );
+         }
          
-         rasterizeScanline( y0, intX0, intX1, lineStartZ, lineStartW, lineStartVars );
-         
+         if ( pixelCount > 0 ) {
+            // We used vertex 0 as base for the gradient calculations.
+            float relativeX = cast( float ) intX0 - positions[ 0 ].x;
+            float relativeY = cast( float ) y0 - positions[ 0 ].y;
+
+            float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
+            float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
+            VertexVariables lineStartVars = add( variables[ 0 ],
+               add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
+
+            rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+         }
+
          ++y0;
          x0 += xDelta0;
          x1 += xDelta1;
+         lineStartBufferIndex += bufferLineStride;
       }
    }
 }
