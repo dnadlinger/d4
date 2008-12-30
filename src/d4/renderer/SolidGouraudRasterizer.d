@@ -155,7 +155,7 @@ protected:
          lineStartBufferIndex += bufferLineStride;
       }
       
-      // Now draw the lower part ( currentY is now the previous bottomY ).
+      // Now draw the lower part (currentY is now the previous bottomY).
       bottomY = rndint( ceil( p2.y ) );
       
       yPreStep = cast( float ) currentY - p1.y;

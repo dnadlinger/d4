@@ -2,6 +2,7 @@ module d4.renderer.Rasterizer;
 
 import tango.io.Stdout;
 import tango.math.IEEE : RoundingMode, setIeeeRounding;
+import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
@@ -116,44 +117,39 @@ protected:
     */
    mixin Shader;
    
-   // TODO: String-unroll the loops.
-   
    VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
    
    VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
-      for ( uint i = 0; i < result.values.length; ++i ) {
-         result.values[ i ] = variables.values[ i ] * factor;
-      }
+//      for ( uint i = 0; i < result.values.length; ++i ) {
+//         result.values[ i ] = variables.values[ i ] * factor;
+//      }
+      mixin( stringUnroll( "result.values[", "] = variables.values[", "] * factor;",
+         result.values.length ) );
       return result;
    }
    
    VertexVariables add( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
-      for ( uint i = 0; i < result.values.length; ++i ) {
-         result.values[ i ] = first.values[ i ] + second.values[ i ];
-      }
+//      for ( uint i = 0; i < result.values.length; ++i ) {
+//         result.values[ i ] = first.values[ i ] + second.values[ i ];
+//      }
+      mixin( stringUnroll( "result.values[", "] = first.values[", "] + second.values[", "];",
+         result.values.length ) );
       return result;
    }
    
    VertexVariables substract( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
-      for ( uint i = 0; i < result.values.length; ++i ) {
-         result.values[ i ] = first.values[ i ] - second.values[ i ];
-      }
+//      for ( uint i = 0; i < result.values.length; ++i ) {
+//         result.values[ i ] = first.values[ i ] - second.values[ i ];
+//      }
+      mixin( stringUnroll( "result.values[", "] = first.values[", "] - second.values[", "];",
+         result.values.length ) );
       return result;
    }
-   
-   /+template scaleComponent( variables, float factor, uint index ) {
-      variables.values;
-      static if ( index > 0 ) {
-         const scaleComponent = scaleComponent!( variables, factor, index - 1 );
-      } else {
-         const scaleComponent = variables;
-      }
-   }+/
    
    /**
     * Convinience struct for storing the transformed vertices.
@@ -324,25 +320,16 @@ private:
    BackfaceCulling m_backfaceCulling;
 }
 
-char[] str( uint number ) {
-   char digits[];
-   if ( number > 10 ) {
-      digits = str( number / 10 );
-   }
-   
-   digits ~= cast( char )( '0' + number % 10 );
-   return digits;
-}
-
 template vector3Variable( char[] name, uint index ) {
    const char[] vector3Variable =
       "Vector3 " ~ name ~ "() { "
-         "return Vector3( values[" ~ str( index ) ~  "], values[" ~ str( index + 1 ) ~ "], values[" ~ str( index + 2 ) ~ "] );"
+         "return Vector3( values[" ~ intToString( index ) ~  "], values[" ~
+         intToString( index + 1 ) ~ "], values[" ~ intToString( index + 2 ) ~ "] );"
       "}"
       "void " ~ name ~ "( Vector3 vector ) { "
-         "values[" ~ str( index ) ~  "] = vector.x;"
-         "values[" ~ str( index + 1 ) ~  "] = vector.y;"
-         "values[" ~ str( index + 2 ) ~  "] = vector.z;"
+         "values[" ~ intToString( index ) ~  "] = vector.x;"
+         "values[" ~ intToString( index + 1 ) ~  "] = vector.y;"
+         "values[" ~ intToString( index + 2 ) ~  "] = vector.z;"
       "}";
 }
 
@@ -350,16 +337,16 @@ template colorVariable( char[] name, uint index ) {
    const char[] colorVariable =
       "Color " ~ name ~ "() {"
          "Color result;"
-         "result.a = cast( ubyte )( values[" ~ str( index ) ~  "] * 255 );"
-         "result.r = cast( ubyte )( values[" ~ str( index + 1 ) ~  "] * 255 );"
-         "result.g = cast( ubyte )( values[" ~ str( index + 2 ) ~  "] * 255 );"
-         "result.b = cast( ubyte )( values[" ~ str( index + 3 ) ~  "] * 255 );"
+         "result.a = cast( ubyte )( values[" ~ intToString( index ) ~  "] * 255 );"
+         "result.r = cast( ubyte )( values[" ~ intToString( index + 1 ) ~  "] * 255 );"
+         "result.g = cast( ubyte )( values[" ~ intToString( index + 2 ) ~  "] * 255 );"
+         "result.b = cast( ubyte )( values[" ~ intToString( index + 3 ) ~  "] * 255 );"
          "return result;"
       "}"
       "void " ~ name ~ "( Color color ) {"
-         "values[" ~ str( index ) ~  "] = cast( float ) color.a / 255f;"
-         "values[" ~ str( index + 1 ) ~  "] = cast( float ) color.r / 255f;"
-         "values[" ~ str( index + 2 ) ~  "] = cast( float ) color.g / 255f;"
-         "values[" ~ str( index + 3 ) ~  "] = cast( float ) color.b / 255f;"
+         "values[" ~ intToString( index ) ~  "] = cast( float ) color.a / 255f;"
+         "values[" ~ intToString( index + 1 ) ~  "] = cast( float ) color.r / 255f;"
+         "values[" ~ intToString( index + 2 ) ~  "] = cast( float ) color.g / 255f;"
+         "values[" ~ intToString( index + 3 ) ~  "] = cast( float ) color.b / 255f;"
       "}";
 }
