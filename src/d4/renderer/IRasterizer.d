@@ -1,7 +1,7 @@
 module d4.renderer.IRasterizer;
 
 import d4.math.Matrix4;
-import d4.output.Surface;
+import d4.output.SdlSurface;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
 
@@ -14,7 +14,7 @@ enum BackfaceCulling {
 interface IRasterizer {
    void renderTriangleList( Vertex[] vertices, uint[] indices );
    
-   void setRenderTarget( Surface frameBuffer, ZBuffer zBuffer );
+   void setRenderTarget( SdlSurface frameBuffer, ZBuffer zBuffer );
    
    Matrix4 worldMatrix();
    void worldMatrix( Matrix4 worldMatrix );
