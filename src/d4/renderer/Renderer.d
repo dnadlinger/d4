@@ -6,7 +6,7 @@ import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
 import d4.math.Vector4;
-import d4.output.SdlSurface;
+import d4.output.Surface;
 import d4.renderer.DefaultShader;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
@@ -21,7 +21,7 @@ alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
  */
 class Renderer {
 public:
-   this( SdlSurface renderTarget ) {
+   this( Surface renderTarget ) {
       m_renderTarget = renderTarget;
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
@@ -143,7 +143,7 @@ private:
    const RASTERIZER_SOLID_GOURAUD = 0;
    const RASTERIZER_WIREFRAME = 1;
 
-   SdlSurface m_renderTarget;
+   Surface m_renderTarget;
    ZBuffer m_zBuffer;
 
    Color m_clearColor;

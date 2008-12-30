@@ -1,7 +1,7 @@
 module d4.util.Application;
 
 import tango.io.Stdout;
-import d4.output.SdlSurface;
+import d4.output.Surface;
 import d4.util.Key;
 
 abstract class Application {
@@ -74,7 +74,7 @@ protected:
    abstract void render( float deltaTime );
    abstract void shutdown();
 
-   abstract SdlSurface screen();
+   abstract Surface screen();
    abstract uint currentTicks();
    abstract void processEvents();
 

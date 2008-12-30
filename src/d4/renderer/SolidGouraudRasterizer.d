@@ -39,11 +39,14 @@ protected:
       VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
       VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
       
+      Color* colorBuffer = m_colorBuffer.pixels;
+      float* zBuffer = m_zBuffer.data;
+      
       void rasterizeScanline( uint pixelCount, uint startBufferIndex,
          float startZ, float startW, VertexVariables startVariables ) {
          
-         Color* currentPixel = &m_colorBuffer.pixels[ startBufferIndex ];
-         float* currentDepth = &m_zBuffer.data[ startBufferIndex ];
+         Color* currentPixel = colorBuffer + startBufferIndex;
+         float* currentDepth = zBuffer + startBufferIndex;
          
          float currentZ = startZ;
          float currentW = startW;
