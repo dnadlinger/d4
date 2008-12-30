@@ -217,6 +217,10 @@ private:
          }
       }
       
+      // FIXME: The substaction of 1 is a temporary workaround for off-by-one error.
+      float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
+      float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
+      
       foreach ( inout vertex; vertices ) {
          // Divide the vertex coordinates by w to get the »normal« (projected) positions.
          float invW = 1 / vertex.pos.w;
@@ -233,9 +237,8 @@ private:
          // Transform the position into viewport coordinates. We have to invert the
          // y-coordinate because the y-axis is pointing in the other direction in 
          // the viewport coordinate system.
-         // FIXME: The substaction of 1 is a temporary workaround for off-by-one error. 
-         vertex.pos.x = ( vertex.pos.x + 1 ) / 2 * ( m_colorBuffer.width - 1 );
-         vertex.pos.y = ( 1 - vertex.pos.y ) / 2 * ( m_colorBuffer.height - 1 );
+         vertex.pos.x = ( vertex.pos.x + 1f ) * halfViewportWidth;
+         vertex.pos.y = ( 1f - vertex.pos.y ) * halfViewportHeight;
       }
       
       // As we already have screen coordinates, looking at the z component
