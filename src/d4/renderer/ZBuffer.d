@@ -12,14 +12,6 @@ class ZBuffer {
    }
    
    bool testAndUpdate( uint x, uint y, float z ) {
-      if ( width <= x ) {
-         Stdout( "Illegal x coordinate for z buffer access: " )( x ).newline;
-         return false;
-      }
-      if ( height <= y ) {
-         Stdout( "Illegal y coordinate for z buffer access: " )( y ).newline;
-         return false;
-      }
       assert( x < width );
       assert( y < height );
       
