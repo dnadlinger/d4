@@ -101,8 +101,8 @@ protected:
       // First, draw the upper part.
       float x0 = p0.x;
       float x1 = p0.x;
-      uint y0 = rndint( ceil( p0.y ) );
-      uint y1 = rndint( ceil( p1.y ) );
+      uint currentY = rndint( ceil( p0.y ) );
+      uint bottomY = rndint( ceil( p1.y ) );
       
       float xDelta0;
       float xDelta1;
@@ -115,14 +115,14 @@ protected:
          xDelta1 = xStep1;
       }
 
-      float yPreStep = cast( float ) y0 - p0.y;
+      float yPreStep = cast( float ) currentY - p0.y;
       x0 += xDelta0 * yPreStep;
       x1 += xDelta1 * yPreStep;
 
       uint bufferLineStride = m_colorBuffer.width;
-      uint lineStartBufferIndex =  y0 * bufferLineStride;
+      uint lineStartBufferIndex =  currentY * bufferLineStride;
 
-      while ( y0 < y1 ) {
+      while ( currentY < bottomY ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
@@ -136,7 +136,7 @@ protected:
          if ( pixelCount > 0 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-            float relativeY = cast( float ) y0 - positions[ 0 ].y;
+            float relativeY = cast( float ) currentY - positions[ 0 ].y;
 
             float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
             float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
@@ -146,16 +146,16 @@ protected:
             rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
          }
 
-         ++y0;
+         ++currentY;
          x0 += xDelta0;
          x1 += xDelta1;
          lineStartBufferIndex += bufferLineStride;
       }
       
-      // Now draw the lower part ( y0 is now the previous y1 ).
-      y1 = rndint( ceil( p2.y ) );
+      // Now draw the lower part ( currentY is now the previous bottomY ).
+      bottomY = rndint( ceil( p2.y ) );
       
-      yPreStep = cast( float ) y0 - p1.y;
+      yPreStep = cast( float ) currentY - p1.y;
       if ( xStep1 > xStep2 ) {
          xDelta0 = xStep1;
          xDelta1 = xStep2;
@@ -166,7 +166,7 @@ protected:
          x0 = p1.x + xDelta0 * yPreStep;
       }
 
-      while ( y0 < y1 ) {
+      while ( currentY < bottomY ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
@@ -180,7 +180,7 @@ protected:
          if ( pixelCount > 0 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-            float relativeY = cast( float ) y0 - positions[ 0 ].y;
+            float relativeY = cast( float ) currentY - positions[ 0 ].y;
 
             float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
             float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
@@ -190,7 +190,7 @@ protected:
             rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
          }
 
-         ++y0;
+         ++currentY;
          x0 += xDelta0;
          x1 += xDelta1;
          lineStartBufferIndex += bufferLineStride;
