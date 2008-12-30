@@ -1,6 +1,8 @@
 module main;
 
 import tango.core.Array;
+import tango.core.Runtime;
+import tango.io.Stdout;
 import tango.math.Math : sin;
 import d4.format.AssimpLoader;
 import d4.math.Color;
@@ -135,7 +137,15 @@ private:
    Vector3 m_cameraPosition;
 }
 
+bool collectHandler( Object object ) {
+   // Not flushing Stdout here to omit output during the final garbage collection
+   // cycle when the program ends.
+   Stdout( "›" );
+   return true;
+}
+
 void main( char[][] args ) {
+   Runtime.collectHandler = &collectHandler;
    scope auto app = new MainApplication();
    
    try {
