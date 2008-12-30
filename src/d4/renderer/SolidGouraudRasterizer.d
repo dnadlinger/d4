@@ -47,6 +47,8 @@ protected:
             assert( startX <= endX );
          }
          
+         Color* currentPixel = &m_colorBuffer.pixels[ y * m_colorBuffer.width + startX ];
+         
          uint currentX = startX;
          float currentZ = startZ;
          float currentW = startW;
@@ -55,14 +57,14 @@ protected:
          while ( currentX < endX ) {
             // Perform depth-test.
             if ( m_zBuffer.testAndUpdate( currentX, y, currentZ ) ) {
-               Color currentColor = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
-               m_colorBuffer.setPixel( currentX, y, currentColor );
+               (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
             }
 
             currentZ += dzPerDx;
             currentW += dwPerDx;
             currentVars = add( currentVars, dVarsPerDx );
             ++currentX;
+            ++currentPixel;
          }
       }
       
@@ -141,8 +143,7 @@ protected:
          x1 += xDelta1;
       }
       
-      // Now draw the lower part.
-      // y0 = y1;
+      // Now draw the lower part ( y0 is now the previous y1 ).
       y1 = rndint( ceil( p2.y ) );
       
       yPreStep = cast( float ) y0 - p1.y;
