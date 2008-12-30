@@ -36,7 +36,7 @@ protected:
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
       m_renderer.setProjection( PI / 2, 0.5f, 200f );
-      m_cameraPosition = Vector3( 0, 0, -10 );
+      m_cameraPosition = Vector3( 0, 0, -5 );
 
       m_rotateWorld = false;
       m_animateBackground = false;
