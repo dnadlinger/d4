@@ -14,7 +14,7 @@ import d4.scene.Vertex;
 import d4.scene.ColoredVertex;
 
 class AssimpLoader {
-   this( char[] fileName, bool smoothNormals = false, bool fakeColor = false ) {
+   this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
          | aiProcess.ConvertToLeftHanded
@@ -48,7 +48,7 @@ class AssimpLoader {
       }
 
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
-         m_meshes ~= importMesh( *( scene.mMeshes[ i ] ), fakeColor );
+         m_meshes ~= importMesh( *( scene.mMeshes[ i ] ), fakeColors );
       }
 
       m_rootNode = importNode( *( scene.mRootNode ) );
@@ -69,7 +69,7 @@ private:
       return result;
    }
 
-   Mesh importMesh( aiMesh mesh, bool fakeColor ) {
+   Mesh importMesh( aiMesh mesh, bool fakeColors ) {
       Mesh result = new Mesh();
       
       // If assimp's preprocessing worked correctly, the mesh should not be
@@ -97,8 +97,8 @@ private:
          vertex.position = importVector3( mesh.mVertices[ i ] );
          // FIXME: Why does vertex.normal.normalize() not work?
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
-         
-         if ( fakeColor ) {
+
+         if ( fakeColors ) {
             vertex.color = colors[ i % $ ];
             foreach ( oldVertex; fakeColorBuffer ) {
                if ( oldVertex is null ) {

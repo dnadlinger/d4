@@ -18,8 +18,8 @@ public:
       m_modelFileName = fileName;
    }
    
-   void fakeColor( bool fakeColor ) {
-      m_fakeColor = fakeColor;
+   void fakeColors( bool fakeColors ) {
+      m_fakeColors = fakeColors;
    }
    
    void smoothNormals( bool smoothNormals ) {
@@ -30,11 +30,11 @@ protected:
    override void init() {
       assert( m_modelFileName.length > 0 );
 
-      auto loader = new AssimpLoader( m_modelFileName, m_smoothNormals, m_fakeColor );
+      auto loader = new AssimpLoader( m_modelFileName, m_smoothNormals, m_fakeColors );
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
-      m_renderer.backfaceCulling = BackfaceCulling.CULL_CCW;
+      m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
       m_renderer.setProjection( PI / 2, 0.5f, 200f );
       m_cameraPosition = Vector3( 0, 0, -10 );
 
@@ -123,7 +123,7 @@ private:
 
    char[] m_modelFileName;
    bool m_smoothNormals;
-   bool m_fakeColor;
+   bool m_fakeColors;
 
    Renderer m_renderer;
    Node m_rootNode;
@@ -148,8 +148,8 @@ void main( char[][] args ) {
       app.smoothNormals = true;
    }
    
-   if ( contains( args[ 2..$ ], "fakeColor" ) ) {
-      app.fakeColor = true;
+   if ( contains( args[ 2..$ ], "fakeColors" ) ) {
+      app.fakeColors = true;
    }
    
    app.run();
