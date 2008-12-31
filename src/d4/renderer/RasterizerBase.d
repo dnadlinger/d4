@@ -12,7 +12,6 @@ import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
-import d4.scene.ColoredVertex;
 
 abstract class RasterizerBase( alias Shader ) : IRasterizer {
    this() {

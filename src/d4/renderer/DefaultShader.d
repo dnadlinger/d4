@@ -2,6 +2,7 @@ module d4.renderer.DefaultShader;
 
 template DefaultShader() {
    import d4.math.Vector3;
+   import d4.scene.ColoredVertex;
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       ColoredVertex cv = cast( ColoredVertex ) vertex;
       assert( cv !is null );
