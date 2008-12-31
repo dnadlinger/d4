@@ -11,7 +11,7 @@ import d4.scene.Material;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Vertex;
-import d4.scene.ColoredVertex;
+import d4.scene.ColoredNormalVertex;
 
 class AssimpLoader {
    this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
@@ -65,7 +65,10 @@ class AssimpLoader {
 private:
    Material importMaterial( aiMaterial material ) {
       Material result = new Material();
-
+      // TODO: Actually import material data here.
+      result.wireframe = false;
+      result.useColor = true;
+      result.gouraudLighting = true;
       return result;
    }
 
@@ -89,10 +92,10 @@ private:
          Color( 0, 255, 255 ),
          Color( 255, 255, 255 )
       ];
-      ColoredVertex[ 6 ] fakeColorBuffer;
+      ColoredNormalVertex[ 6 ] fakeColorBuffer;
       
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
-         ColoredVertex vertex = new ColoredVertex();
+         ColoredNormalVertex vertex = new ColoredNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
          // FIXME: Why does vertex.normal.normalize() not work?

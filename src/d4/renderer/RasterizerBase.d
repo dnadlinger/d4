@@ -7,13 +7,16 @@ import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
+import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
+import d4.shader.VertexVariableUtils;
+import d4.shader.ColorGouraudShader;
 
-abstract class RasterizerBase( alias Shader ) : IRasterizer {
+abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    this() {
       m_worldMatrix = Matrix4.identity;
       m_viewMatrix = Matrix4.identity;
@@ -118,7 +121,7 @@ protected:
     *  - Color pixelShader( VertexVariables variables );
     *  - struct VertexVariables
     */
-   mixin Shader;
+   mixin Shader!( ShaderParams );
    
    VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
@@ -358,35 +361,4 @@ private:
    Matrix4 m_worldViewProjMatrix;
    
    BackfaceCulling m_backfaceCulling;
-}
-
-template vector3Variable( char[] name, uint index ) {
-   const char[] vector3Variable =
-      "Vector3 " ~ name ~ "() { "
-         "return Vector3( values[" ~ intToString( index ) ~  "], values[" ~
-         intToString( index + 1 ) ~ "], values[" ~ intToString( index + 2 ) ~ "] );"
-      "}"
-      "void " ~ name ~ "( Vector3 vector ) { "
-         "values[" ~ intToString( index ) ~  "] = vector.x;"
-         "values[" ~ intToString( index + 1 ) ~  "] = vector.y;"
-         "values[" ~ intToString( index + 2 ) ~  "] = vector.z;"
-      "}";
-}
-
-template colorVariable( char[] name, uint index ) {
-   const char[] colorVariable =
-      "Color " ~ name ~ "() {"
-         "Color result;"
-         "result.a = cast( ubyte )( values[" ~ intToString( index ) ~  "] * 255 );"
-         "result.r = cast( ubyte )( values[" ~ intToString( index + 1 ) ~  "] * 255 );"
-         "result.g = cast( ubyte )( values[" ~ intToString( index + 2 ) ~  "] * 255 );"
-         "result.b = cast( ubyte )( values[" ~ intToString( index + 3 ) ~  "] * 255 );"
-         "return result;"
-      "}"
-      "void " ~ name ~ "( Color color ) {"
-         "values[" ~ intToString( index ) ~  "] = cast( float ) color.a / 255f;"
-         "values[" ~ intToString( index + 1 ) ~  "] = cast( float ) color.r / 255f;"
-         "values[" ~ intToString( index + 2 ) ~  "] = cast( float ) color.g / 255f;"
-         "values[" ~ intToString( index + 3 ) ~  "] = cast( float ) color.b / 255f;"
-      "}";
 }

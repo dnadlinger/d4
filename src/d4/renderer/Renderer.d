@@ -7,7 +7,8 @@ import d4.math.Matrix4;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
-import d4.renderer.DefaultShader;
+import d4.shader.DefaultShader;
+import d4.shader.ColorGouraudShader;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
@@ -26,14 +27,12 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_activeRasterizer = new SolidGouraudRasterizer!( DefaultShader )();
+      m_rasterizers ~= new SolidGouraudRasterizer!( DefaultShader )();
+      m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
 
       m_rendering = false;
-      
-      m_rasterizers[ RASTERIZER_SOLID_GOURAUD ] =  new SolidGouraudRasterizer!( DefaultShader )();
-      m_rasterizers[ RASTERIZER_WIREFRAME ] = new WireframeRasterizer!( DefaultShader )();
    }
 
    void beginScene( bool clearColor = true, bool clearZ = true ) {
@@ -102,24 +101,32 @@ public:
       m_activeRasterizer.backfaceCulling = cullingMode;
    }
    
-   bool wireframe() {
-      return m_activeRasterizer == m_rasterizers[ RASTERIZER_WIREFRAME ];
-   }
-   
-   void wireframe( bool wireframe ) {
-      if ( wireframe ) {
-         setActiveRasterizer( m_rasterizers[ RASTERIZER_WIREFRAME ] );
-      } else {
-         setActiveRasterizer( m_rasterizers[ RASTERIZER_SOLID_GOURAUD ] );
-      }
-   }
-
    Color clearColor() {
       return m_clearColor;
    }
 
    void clearColor( Color clearColor ) {
       m_clearColor = clearColor;
+   }
+   
+   uint registerRasterizer( IRasterizer rasterizer ) {
+      assert( rasterizer !is null );
+      m_rasterizers ~= rasterizer;
+      return m_rasterizers.length - 1;
+   }
+   
+   IRasterizer unregisterRasterizer( uint id ) {
+      IRasterizer rasterizer = m_rasterizers[ id ];
+      assert( rasterizer !is null );
+      m_rasterizers[ id ] = m_rasterizers[ $ - 1 ];
+      m_rasterizers = m_rasterizers[ 0 .. ( $ - 1 ) ];
+      return rasterizer;
+   }
+   
+   void useRasterizer( uint id ) {
+      IRasterizer rasterizer = m_rasterizers[ id ];
+      assert( rasterizer !is null );
+      setActiveRasterizer( rasterizer );
    }
    
 private:
@@ -137,11 +144,8 @@ private:
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
    }
    
-   IRasterizer[ 2 ] m_rasterizers;
+   IRasterizer[] m_rasterizers;
    IRasterizer m_activeRasterizer;
-   
-   const RASTERIZER_SOLID_GOURAUD = 0;
-   const RASTERIZER_WIREFRAME = 1;
 
    Surface m_renderTarget;
    ZBuffer m_zBuffer;

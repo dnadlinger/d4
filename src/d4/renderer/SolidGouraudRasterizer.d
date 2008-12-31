@@ -6,7 +6,7 @@ import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
-final class SolidGouraudRasterizer( alias Shader ) : RasterizerBase!( Shader ) {
+final class SolidGouraudRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
    /**
     * Inspired by Muli3D.

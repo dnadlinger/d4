@@ -81,7 +81,7 @@ protected:
       super.handleKeyUp( key );
       switch ( key ) {
          case Key.x:
-            m_renderer.wireframe = !m_renderer.wireframe;
+//            m_renderer.wireframe = !m_renderer.wireframe;
             break;
          case Key.c:
             m_renderer.backfaceCulling = cast( BackfaceCulling )

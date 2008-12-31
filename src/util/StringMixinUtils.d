@@ -11,7 +11,7 @@ char[] intToString( uint number ) {
 }
 
 char[] stringUnroll( char[] front, char[] between, char[] back, uint times ) {
-   char[] string;
+   char[] string = "";
    
    for ( uint i = 0; i < times; ++i ) {
       char[] index = intToString( i );
@@ -22,7 +22,7 @@ char[] stringUnroll( char[] front, char[] between, char[] back, uint times ) {
 }
 
 char[] stringUnroll( char[] front, char[] between1, char[] between2, char[] back, uint times ) {
-   char[] string;
+   char[] string = "";
    
    for ( uint i = 0; i < times; ++i ) {
       char[] index = intToString( i );
