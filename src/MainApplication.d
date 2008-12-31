@@ -1,9 +1,5 @@
-module main;
+module MainApplication;
 
-import tango.core.Array;
-import tango.core.Memory;
-import tango.core.Runtime;
-import tango.io.Stdout;
 import tango.math.Math : sin;
 import d4.format.AssimpLoader;
 import d4.math.Color;
@@ -136,59 +132,4 @@ private:
    float m_backgroundTime;
    
    Vector3 m_cameraPosition;
-}
-
-bool printGlyph( Object object ) {
-   // Not immediately flushing to save time.
-   Stdout( "›" );
-   return true;
-}
-
-uint collectedObjects;
-bool countObject( Object object ) {
-   ++collectedObjects;
-   return true;
-}
-
-bool printClass( Object object ) {
-   Stdout( "Collecting remaining object: " ~ object.classinfo.name ).newline;
-   return true;
-}
-
-void main( char[][] args ) {
-   // Show garbage collection activity while the program is running.
-   Runtime.collectHandler = &printGlyph;
-
-   // Parse command line option.
-   auto app = new MainApplication();
-   
-   try {
-      app.modelFile = args[ 1 ];
-   } catch ( Exception e ) {
-      throw new Exception( "Please specify a model file at the command line" );
-   }
-   
-   if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-      app.smoothNormals = true;
-   }
-   
-   if ( contains( args[ 2..$ ], "fakeColors" ) ) {
-      app.fakeColors = true;
-   }
-   
-   // Start the application main loop.
-   app.run();
-
-   // Count objects collected on program end.
-   collectedObjects = 0;
-   Runtime.collectHandler = &countObject;
-
-   delete app;
-   GC.collect();
-
-   Stdout.format( "{} objects collected.", collectedObjects ).newline;
-
-   // Print the class name if any remaining object should be collected,
-   // because this should not happen.
-   Runtime.collectHandler = &printClass;
 }
