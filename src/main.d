@@ -1,6 +1,7 @@
 module main;
 
 import tango.core.Array;
+import tango.core.Memory;
 import tango.core.Runtime;
 import tango.io.Stdout;
 import tango.math.Math : sin;
@@ -137,16 +138,29 @@ private:
    Vector3 m_cameraPosition;
 }
 
-bool collectHandler( Object object ) {
-   // Not flushing Stdout here to omit output during the final garbage collection
-   // cycle when the program ends.
+bool printGlyph( Object object ) {
+   // Not immediately flushing to save time.
    Stdout( "›" );
    return true;
 }
 
+uint collectedObjects;
+bool countObject( Object object ) {
+   ++collectedObjects;
+   return true;
+}
+
+bool printClass( Object object ) {
+   Stdout( "Collecting remaining object: " ~ object.classinfo.name ).newline;
+   return true;
+}
+
 void main( char[][] args ) {
-   Runtime.collectHandler = &collectHandler;
-   scope auto app = new MainApplication();
+   // Show garbage collection activity while the program is running.
+   Runtime.collectHandler = &printGlyph;
+
+   // Parse command line option.
+   auto app = new MainApplication();
    
    try {
       app.modelFile = args[ 1 ];
@@ -162,5 +176,19 @@ void main( char[][] args ) {
       app.fakeColors = true;
    }
    
+   // Start the application main loop.
    app.run();
+
+   // Count objects collected on program end.
+   collectedObjects = 0;
+   Runtime.collectHandler = &countObject;
+
+   delete app;
+   GC.collect();
+
+   Stdout.format( "{} objects collected.", collectedObjects ).newline;
+
+   // Print the class name if any remaining object should be collected,
+   // because this should not happen.
+   Runtime.collectHandler = &printClass;
 }
