@@ -128,14 +128,14 @@ protected:
       while ( currentY < bottomY ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
-
-         uint pixelCount = intX1 - intX0;
          
-         if ( pixelCount < 0 ) {
-            Stdout( "Wrong x order: intX0 {}, intX1 {}.", intX0, intX1 ).newline;
-            assert( pixelCount >= 0 );
+         if ( intX1 < intX0 ) {
+            Stdout.format( "Wrong x order: x0 {}, x1 {}.", x0, x1 ).newline;
+            assert( intX0 <= intX1 );
          }
          
+         uint pixelCount = intX1 - intX0;
+
          if ( pixelCount > 0 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
@@ -172,14 +172,14 @@ protected:
       while ( currentY < bottomY ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
-
-         uint pixelCount = intX1 - intX0;
          
-         if ( pixelCount < 0 ) {
-            Stdout( "Wrong x order: intX0 {}, intX1 {}.", intX0, intX1 ).newline;
-            assert( pixelCount >= 0 );
+         if ( intX1 < intX0 ) {
+            Stdout.format( "Wrong x order: x0 {}, x1 {}.", x0, x1 ).newline;
+            assert( intX0 <= intX1 );
          }
          
+         uint pixelCount = intX1 - intX0;
+
          if ( pixelCount > 0 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
