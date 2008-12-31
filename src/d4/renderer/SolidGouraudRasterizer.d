@@ -12,6 +12,20 @@ protected:
     * Inspired by Muli3D.
     */
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
+      // All coordinates have to be clipped to screen space.
+      debug {
+         void sanityCheck( Vector4 pos ) {
+            assert( pos.x >= 0, "Triangle coordinates must not be negative." );
+            assert( pos.y >= 0, "Triangle coordinates must not be negative." );
+            assert( pos.x < m_colorBuffer.width, "Triangle coordinates must not exceed framebuffer size." );
+            assert( pos.y < m_colorBuffer.height, "Triangle coordinates must not exceed framebuffer size." );
+         }
+
+         sanityCheck( positions[ 0 ] );
+         sanityCheck( positions[ 1 ] );
+         sanityCheck( positions[ 2 ] );
+      }
+
       // Calculate the triangle »gradients«.
       // The vertex at index 0 is the base vertex for the gradient calculations.
       // In screen space, the y-axis points in the other direction, so we have

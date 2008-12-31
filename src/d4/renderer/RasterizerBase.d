@@ -201,21 +201,47 @@ private:
       m_worldViewProjMatrix = m_projMatrix * m_worldViewMatrix;
    }
    
+   /**
+    * View frustrum (clipping) planes for homogeneous clipping.
+    */
+   const CLIPPING_PLANES = [
+      Plane( 1, 0, 0, 1 ),   // Left
+      Plane( -1, 0, 0, 1 ),  // Right
+      Plane( 0, -1, 0, 1 ),  // Top
+      Plane( 0, 1, 0, 1 ),   // Bottom
+      Plane( 0, 0, 1, 0 ),   // Near
+      Plane( 0, 0, 1, 1 )    // Far
+   ];
+
+   /**
+    * The maximum number of vertices a clipped triangle can have.
+    */
+   const CLIPPING_BUFFER_SIZE = 6;
+
    void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
-      TransformedVertex[] vertices = [ vertex0, vertex1, vertex2 ];
+      // Clip all vertices against the view frustrum, which is now a cube from 
+      // [ -1; -1; -1 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
+      // which is fast and happens before the coordinates are divided by w.
+      // We (legitimately?) assume that there are never more than
+      // CLIPPING_BUFFER_SIZE vertices created during clipping.
+      TransformedVertex[ CLIPPING_BUFFER_SIZE ] vertices;
+      TransformedVertex[ CLIPPING_BUFFER_SIZE ] clippingBuffer;
       
-      const CLIPPING_PLANES = [
-         Plane( 1, 0, 0, 1 ),   // Left
-         Plane( -1, 0, 0, 1 ),  // Right
-         Plane( 0, -1, 0, 1 ),  // Top
-         Plane( 0, 1, 0, 1 ),   // Bottom
-         Plane( 0, 0, 1, 0 ),   // Near
-         Plane( 0, 0, 1, 1 )   // Far
-      ];
+      vertices[ 0 ] = vertex0;
+      vertices[ 1 ] = vertex1;
+      vertices[ 2 ] = vertex2;
+
+      uint vertexCount = 3;
       
       foreach ( i, plane; CLIPPING_PLANES ) {
-         vertices = clipToPlane( vertices, plane );
-         if ( vertices.length < 3 ) {
+         if ( i & 1 ) {
+            // Even pass (first pass -> i=0).
+            vertexCount = clipToPlane( clippingBuffer, vertices, vertexCount, plane );
+         } else {
+            // Uneven pass.
+            vertexCount = clipToPlane( vertices, clippingBuffer, vertexCount, plane );
+         }
+         if ( vertexCount < 3 ) {
             // There is nothing left to be drawn.
             return;
          }
@@ -225,7 +251,10 @@ private:
       float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
       float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
       
-      foreach ( inout vertex; vertices ) {
+      for( uint i = 0; i < vertexCount; ++i ) {
+         // TODO: How to use a ref instead a pointer?
+         TransformedVertex* vertex = &vertices[ i ];
+
          // Divide the vertex coordinates by w to get the »normal« (projected) positions.
          float invW = 1 / vertex.pos.w;
          vertex.pos.x *= invW;
@@ -265,15 +294,15 @@ private:
          }
       }
       
-      uint triangleCount = vertices.length - 2;
+      uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
          drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
             [ vertices[ 0 ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
       }
    }
    
-   
-   TransformedVertex[] clipToPlane( TransformedVertex[] vertices, Plane plane ) {
+   uint clipToPlane( TransformedVertex[] sourceBuffer, TransformedVertex[] targetBuffer,
+      uint vertexCount, Plane plane ) {
       // Due to some function overloading strangeness, we have to alias the other
       // interpolation functions.
       // TODO: Why is this necessary?
@@ -287,34 +316,39 @@ private:
          return result;
       }
       
-      TransformedVertex[] result;
+      uint newCount = 0;
       
-      for ( uint i = 0, j = 1; i < vertices.length; ++i, ++j ) {
-         if ( j == vertices.length ) {
+      for ( uint i = 0, j = 1; i < vertexCount; ++i, ++j ) {
+         if ( j == vertexCount ) {
             // "Wrap" over the end to clip the last->first edge.
             j = 0;
          }
          
          // Distances of the current and the next vertex to the clipping plane.
-         float currDist = plane.classifyHomogenous( vertices[ i ].pos );
-         float nextDist = plane.classifyHomogenous( vertices[ j ].pos );
+         float currDist = plane.classifyHomogenous( sourceBuffer[ i ].pos );
+         float nextDist = plane.classifyHomogenous( sourceBuffer[ j ].pos );
          
          if ( currDist >= 0.f ) {
             // The current vertex is »inside«, append it to the result.
-            result ~= vertices[ i ];
+            targetBuffer[ newCount++ ] = sourceBuffer[ i ];
             
             if ( nextDist < 0.f ) {
                // The edge to the next vertex is crossing the plane, interpolate the 
                // vertex which is exactly on the plane and append it to the result.
-               result ~= lerpVertex( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+               targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
+                  currDist / ( currDist - nextDist ) );
             }
          } else if ( nextDist >= 0.f ) {
             // The next vertex is inside, also append the vertex on the plane.
-            result ~= lerpVertex( vertices[ i ], vertices[ j ], currDist / ( currDist - nextDist ) );
+            targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
+               currDist / ( currDist - nextDist ) );
          }
       }
       
-      return result;
+      // We have probably already segfaulted ;)
+      assert( newCount <= CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
+
+      return newCount;
    }   
    
    Matrix4 m_worldMatrix;
