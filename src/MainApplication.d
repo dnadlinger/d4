@@ -40,7 +40,7 @@ protected:
       m_rotateWorld = false;
       m_animateBackground = false;
       m_backgroundTime = 0;
-      updateRainbowBackground( 0 );
+      m_renderer.clearColor = Color( 0, 0, 0 );
    }
 
    override void render( float deltaTime ) {
