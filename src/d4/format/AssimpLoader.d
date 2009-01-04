@@ -52,6 +52,12 @@ class AssimpLoader {
       }
 
       m_rootNode = importNode( *( scene.mRootNode ) );
+      
+      uint triangleCount = 0;
+      foreach ( mesh; m_meshes ) {
+         triangleCount += mesh.indices.length / 3;
+      }
+      Stdout.format( "Imported {} triangles in {} meshes.", triangleCount, m_meshes.length ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
       // assimp scene object anymore.
