@@ -115,7 +115,7 @@ private:
    uint m_totalTicksPassed;
    bool m_appFinished;
 
-   const uint FPS_UPDATE_INTERVAL = 5000;
+   const uint FPS_UPDATE_INTERVAL = 3000;
    uint m_fpsSamplingDuration;
    uint m_framesInSample;
    float m_fps;
