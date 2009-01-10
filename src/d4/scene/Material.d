@@ -2,26 +2,20 @@ module d4.scene.Material;
 
 import d4.math.Vector3;
 import d4.renderer.Renderer;
+import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
+import d4.scene.IMaterial;
 import d4.shader.DefaultShader;
 import d4.shader.ColorGouraudShader;
 import d4.shader.ColorShader;
 
-class Material {
+class Material : IMaterial {
 public:
    this() {
       m_wireframe = false;
       m_useColor = false;
       m_gouraudLighting = false;
-   }
-   
-   void setupRenderer( Renderer renderer ) {
-      if ( m_rasterizerId == 0 ) {
-         m_rasterizerId = createRasterizer( renderer );
-      }
-      // FIXME: Bug when used with multiple renderers.
-      renderer.useRasterizer( m_rasterizerId );
    }
    
    bool wireframe() {
@@ -51,10 +45,9 @@ public:
       invalidateRasterizer();
    }
    
-private:
-   uint createRasterizer( Renderer renderer ) {
+   IRasterizer createRasterizer() {
       if ( m_wireframe ) { 
-         return renderer.registerRasterizer( new WireframeRasterizer!( DefaultShader )() );
+         return new WireframeRasterizer!( DefaultShader )();
       }
       
       if ( m_useColor ) {
@@ -65,15 +58,15 @@ private:
             // and doing this crashes gdc:
             // auto lightDirection = Vector3( 0, -1, 1 );
             // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-            return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, 0, -1, 1 )() );
+            return new SolidGouraudRasterizer!( ColorGouraudShader, 0, -1, 1 )();
          } else {
-            return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorShader )() );
+            return new SolidGouraudRasterizer!( ColorShader )();
          }
       } else {
          if ( m_gouraudLighting ) {
             throw new Exception( "Using gouraud lighting without coloring is currently not supported." );
          } else {
-            return renderer.registerRasterizer( new SolidGouraudRasterizer!( DefaultShader )() );
+            return new SolidGouraudRasterizer!( DefaultShader )();
          }
       }
       

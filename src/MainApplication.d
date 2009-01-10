@@ -6,6 +6,7 @@ import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
+import d4.scene.MaterialManager;
 import d4.scene.Node;
 import d4.scene.Vertex;
 import d4.util.Key;
@@ -36,6 +37,8 @@ protected:
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
       m_renderer.setProjection( PI / 2, 1f, 1000f );
       m_cameraPosition = Vector3( 0, 0, -5 );
+
+      m_materialManager = new MaterialManager( m_renderer );
 
       m_rotateWorld = false;
       m_animateBackground = false;
@@ -70,7 +73,7 @@ protected:
       updateViewMatrix();
 
       m_renderer.beginScene();
-      m_rootNode.render( m_renderer );
+      m_rootNode.render( m_renderer, m_materialManager );
       m_renderer.endScene();
    }
 
@@ -81,7 +84,7 @@ protected:
       super.handleKeyUp( key );
       switch ( key ) {
          case Key.x:
-//            m_renderer.wireframe = !m_renderer.wireframe;
+            m_materialManager.forceWireframe = !m_materialManager.forceWireframe;
             break;
          case Key.c:
             m_renderer.backfaceCulling = cast( BackfaceCulling )
@@ -125,6 +128,7 @@ private:
    bool m_fakeColors;
 
    Renderer m_renderer;
+   MaterialManager m_materialManager;
    Node m_rootNode;
 
    bool m_rotateWorld;
