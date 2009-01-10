@@ -86,6 +86,9 @@ private:
     * Clears the material rasterizer cache,
     */
    void clearCache() {
+      foreach ( rasterizerId; m_materialRasterizers ) {
+         m_renderer.unregisterRasterizer( rasterizerId );
+      }
       m_materialRasterizers.clear();
       m_materialCount = 0;
    }
