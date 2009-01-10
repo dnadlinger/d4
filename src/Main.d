@@ -65,7 +65,11 @@ void main( char[][] args ) {
    }
    
    if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-      app.smoothNormals = true;
+      app.normalType = NormalType.GENERATE_SMOOTH;
+   } else if ( contains( args[ 2..$ ], "fileNormals" ) ) {
+      app.normalType = NormalType.FILE;
+   } else {
+      app.normalType = NormalType.GENERATE;
    }
    
    if ( contains( args[ 2..$ ], "fakeColors" ) ) {

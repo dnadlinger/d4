@@ -12,6 +12,8 @@ import d4.scene.Vertex;
 import d4.util.Key;
 import d4.util.SdlApplication;
 
+alias d4.format.AssimpLoader.NormalType NormalType;
+
 class MainApplication : SdlApplication {
 public:
    void modelFile( char[] fileName ) {
@@ -22,20 +24,20 @@ public:
       m_fakeColors = fakeColors;
    }
    
-   void smoothNormals( bool smoothNormals ) {
-      m_smoothNormals = smoothNormals;
+   void normalType( NormalType type ) {
+      m_normalType = type;
    }
 
 protected:
    override void init() {
       assert( m_modelFileName.length > 0 );
 
-      auto loader = new AssimpLoader( m_modelFileName, m_smoothNormals, m_fakeColors );
+      auto loader = new AssimpLoader( m_modelFileName, m_normalType, m_fakeColors );
       m_rootNode = loader.rootNode;
 
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
-      m_renderer.setProjection( PI / 2, 1f, 1000f );
+      m_renderer.setProjection( PI / 4, 1f, 1000f );
       m_cameraPosition = Vector3( 0, 0, -5 );
 
       m_materialManager = new MaterialManager( m_renderer );
@@ -124,7 +126,7 @@ private:
    }
 
    char[] m_modelFileName;
-   bool m_smoothNormals;
+   NormalType m_normalType;
    bool m_fakeColors;
 
    Renderer m_renderer;

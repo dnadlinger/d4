@@ -4,6 +4,7 @@ import tango.stdc.stringz : fromStringz, toStringz;
 import tango.io.Stdout;
 import assimp.all;
 import assimp.postprocess;
+import assimp.types;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
@@ -13,8 +14,14 @@ import d4.scene.Node;
 import d4.scene.Vertex;
 import d4.scene.ColoredNormalVertex;
 
+enum NormalType {
+   FILE,
+   GENERATE,
+   GENERATE_SMOOTH
+}
+
 class AssimpLoader {
-   this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
+   this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
          | aiProcess.ConvertToLeftHanded
@@ -27,10 +34,10 @@ class AssimpLoader {
 //         | aiProcess.GenUVCoords
       ;
       
-      if ( smoothNormals ) {
-         importFlags |= aiProcess.GenSmoothNormals;
-      } else {
+      if ( normalType == NormalType.GENERATE ) {
          importFlags |= aiProcess.GenNormals;
+      } else if ( normalType == NormalType.GENERATE_SMOOTH ) {
+         importFlags |= aiProcess.GenSmoothNormals;
       }
       
       aiScene* scene = aiImportFile( toStringz( fileName ), importFlags );
@@ -57,7 +64,8 @@ class AssimpLoader {
       foreach ( mesh; m_meshes ) {
          triangleCount += mesh.indices.length / 3;
       }
-      Stdout.format( "Imported {} triangles in {} meshes.", triangleCount, m_meshes.length ).newline;
+      Stdout.format( "Imported {} triangles in {} meshes, with a total of {} materials.",
+         triangleCount, m_meshes.length, m_materials.length ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
       // assimp scene object anymore.
@@ -86,6 +94,37 @@ private:
       assert( mesh.mNumFaces > 0 );
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
       
+      if ( fakeColors ) {
+         result.vertices = importFakeColorVertices( mesh );
+      } else if ( mesh.mColors[ 0 ] !is null ) {
+         Stdout( "Importing mesh with vertex colors." ).newline;
+         result.vertices = importColoredVertices( mesh );
+      } else {
+         Stdout( "Importing mesh using the default color." ).newline;
+         result.vertices = importVerticesWithColor( mesh, Color( 255, 255, 255 ) );
+      }
+
+      for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
+         aiFace face = mesh.mFaces[ i ];
+
+         // Since we are dealing with triangles, every face must have three vertices.
+         assert( face.mNumIndices == 3 );
+
+         result.indices ~= face.mIndices[ 0 ];
+         result.indices ~= face.mIndices[ 1 ];
+         result.indices ~= face.mIndices[ 2 ];
+      }
+
+      // The meshes store only incides for the global material buffer.
+      assert( m_materials[ mesh.mMaterialIndex ] !is null );
+      result.material = m_materials[ mesh.mMaterialIndex ];
+
+      return result;
+   }
+   
+   ColoredNormalVertex[] importFakeColorVertices( aiMesh mesh ) {
+      ColoredNormalVertex[] result;
+      
       // The fake color mechanism assigns a color from the list to each vertex.
       // If two vertices within colorLookbackLimit have the same position, they 
       // get the same color.
@@ -104,46 +143,66 @@ private:
          ColoredNormalVertex vertex = new ColoredNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         // FIXME: Why does vertex.normal.normalize() not work?
+         
+         // vertex.normal.normalize() does not work because of the indirection
+         // via the getter/setter function.
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
 
-         if ( fakeColors ) {
-            vertex.color = colors[ i % $ ];
-            foreach ( oldVertex; fakeColorBuffer ) {
-               if ( oldVertex is null ) {
-                  break;
-               }
-               if ( vertex.position == oldVertex.position ) {
-                  vertex.color = oldVertex.color;
-                  break;
-               }
+         vertex.color = colors[ i % $ ];
+         foreach ( oldVertex; fakeColorBuffer ) {
+            if ( oldVertex is null ) {
+               break;
             }
-            fakeColorBuffer[ i % $ ] = vertex;
-         } else {
-            // TODO: Import color.
-            vertex.color = Color( 255, 255, 255 );
+            if ( vertex.position == oldVertex.position ) {
+               vertex.color = oldVertex.color;
+               break;
+            }
          }
+         fakeColorBuffer[ i % $ ] = vertex;
+
+         result ~= vertex;
+      }
+      
+      return result;
+   }
+   
+   ColoredNormalVertex[] importColoredVertices( aiMesh mesh ) {
+      ColoredNormalVertex[] result;
+      
+      for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
+         ColoredNormalVertex vertex = new ColoredNormalVertex();
+
+         vertex.position = importVector3( mesh.mVertices[ i ] );
          
-         // TODO: Import other data.
+         // vertex.normal.normalize() does not work because of the indirection
+         // via the getter/setter function.
+         vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
 
-         result.vertices ~= vertex;
+         vertex.color = importColor( mesh.mColors[ 0 ][ i ] );
+
+         result ~= vertex;
       }
+      
+      return result;
+   }
+   
+   ColoredNormalVertex[] importVerticesWithColor( aiMesh mesh, Color color ) {
+      ColoredNormalVertex[] result;
+      
+      for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
+         ColoredNormalVertex vertex = new ColoredNormalVertex();
 
-      for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
-         aiFace face = mesh.mFaces[ i ];
+         vertex.position = importVector3( mesh.mVertices[ i ] );
+         
+         // vertex.normal.normalize() does not work because of the indirection
+         // via the getter/setter function.
+         vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
 
-         // Since we are dealing with triangles, every face must have three vertices.
-         assert( face.mNumIndices == 3 );
+         vertex.color = color;
 
-         result.indices ~= face.mIndices[ 0 ];
-         result.indices ~= face.mIndices[ 1 ];
-         result.indices ~= face.mIndices[ 2 ];
+         result ~= vertex;
       }
-
-      // The meshes store only incides for the global material buffer.
-      assert( m_materials[ mesh.mMaterialIndex ] !is null );
-      result.material = m_materials[ mesh.mMaterialIndex ];
-
+      
       return result;
    }
 
@@ -194,6 +253,15 @@ private:
    
    Vector3 importVector3( aiVector3D v ) {
       return Vector3( v.x, v.y, v.z );
+   }
+   
+   Color importColor( aiColor4D c ) {
+      return Color(
+         cast( ubyte )( c.r * 255f ),
+         cast( ubyte )( c.g * 255f ),
+         cast( ubyte )( c.b * 255f ),
+         cast( ubyte )( c.a * 255f )
+      );
    }
 
    Mesh[] m_meshes;
