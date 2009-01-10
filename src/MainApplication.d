@@ -56,10 +56,16 @@ protected:
          updateRotatingWorld( deltaTime );
       }
 
+      // Compute camera movement from keyboard input.
       Vector3 toCenter = Vector3( 0, 0, 0 ) - m_cameraPosition;
       toCenter.normalize();
       Vector3 toRight = Vector3( 0, 1, 0 ).cross( toCenter );
-      const movementSpeed = 10;
+
+      float movementSpeed = 10f;
+      if ( isKeyDown( Key.LSHIFT ) ) {
+         movementSpeed *= 10;
+      }
+
       if ( isKeyDown( Key.w ) ) {
          m_cameraPosition += toCenter * deltaTime * movementSpeed;
       }
