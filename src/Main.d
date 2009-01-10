@@ -42,7 +42,20 @@ void main( char[][] args ) {
    // The application has to be deleted when tho program ends, even if something
    // has gone wrong before, because Derelict causes a segfault if not
    // unloaded properly.
-   scope ( failure ) delete app;
+   scope ( exit ) {
+      // Count objects collected on program end.
+      collectedObjects = 0;
+      Runtime.collectHandler = &countObject;
+
+      delete app;
+      GC.collect();
+
+      Stdout.format( "{} objects collected.", collectedObjects ).newline;
+
+      // Print the class name if any remaining object should be collected,
+      // because this should not happen.
+      Runtime.collectHandler = &printClass;
+   }
    
    // Parse command line options.
    try {
@@ -61,17 +74,4 @@ void main( char[][] args ) {
    
    // Start the application main loop.
    app.run();
-
-   // Count objects collected on program end.
-   collectedObjects = 0;
-   Runtime.collectHandler = &countObject;
-
-   delete app;
-   GC.collect();
-
-   Stdout.format( "{} objects collected.", collectedObjects ).newline;
-
-   // Print the class name if any remaining object should be collected,
-   // because this should not happen.
-   Runtime.collectHandler = &printClass;
 }
