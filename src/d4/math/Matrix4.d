@@ -144,9 +144,9 @@ struct Matrix4 {
 
       Matrix4 m = identity();
 
-      m.m11 = fovScale;
+      m.m11 = fovScale * ( 1 / aspectRatio );
 
-      m.m22 = fovScale * aspectRatio;
+      m.m22 = fovScale;
 
       m.m33 = p;
       m.m34 = q;
