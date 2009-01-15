@@ -19,6 +19,7 @@ import d4.shader.ColorGouraudShader;
 abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    this() {
       m_worldMatrix = Matrix4.identity;
+      m_worldNormalMatrix = Matrix4.identity;
       m_viewMatrix = Matrix4.identity;
       m_projMatrix = Matrix4.identity;
       updateWorldViewMatrix();
@@ -80,6 +81,7 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
 
    void worldMatrix( Matrix4 worldMatrix ) {
       m_worldMatrix = worldMatrix;
+      m_worldNormalMatrix = worldMatrix.inversed().transposed();
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
    }

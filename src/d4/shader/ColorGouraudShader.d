@@ -9,8 +9,7 @@ template ColorGouraudShader( float lightDirX, float lightDirY, float lightDirZ )
       ColoredNormalVertex cnv = cast( ColoredNormalVertex ) vertex;
       assert( cnv !is null );
       
-      // Should probably use the inverse transposed matrix instead.
-      Vector3 worldNormal = m_worldMatrix.rotateVector( cnv.normal );
+      Vector3 worldNormal = m_worldNormalMatrix.rotateVector( cnv.normal );
       
       // Light comes from top-left.
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
