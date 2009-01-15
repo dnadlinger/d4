@@ -144,7 +144,7 @@ protected:
          uint intX1 = rndint( ceil( x1 ) );
          
          if ( intX1 < intX0 ) {
-            Stdout.format( "Wrong x order: x0 {}, x1 {}.", x0, x1 ).newline;
+            Stdout.format( "Wrong x order (top half): x0 {} ({}), x1 {} ({}).", intX0, x0, intX1, x1 ).newline;
             assert( intX0 <= intX1 );
          }
          
@@ -188,7 +188,7 @@ protected:
          uint intX1 = rndint( ceil( x1 ) );
          
          if ( intX1 < intX0 ) {
-            Stdout.format( "Wrong x order: x0 {}, x1 {}.", x0, x1 ).newline;
+            Stdout.format( "Wrong x order (top half): x0 {} ({}), x1 {} ({}).", intX0, x0, intX1, x1 ).newline;
             assert( intX0 <= intX1 );
          }
          
