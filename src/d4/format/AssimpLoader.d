@@ -64,8 +64,13 @@ class AssimpLoader {
       foreach ( mesh; m_meshes ) {
          triangleCount += mesh.indices.length / 3;
       }
+
+      // Print some statistics.
       Stdout.format( "Imported {} triangles in {} meshes, with a total of {} materials.",
          triangleCount, m_meshes.length, m_materials.length ).newline;
+      Stdout.format( "{} of the meshes were imported with the vertex colors, "
+         "{} with the default colors and {} using fake colors.",
+         m_coloredMeshes, m_defaultColorMeshes, m_fakeColorMeshes ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
       // assimp scene object anymore.
@@ -95,12 +100,13 @@ private:
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
       
       if ( fakeColors ) {
+         ++m_fakeColorMeshes;
          result.vertices = importFakeColorVertices( mesh );
       } else if ( mesh.mColors[ 0 ] !is null ) {
-         Stdout( "Importing mesh with vertex colors." ).newline;
+         ++m_coloredMeshes;
          result.vertices = importColoredVertices( mesh );
       } else {
-         Stdout( "Importing mesh using the default color." ).newline;
+         ++m_defaultColorMeshes;
          result.vertices = importVerticesWithColor( mesh, Color( 255, 255, 255 ) );
       }
 
@@ -267,4 +273,8 @@ private:
    Mesh[] m_meshes;
    Material[] m_materials;
    Node m_rootNode;
+
+   uint m_coloredMeshes;
+   uint m_fakeColorMeshes;
+   uint m_defaultColorMeshes;
 }
