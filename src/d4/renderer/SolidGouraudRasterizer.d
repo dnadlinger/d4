@@ -143,14 +143,8 @@ protected:
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
-         if ( intX1 < intX0 ) {
-            Stdout.format( "Wrong x order (top half): x0 {} ({}), x1 {} ({}).", intX0, x0, intX1, x1 ).newline;
-            assert( intX0 <= intX1 );
-         }
          
-         uint pixelCount = intX1 - intX0;
-
-         if ( pixelCount > 0 ) {
+         if ( intX0 < intX1 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
             float relativeY = cast( float ) currentY - positions[ 0 ].y;
@@ -160,7 +154,7 @@ protected:
             VertexVariables lineStartVars = add( variables[ 0 ],
                add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
 
-            rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
          }
 
          ++currentY;
@@ -187,15 +181,7 @@ protected:
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
          
-         if ( intX1 < intX0 ) {
-            Stdout.format( "Wrong x order (top half): x0 {} ({}), x1 {} ({}).", intX0, x0, intX1, x1 ).newline;
-            assert( intX0 <= intX1 );
-         }
-         
-         uint pixelCount = intX1 - intX0;
-
-         if ( pixelCount > 0 ) {
-            // We used vertex 0 as base for the gradient calculations.
+         if ( intX0 < intX1 ) {
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
             float relativeY = cast( float ) currentY - positions[ 0 ].y;
 
@@ -204,7 +190,7 @@ protected:
             VertexVariables lineStartVars = add( variables[ 0 ],
                add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
 
-            rasterizeScanline( pixelCount, ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
          }
 
          ++currentY;
