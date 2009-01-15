@@ -112,7 +112,7 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    void backfaceCulling( BackfaceCulling cullingMode ) {
       m_backfaceCulling = cullingMode;
    }
-   
+
 protected:
    /**
     * Imports the shader template passed to the class template into the class
@@ -121,19 +121,30 @@ protected:
     * The shader has to provide:
     *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
     *  - Color pixelShader( VertexVariables variables );
-    *  - struct VertexVariables
+    *  - struct VertexVariables presenting an array of float values[].
     */
    mixin Shader!( ShaderParams );
    
+   // ----
+   // Shader interface
+   Matrix4 worldNormalMatrix() {
+      return m_worldNormalMatrix;
+   }
+
+   Matrix4 worldViewProjMatrix() {
+      return m_worldViewProjMatrix;
+   }
+   // ----
+
    VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
    
    VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
-//      for ( uint i = 0; i < result.values.length; ++i ) {
-//         result.values[ i ] = variables.values[ i ] * factor;
-//      }
+      // for ( uint i = 0; i < result.values.length; ++i ) {
+      //   result.values[ i ] = variables.values[ i ] * factor;
+      // }
       mixin( stringUnroll( "result.values[", "] = variables.values[", "] * factor;",
          result.values.length ) );
       return result;
@@ -141,9 +152,9 @@ protected:
    
    VertexVariables add( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
-//      for ( uint i = 0; i < result.values.length; ++i ) {
-//         result.values[ i ] = first.values[ i ] + second.values[ i ];
-//      }
+      // for ( uint i = 0; i < result.values.length; ++i ) {
+      //   result.values[ i ] = first.values[ i ] + second.values[ i ];
+      // }
       mixin( stringUnroll( "result.values[", "] = first.values[", "] + second.values[", "];",
          result.values.length ) );
       return result;
@@ -151,9 +162,9 @@ protected:
    
    VertexVariables substract( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
-//      for ( uint i = 0; i < result.values.length; ++i ) {
-//         result.values[ i ] = first.values[ i ] - second.values[ i ];
-//      }
+      // for ( uint i = 0; i < result.values.length; ++i ) {
+      //   result.values[ i ] = first.values[ i ] - second.values[ i ];
+      // }
       mixin( stringUnroll( "result.values[", "] = first.values[", "] - second.values[", "];",
          result.values.length ) );
       return result;
@@ -166,7 +177,7 @@ protected:
       Vector4 pos;
       VertexVariables vars;
    }
-   
+
    /**
     * Rasters the specified triangle to the screen.
     * 

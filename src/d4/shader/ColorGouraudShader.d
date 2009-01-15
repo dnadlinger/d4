@@ -9,7 +9,7 @@ template ColorGouraudShader( float lightDirX, float lightDirY, float lightDirZ )
       ColoredNormalVertex cnv = cast( ColoredNormalVertex ) vertex;
       assert( cnv !is null );
       
-      Vector3 worldNormal = m_worldNormalMatrix.rotateVector( cnv.normal );
+      Vector3 worldNormal = worldNormalMatrix.rotateVector( cnv.normal );
       
       // Light comes from top-left.
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
@@ -18,7 +18,7 @@ template ColorGouraudShader( float lightDirX, float lightDirY, float lightDirZ )
       if ( lightIntensity < 0.1 ) {
          lightIntensity = 0.1;
       }
-      position = m_worldViewProjMatrix * cnv.position;
+      position = worldViewProjMatrix * cnv.position;
       variables.color = cnv.color * lightIntensity;
    }
    

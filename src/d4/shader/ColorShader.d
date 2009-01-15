@@ -7,7 +7,7 @@ template ColorShader() {
       ColoredVertex cv = cast( ColoredVertex ) vertex;
       assert( cv !is null );
       
-      position = m_worldViewProjMatrix * cv.position;
+      position = worldViewProjMatrix * cv.position;
       variables.color = cv.color;
    }
    
