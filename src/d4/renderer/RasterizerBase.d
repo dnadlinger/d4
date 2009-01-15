@@ -217,8 +217,9 @@ private:
 
    /**
     * The maximum number of vertices a clipped triangle can have.
+    * 8 because the triangle can be clipped by up to 4 sides of the viewing volume.
     */
-   const CLIPPING_BUFFER_SIZE = 6;
+   const CLIPPING_BUFFER_SIZE = 8;
 
    void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
       // Clip all vertices against the view frustrum, which is now a cube from 
@@ -226,6 +227,7 @@ private:
       // which is fast and happens before the coordinates are divided by w.
       // We (legitimately?) assume that there are never more than
       // CLIPPING_BUFFER_SIZE vertices created during clipping.
+      // TODO: Allocate as class member?
       TransformedVertex[ CLIPPING_BUFFER_SIZE ] vertices;
       TransformedVertex[ CLIPPING_BUFFER_SIZE ] clippingBuffer;
       
@@ -332,23 +334,23 @@ private:
          
          if ( currDist >= 0.f ) {
             // The current vertex is »inside«, append it to the result.
+            assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
             targetBuffer[ newCount++ ] = sourceBuffer[ i ];
             
             if ( nextDist < 0.f ) {
                // The edge to the next vertex is crossing the plane, interpolate the 
                // vertex which is exactly on the plane and append it to the result.
+               assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
                targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
                   currDist / ( currDist - nextDist ) );
             }
          } else if ( nextDist >= 0.f ) {
             // The next vertex is inside, also append the vertex on the plane.
+            assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
             targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
                currDist / ( currDist - nextDist ) );
          }
       }
-      
-      // We have probably already segfaulted ;)
-      assert( newCount <= CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
 
       return newCount;
    }   
