@@ -15,8 +15,8 @@ protected:
       // All coordinates have to be clipped to screen space.
       debug {
          void sanityCheck( Vector4 pos ) {
-            assert( pos.x >= 0, "Triangle coordinates must not be negative." );
-            assert( pos.y >= 0, "Triangle coordinates must not be negative." );
+            assert( rndint( ceil( pos.x ) ) >= 0, "Triangle coordinates must not be negative." );
+            assert( rndint( ceil( pos.y ) ) >= 0, "Triangle coordinates must not be negative." );
             assert( pos.x < m_colorBuffer.width, "Triangle coordinates must not exceed framebuffer size." );
             assert( pos.y < m_colorBuffer.height, "Triangle coordinates must not exceed framebuffer size." );
          }
