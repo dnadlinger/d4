@@ -10,7 +10,7 @@ extern ( C ) {
    /** Defines type identifiers for use within the material system.
    *
    */
-   enum aiPropertyTypeInfo {
+   enum aiPropertyTypeInfo : uint {
       /** Array of single-precision floats
       */
       aiPTI_Float = 0x1,
@@ -25,20 +25,14 @@ extern ( C ) {
 
       /** Simple binary buffer
       */
-      aiPTI_Buffer = 0x5,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiPTI_Force32Bit = 0x9fffffff
+      aiPTI_Buffer = 0x5
    }
 
    // ---------------------------------------------------------------------------
    /** Defines how the Nth texture is combined with all previous textures.
    *
    */
-   enum aiTextureOp {
+   enum aiTextureOp : uint {
       /** T = T1 * T2
       */
       aiTextureOp_Multiply = 0x0,
@@ -61,19 +55,13 @@ extern ( C ) {
 
       /** T = T1 + (T2-0.5)
       */
-      aiTextureOp_SignedAdd = 0x5,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiTextureOp_Force32Bit = 0x9fffffff
+      aiTextureOp_SignedAdd = 0x5
    }
 
    // ---------------------------------------------------------------------------
    /** Defines how UV coordinates beyond the valid range are handled.
    */
-   enum aiTextureMapMode {
+   enum aiTextureMapMode : uint {
       /** A texture coordinate u|v is translated to u%1|v%1
       */
       aiTextureMapMode_Wrap = 0x0,
@@ -91,13 +79,7 @@ extern ( C ) {
       /** A texture coordinate u|v becomes u%1|v%1 if (u-(u%1))%2 is zero and
       *  1-(u%1)|1-(v%1) otherwise
       */
-      aiTextureMapMode_Mirror = 0x2,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiTextureMapMode_Force32Bit = 0x9fffffff
+      aiTextureMapMode_Mirror = 0x2
    }
 
    // ---------------------------------------------------------------------------
@@ -105,7 +87,7 @@ extern ( C ) {
    *
    *  See the AI_MATKEY_MAPPING property for more details
    */
-   enum aiTextureMapping {
+   enum aiTextureMapping : uint {
       /** The mapping coordinates are taken from an UV channel.
       *
       *  The AI_MATKEY_UVSRC key specifies from which (remember,
@@ -131,13 +113,7 @@ extern ( C ) {
 
       /** Undefined mapping. Have fun.
       */
-      aiTextureMapping_OTHER = 0x5,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiTextureMapping_Force32Bit = 0x9fffffff
+      aiTextureMapping_OTHER = 0x5
    }
 
    // ---------------------------------------------------------------------------
@@ -146,22 +122,16 @@ extern ( C ) {
    *
    *  This corresponds to the AI_MATKEY_TEXMAP_AXIS property.
    */
-   enum aiAxis {
+   enum aiAxis : uint {
       aiAxis_X = 0x0,
       aiAxis_Y = 0x1,
-      aiAxis_Z = 0x2,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiAxis_Force32Bit = 0x9fffffff
+      aiAxis_Z = 0x2
    }
 
    // ---------------------------------------------------------------------------
    /** Defines the purpose of a texture
    */
-   enum aiTextureType {
+   enum aiTextureType : uint {
       /** The texture is combined with the result of the diffuse
       *  lighting equation.
       */
@@ -209,13 +179,7 @@ extern ( C ) {
       *  Normally 'white' means opaque and 'black' means
       *  'transparency'. Or quite the opposite. Have fun.
       */
-      aiTextureType_OPACITY = 0x7,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiTextureType_Force32Bit = 0x9fffffff
+      aiTextureType_OPACITY = 0x7
    }
 
    // ---------------------------------------------------------------------------
@@ -227,7 +191,7 @@ extern ( C ) {
    *  specular term for diffuse shading models like Oren-Nayar remains
    *  undefined)
    */
-   enum aiShadingMode {
+   enum aiShadingMode : uint {
       /** Flat shading. Shading is done on per-face base,
       *  diffuse only.
       */
@@ -284,13 +248,7 @@ extern ( C ) {
 
       /** Fresnel shading
       */
-      aiShadingMode_Fresnel = 0xa,
-
-
-      /** This value is not used. It is just there to force the
-      *  compiler to map this enum to a 32 Bit integer.
-      */
-      _aiShadingMode_Force32Bit = 0x9fffffff
+      aiShadingMode_Fresnel = 0xa
    }
 
 
