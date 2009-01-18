@@ -120,7 +120,5 @@ extern ( C ) {
 
 // Tell DSSS to link against the assimp lib.
 version ( build ) {
-   pragma( link, "stdc++" );
-   pragma( link, "Irrlicht" );
    pragma( link, "assimp" );
 }
