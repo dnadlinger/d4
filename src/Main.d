@@ -58,12 +58,12 @@ void main( char[][] args ) {
    }
    
    // Parse command line options.
-   try {
-      app.modelFile = args[ 1 ];
-   } catch ( Exception e ) {
+   if ( args.length < 2 ) {
       throw new Exception( "Please specify a model file at the command line" );
    }
    
+   app.modelFile = args[ 1 ];
+
    if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
       app.normalType = NormalType.GENERATE_SMOOTH;
    } else if ( contains( args[ 2..$ ], "fileNormals" ) ) {
