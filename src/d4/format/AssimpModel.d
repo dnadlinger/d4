@@ -88,9 +88,12 @@ private:
    Material importMaterial( aiMaterial material ) {
       Material result = new Material();
       
+      int useWireframe;
+      if ( !aiGetMaterialIntegerArray( &material,AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe ) ) {
+         throw new Exception( "Could not get material wireframe property.");
+      }
+      result.wireframe = ( useWireframe == 1 );
       
-      
-      result.wireframe = false;
       result.useColor = true;
       result.gouraudLighting = true;
       
@@ -121,6 +124,7 @@ private:
          result.vertices = importColoredVertices( mesh );
       } else {
          ++m_defaultColorMeshCount;
+         // TODO: Use material color.
          result.vertices = importVerticesWithFixedColor( mesh, Color( 255, 255, 255 ) );
       }
 
