@@ -1,4 +1,4 @@
-module d4.format.AssimpLoader;
+module d4.format.AssimpModel;
 
 import tango.stdc.stringz : fromStringz, toStringz;
 import tango.io.Stdout;
@@ -7,12 +7,14 @@ import assimp.postprocess;
 import assimp.types;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.scene.Material;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Vertex;
 import d4.scene.ColoredNormalVertex;
+import d4.scene.TexturedNormalVertex;
 
 enum NormalType {
    FILE,
@@ -20,7 +22,7 @@ enum NormalType {
    GENERATE_SMOOTH
 }
 
-class AssimpLoader {
+class AssimpModel {
    this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
@@ -68,9 +70,10 @@ class AssimpLoader {
       // Print some statistics.
       Stdout.format( "Imported {} triangles in {} meshes, with a total of {} materials.",
          triangleCount, m_meshes.length, m_materials.length ).newline;
-      Stdout.format( "{} of the meshes were imported with the vertex colors, "
+      Stdout.format( "{} of the meshes had textures applied, "
+         "{} of the meshes were imported with the vertex colors, "
          "{} with the default colors and {} using fake colors.",
-         m_coloredMeshes, m_defaultColorMeshes, m_fakeColorMeshes ).newline;
+         m_texturedMeshCount, m_coloredMeshCount, m_defaultColorMeshCount, m_fakeColorMeshCount ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
       // assimp scene object anymore.
@@ -84,10 +87,13 @@ class AssimpLoader {
 private:
    Material importMaterial( aiMaterial material ) {
       Material result = new Material();
-      // TODO: Actually import material data here.
+      
+      
+      
       result.wireframe = false;
       result.useColor = true;
       result.gouraudLighting = true;
+      
       return result;
    }
 
@@ -98,18 +104,27 @@ private:
       // empty and it should only contain triangles by now.
       assert( mesh.mNumFaces > 0 );
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
+
+      // The meshes store only incides for the global material buffer.
+      assert( m_materials[ mesh.mMaterialIndex ] !is null );
+      result.material = m_materials[ mesh.mMaterialIndex ];      
       
+      // Guess the right vertex type and import the vertices.
       if ( fakeColors ) {
-         ++m_fakeColorMeshes;
+         ++m_fakeColorMeshCount;
          result.vertices = importFakeColorVertices( mesh );
+      } else if ( mesh.mTextureCoords[ 0 ] !is null ) {
+         ++m_texturedMeshCount;
+         result.vertices = importTexturedVertices( mesh );
       } else if ( mesh.mColors[ 0 ] !is null ) {
-         ++m_coloredMeshes;
+         ++m_coloredMeshCount;
          result.vertices = importColoredVertices( mesh );
       } else {
-         ++m_defaultColorMeshes;
-         result.vertices = importVerticesWithColor( mesh, Color( 255, 255, 255 ) );
+         ++m_defaultColorMeshCount;
+         result.vertices = importVerticesWithFixedColor( mesh, Color( 255, 255, 255 ) );
       }
 
+      // Import all the indices/faces.
       for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
          aiFace face = mesh.mFaces[ i ];
 
@@ -120,10 +135,6 @@ private:
          result.indices ~= face.mIndices[ 1 ];
          result.indices ~= face.mIndices[ 2 ];
       }
-
-      // The meshes store only incides for the global material buffer.
-      assert( m_materials[ mesh.mMaterialIndex ] !is null );
-      result.material = m_materials[ mesh.mMaterialIndex ];
 
       return result;
    }
@@ -192,7 +203,7 @@ private:
       return result;
    }
    
-   ColoredNormalVertex[] importVerticesWithColor( aiMesh mesh, Color color ) {
+   ColoredNormalVertex[] importVerticesWithFixedColor( aiMesh mesh, Color color ) {
       ColoredNormalVertex[] result;
       
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
@@ -208,6 +219,26 @@ private:
 
          result ~= vertex;
       }
+      
+      return result;
+   }
+   
+   TexturedNormalVertex[] importTexturedVertices( aiMesh mesh ) {
+      TexturedNormalVertex[] result;
+
+      for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
+         TexturedNormalVertex vertex = new TexturedNormalVertex();
+
+         vertex.position = importVector3( mesh.mVertices[ i ] );
+         
+         // vertex.normal.normalize() does not work because of the indirection
+         // via the getter/setter function.
+         vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
+
+         vertex.texCoords = importTexCoords( mesh.mTextureCoords[ 0 ][ i ] );
+
+         result ~= vertex;
+      }      
       
       return result;
    }
@@ -269,12 +300,17 @@ private:
          cast( ubyte )( c.a * 255f )
       );
    }
+   
+   Vector2 importTexCoords( aiVector3D c ) {
+      return Vector2( c.x, c.y );
+   }
 
    Mesh[] m_meshes;
    Material[] m_materials;
    Node m_rootNode;
 
-   uint m_coloredMeshes;
-   uint m_fakeColorMeshes;
-   uint m_defaultColorMeshes;
+   uint m_texturedMeshCount;
+   uint m_coloredMeshCount;
+   uint m_fakeColorMeshCount;
+   uint m_defaultColorMeshCount;
 }

@@ -1,7 +1,6 @@
 module d4.scene.Material;
 
 import d4.math.Vector3;
-import d4.renderer.Renderer;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
@@ -24,7 +23,6 @@ public:
    
    void wireframe( bool wireframe ) {
       m_wireframe = wireframe;
-      invalidateRasterizer();
    }
    
    bool useColor() {
@@ -33,7 +31,6 @@ public:
    
    void useColor( bool useColor ) {
       m_useColor = useColor;
-      invalidateRasterizer();
    }
    
    bool gouraudLighting() {
@@ -42,7 +39,6 @@ public:
    
    void gouraudLighting( bool useGouraudLighting ) {
       m_gouraudLighting = useGouraudLighting;
-      invalidateRasterizer();
    }
    
    IRasterizer createRasterizer() {
@@ -69,15 +65,7 @@ public:
             return new SolidGouraudRasterizer!( DefaultShader )();
          }
       }
-      
    }
-   
-   void invalidateRasterizer() {
-      // TODO: Actually remove the rasterizer from the renderer.
-      m_rasterizerId = 0;
-   }
-   
-   uint m_rasterizerId;
    
    bool m_wireframe;
    bool m_useColor;

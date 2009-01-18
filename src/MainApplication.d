@@ -1,7 +1,7 @@
 module MainApplication;
 
 import tango.math.Math : sin;
-import d4.format.AssimpLoader;
+import d4.format.AssimpModel;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
@@ -12,7 +12,7 @@ import d4.scene.Vertex;
 import d4.util.Key;
 import d4.util.SdlApplication;
 
-alias d4.format.AssimpLoader.NormalType NormalType;
+alias d4.format.AssimpModel.NormalType NormalType;
 
 class MainApplication : SdlApplication {
 public:
@@ -32,8 +32,8 @@ protected:
    override void init() {
       assert( m_modelFileName.length > 0 );
 
-      auto loader = new AssimpLoader( m_modelFileName, m_normalType, m_fakeColors );
-      m_rootNode = loader.rootNode;
+      auto model = new AssimpModel( m_modelFileName, m_normalType, m_fakeColors );
+      m_rootNode = model.rootNode;
 
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
@@ -45,7 +45,7 @@ protected:
       m_rotateWorld = false;
       m_animateBackground = false;
       m_backgroundTime = 0;
-      m_renderer.clearColor = Color( 0, 0, 0 );
+      m_renderer.clearColor = Color( 255, 255, 255 );
    }
 
    override void render( float deltaTime ) {

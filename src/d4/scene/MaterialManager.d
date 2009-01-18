@@ -5,6 +5,10 @@ import d4.renderer.IRasterizer;
 import d4.renderer.Renderer;
 import d4.scene.IMaterial;
 
+/**
+ * Caches a rasterizer instance for each material and provides global override
+ * functionality to force certain rendering modes.
+ */
 class MaterialManager {
 public:
    /**
@@ -27,8 +31,8 @@ public:
     * Params:
     *     material = The material to activate.
     */
-   void activateMaterial( IMaterial material ) {
-      if ( !m_materialRasterizers.containsKey( material ) ) {
+   void activateMaterial( IMaterial material, bool update = false ) {
+      if ( !m_materialRasterizers.containsKey( material ) || update ) {
          addMaterial( material );
       }
       
@@ -58,13 +62,18 @@ private:
    /**
     * Adds a material to the material cache.
     * 
-    * This is called by activateMaterial if a material has not been cached yet.
+    * This is called by activateMaterial if a material has not been cached yet
+    * or has to be updated.
     * 
     * Params:
     *     material = The material to cache.
     */
    void addMaterial( IMaterial material ) {
-      assert( !m_materialRasterizers.containsKey( material ) );
+      // Remove the material if it already has been cached.
+      if ( m_materialRasterizers.containsKey( material ) ) {
+         m_renderer.unregisterRasterizer( m_materialRasterizers[ material ] );
+         m_materialRasterizers.removeKey( material );
+      }
       
       IRasterizer rasterizer;
       
