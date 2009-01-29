@@ -165,6 +165,11 @@ private:
       assert( mesh.mNumFaces > 0 );
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
 
+      // The vertices have to contain normals.
+      if ( mesh.mNormals is null ) {
+         throw new Exception( "Models without vertex normals are not supported." );
+      }
+
       // The meshes store only incides for the global material buffer.
       assert( m_materials[ mesh.mMaterialIndex ] !is null );
       result.material = m_materials[ mesh.mMaterialIndex ];      
