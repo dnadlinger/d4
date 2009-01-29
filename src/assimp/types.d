@@ -95,22 +95,22 @@ extern ( C ) {
    */
    enum aiReturn {
       //! Indicates that a function was successful
-      AI_SUCCESS = 0x0,
+      SUCCESS = 0x0,
 
       //! Indicates that a function failed
-      AI_FAILURE = -0x1,
+      FAILURE = -0x1,
 
       //! Indicates that a file was invalid
-      AI_INVALIDFILE = -0x2,
+      INVALIDFILE = -0x2,
 
       //! Indicates that not enough memory was available
       //! to perform the requested operation
-      AI_OUTOFMEMORY = -0x3,
+      OUTOFMEMORY = -0x3,
 
       //! Indicates that an illegal argument has been
       //! passed to a function. This is rarely used,
       //! most functions assert in this case.
-      AI_INVALIDARG = -0x4
+      INVALIDARG = -0x4
    }
 
    // ---------------------------------------------------------------------------

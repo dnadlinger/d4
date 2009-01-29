@@ -2,10 +2,10 @@ module assimp.scene;
 
 import assimp.mesh;
 import assimp.material;
+import assimp.texture;
 import assimp.types;
 
 extern ( C ) {
-   struct aiTexture;
    struct aiLight;
    struct aiCamera;
    struct aiAnimation;

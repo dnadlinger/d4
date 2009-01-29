@@ -7,11 +7,13 @@ import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
+import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
+import d4.scene.Image;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
 import d4.shader.ColorGouraudShader;
@@ -113,6 +115,14 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       m_backfaceCulling = cullingMode;
    }
 
+   Image[] textures() {
+      return m_textures;
+   }
+
+   void textures( Image[] textures ) {
+      m_textures = textures;
+   }
+
 protected:
    /**
     * Imports the shader template passed to the class template into the class
@@ -133,6 +143,23 @@ protected:
 
    Matrix4 worldViewProjMatrix() {
       return m_worldViewProjMatrix;
+   }
+
+   Color readTextureNearest( uint textureIndex, Vector2 texCoords ) {
+      Image texture = m_textures[ textureIndex ];
+      assert( texture !is null );
+
+      float u = texCoords.x;
+      float v = texCoords.y;
+
+      // TODO: Import proper clamping/tiling support.
+      if ( u < 0 ) u = 0;
+      if ( u > 1 ) u = 1;
+
+      if ( v < 0 ) v = 0;
+      if ( v > 1 ) v = 1;
+
+      return texture.getNearest( u * ( texture.width - 1 ), v * ( texture.height - 1 ) );
    }
    // ----
 
@@ -169,7 +196,7 @@ protected:
          result.values.length ) );
       return result;
    }
-   
+
    /**
     * Convinience struct for storing the transformed vertices.
     */
@@ -376,4 +403,6 @@ private:
    Matrix4 m_worldViewProjMatrix;
    
    BackfaceCulling m_backfaceCulling;
+
+   Image[] m_textures;
 }

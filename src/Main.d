@@ -8,6 +8,12 @@ import tango.io.Stdout;
 import MainApplication;
 
 void assertHandler( char[] file, size_t line, char[] msg = null ) {
+   Stdout.format( "Assertion false in {}, line {}", file, line );
+   if ( msg !is null ) {
+      Stdout( ": " ~ msg );
+   }
+   Stdout.newline;
+
    asm {
       // int 3 (0x33) invokes the attached debugger if any.
       int 3;
@@ -62,14 +68,10 @@ void main( char[][] args ) {
       throw new Exception( "Please specify a model file at the command line" );
    }
    
-   app.modelFile = args[ 1 ];
+   app.sceneFile = args[ 1 ];
 
    if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-      app.normalType = NormalType.GENERATE_SMOOTH;
-   } else if ( contains( args[ 2..$ ], "fileNormals" ) ) {
-      app.normalType = NormalType.FILE;
-   } else {
-      app.normalType = NormalType.GENERATE;
+      app.generateSmoothNormals = true;
    }
    
    if ( contains( args[ 2..$ ], "fakeColors" ) ) {

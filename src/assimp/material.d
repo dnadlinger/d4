@@ -135,27 +135,27 @@ extern ( C ) {
       /** The texture is combined with the result of the diffuse
       *  lighting equation.
       */
-      aiTextureType_DIFFUSE = 0x0,
+      DIFFUSE = 0x0,
 
       /** The texture is combined with the result of the specular
       *  lighting equation.
       */
-      aiTextureType_SPECULAR = 0x1,
+      SPECULAR = 0x1,
 
       /** The texture is combined with the result of the ambient
       *  lighting equation.
       */
-      aiTextureType_AMBIENT = 0x2,
+      AMBIENT = 0x2,
 
       /** The texture is added to the result of the lighting
       *  calculation. It isn't influenced by any lighting.
       */
-      aiTextureType_EMISSIVE = 0x3,
+      EMISSIVE = 0x3,
 
       /** The texture is a height map and serves as input for
       *  a normal map generator.
       */
-      aiTextureType_HEIGHT = 0x4,
+      HEIGHT = 0x4,
 
       /** The texture is a (tangent space) normal-map.
       *
@@ -163,7 +163,7 @@ extern ( C ) {
       *  for use with techniques such as Parallax Occlusion Mapping
       *  it is registered once as a normalmap.
       */
-      aiTextureType_NORMALS = 0x5,
+      NORMALS = 0x5,
 
       /** The texture defines the glossiness of the material.
       *
@@ -172,14 +172,14 @@ extern ( C ) {
       *  function define to map the linear color values in the
       *  texture to a suitable exponent. Have fun.
       */
-      aiTextureType_SHININESS = 0x6,
+      SHININESS = 0x6,
 
       /** The texture defines a per-pixel opacity.
       *
       *  Normally 'white' means opaque and 'black' means
       *  'transparency'. Or quite the opposite. Have fun.
       */
-      aiTextureType_OPACITY = 0x7
+      OPACITY = 0x7
    }
 
    // ---------------------------------------------------------------------------

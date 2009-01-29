@@ -2,6 +2,28 @@ module d4.shader.VertexVariableUtils;
 
 import util.StringMixinUtils;
 
+template floatVariable( char[] name, uint index ) {
+   const char[] floatVariable =
+      "float " ~ name ~ "() { "
+         "return values[" ~ intToString( index ) ~  "];"
+      "}"
+      "void " ~ name ~ "( float value ) { "
+         "values[" ~ intToString( index ) ~  "] = value;"
+      "}";
+}
+
+template vector2Variable( char[] name, uint index ) {
+   const char[] vector2Variable =
+      "Vector2 " ~ name ~ "() { "
+         "return Vector2( values[" ~ intToString( index ) ~  "], values[" ~
+         intToString( index + 1 ) ~ "] );"
+      "}"
+      "void " ~ name ~ "( Vector2 vector ) { "
+         "values[" ~ intToString( index ) ~  "] = vector.x;"
+         "values[" ~ intToString( index + 1 ) ~  "] = vector.y;"
+      "}";
+}
+
 template vector3Variable( char[] name, uint index ) {
    const char[] vector3Variable =
       "Vector3 " ~ name ~ "() { "

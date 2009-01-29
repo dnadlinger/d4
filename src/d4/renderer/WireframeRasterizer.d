@@ -6,7 +6,7 @@ import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
-final class WireframeRasterizer( alias Shader ) : RasterizerBase!( Shader ) {
+final class WireframeRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       Color color = Color( 0, 0, 0 );

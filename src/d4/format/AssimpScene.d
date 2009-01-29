@@ -1,14 +1,17 @@
-module d4.format.AssimpModel;
+module d4.format.AssimpScene;
 
-import tango.stdc.stringz : fromStringz, toStringz;
+import tango.io.FilePath;
 import tango.io.Stdout;
+import tango.stdc.stringz : fromStringz, toStringz;
+import tango.text.convert.Integer;
+import tango.util.Convert;
 import assimp.all;
-import assimp.postprocess;
-import assimp.types;
+import d4.format.DevilImporter;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector2;
 import d4.math.Vector3;
+import d4.scene.Image;
 import d4.scene.Material;
 import d4.scene.Mesh;
 import d4.scene.Node;
@@ -22,7 +25,7 @@ enum NormalType {
    GENERATE_SMOOTH
 }
 
-class AssimpModel {
+class AssimpScene {
    this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
@@ -51,9 +54,12 @@ class AssimpModel {
       if ( scene.mRootNode == null ) {
          throw new Exception( "Model file contains no root node (" ~ fileName ~ ")." );
       }
+      
+      auto path = new FilePath( fileName );
+      char[] filePath = path.path();
 
       for ( uint i = 0; i < scene.mNumMaterials; ++i ) {
-         m_materials ~= importMaterial( *( scene.mMaterials[ i ] ) );
+         m_materials ~= importMaterial( *( scene.mMaterials[ i ] ), *scene, filePath );
       }
 
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
@@ -85,16 +91,67 @@ class AssimpModel {
    }
 
 private:
-   Material importMaterial( aiMaterial material ) {
+   Material importMaterial( aiMaterial material, aiScene scene, char[] modelPath ) {
       Material result = new Material();
       
-      int useWireframe;
-      if ( !aiGetMaterialIntegerArray( &material,AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe ) ) {
-         throw new Exception( "Could not get material wireframe property.");
-      }
+      // Read wireframe mode.
+      int useWireframe = 0;
+      aiGetMaterialIntegerArray( &material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
       result.wireframe = ( useWireframe == 1 );
       
-      result.useColor = true;
+      // Read the first texture (if any).
+      aiString targetString;
+      if ( aiGetMaterialTexture( &material, aiTextureType.DIFFUSE, 0, &targetString ) == aiReturn.SUCCESS ) {
+         char[] textureFileName = importString( targetString );
+
+         DevilImporter imageLoader = new DevilImporter();
+         Image image;
+         
+         if ( textureFileName[ 0 ] == '*' ) {
+            // The texture is embedded into the file.
+            aiTexture* texture = scene.mTextures[ toInt( textureFileName[ 1 .. $ ] ) ];
+            
+            uint width = texture.mWidth;
+            uint height = texture.mHeight;
+            
+            if ( height > 0 ) {
+               // If it is uncompressed, just copy the data over to an Image.
+               image = new Image( width, height, ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
+            } else {
+               // The image is compressed.
+               image = imageLoader.importData( ( cast( void* )texture.pcData )[ 0 .. width ] );
+            }
+         } else {
+            // The texture resides in a seperate file on the hard disk.
+            // Try a few different locations to be error-tolerant in the texture
+            // path specifications.
+            auto textureFilePath = new FilePath( textureFileName );            
+            try {
+               // The texture path is probably stored relative to the model file.
+               image = imageLoader.importFile( modelPath ~ textureFileName );
+            } catch {
+               try {
+                  // Maybe the exporter has erroneously stored an absolute path,
+                  // try using just the file name.
+                  image = imageLoader.importFile( modelPath ~ textureFilePath.name ~ textureFilePath.suffix );
+               } catch {
+                  try {
+                     // Maybe the absolute path is correct? This should not happen though.
+                     image = imageLoader.importFile( textureFileName );
+                     Stdout( "A texture file was specified with an absoule path: ")( textureFileName );
+                  } catch {
+                     throw new Exception( "Couldn't find texture file: " ~ textureFileName );
+                  }
+               }
+            }
+         }
+         
+         result.diffuseTexture = image;
+         result.useColor = false;
+      } else {
+         result.useColor = true;
+      }
+
       result.gouraudLighting = true;
       
       return result;
@@ -307,6 +364,10 @@ private:
    
    Vector2 importTexCoords( aiVector3D c ) {
       return Vector2( c.x, c.y );
+   }
+   
+   char[] importString( aiString s ) {
+      return s.data[ 0 .. s.length ];
    }
 
    Mesh[] m_meshes;

@@ -1,7 +1,7 @@
 module MainApplication;
 
 import tango.math.Math : sin;
-import d4.format.AssimpModel;
+import d4.format.AssimpScene;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Vector3;
@@ -12,28 +12,42 @@ import d4.scene.Vertex;
 import d4.util.Key;
 import d4.util.SdlApplication;
 
-alias d4.format.AssimpModel.NormalType NormalType;
-
 class MainApplication : SdlApplication {
 public:
-   void modelFile( char[] fileName ) {
-      m_modelFileName = fileName;
+   void sceneFile( char[] fileName ) {
+      m_sceneFileName = fileName;
    }
    
    void fakeColors( bool fakeColors ) {
       m_fakeColors = fakeColors;
    }
    
-   void normalType( NormalType type ) {
-      m_normalType = type;
+   void generateSmoothNormals( bool smooth ) {
+      m_generateSmoothNormals = smooth;
    }
 
 protected:
    override void init() {
-      assert( m_modelFileName.length > 0 );
+      assert( m_sceneFileName.length > 0 );
 
-      auto model = new AssimpModel( m_modelFileName, m_normalType, m_fakeColors );
-      m_rootNode = model.rootNode;
+      AssimpScene scene;
+
+      // Try to import the scene using the normals given in the file. If this fails
+      // (if there are none), generate them as specified in the params.
+      // TODO: Make AssimpScene a loader and handle this in AssimpImporter itself.
+      try {
+         scene = new AssimpScene( m_sceneFileName, NormalType.FILE, m_fakeColors );
+      } catch {
+         NormalType normals;
+         if ( m_generateSmoothNormals ) {
+            normals = NormalType.GENERATE_SMOOTH;
+         } else {
+            normals = NormalType.GENERATE;
+         }
+         scene = new AssimpScene( m_sceneFileName, normals, m_fakeColors );
+      }
+
+      m_rootNode = scene.rootNode;
 
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
@@ -131,8 +145,8 @@ private:
       m_renderer.viewMatrix = Matrix4.lookAt( m_cameraPosition, Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
    }
 
-   char[] m_modelFileName;
-   NormalType m_normalType;
+   char[] m_sceneFileName;
+   bool m_generateSmoothNormals;
    bool m_fakeColors;
 
    Renderer m_renderer;

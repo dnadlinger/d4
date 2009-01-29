@@ -37,6 +37,7 @@ public:
       }
       
       m_renderer.useRasterizer( m_materialRasterizers[ material ] );
+      m_renderer.activeTextures = material.textures;
    }
    
    /**

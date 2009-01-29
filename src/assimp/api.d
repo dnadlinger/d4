@@ -1,10 +1,10 @@
 module assimp.api;
 
 import assimp.scene;
+import assimp.types;
 
 extern ( C ) {
    struct aiFileIO;
-   struct aiString;
    struct aiMemoryInfo;
 
    // ---------------------------------------------------------------------------

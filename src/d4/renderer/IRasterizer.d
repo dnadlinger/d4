@@ -3,6 +3,7 @@ module d4.renderer.IRasterizer;
 import d4.math.Matrix4;
 import d4.output.Surface;
 import d4.renderer.ZBuffer;
+import d4.scene.Image;
 import d4.scene.Vertex;
 
 enum BackfaceCulling {
@@ -27,4 +28,7 @@ interface IRasterizer {
 
    BackfaceCulling backfaceCulling();
    void backfaceCulling( BackfaceCulling cullingMode );   
+
+   Image[] textures();
+   void textures( Image[] textures );
 }

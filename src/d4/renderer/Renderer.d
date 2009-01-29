@@ -7,12 +7,12 @@ import d4.math.Matrix4;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
-import d4.shader.DefaultShader;
 import d4.shader.ColorGouraudShader;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
+import d4.scene.Image;
 import d4.scene.Vertex;
 
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
@@ -27,7 +27,7 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidGouraudRasterizer!( DefaultShader )();
+      m_rasterizers ~= new SolidGouraudRasterizer!( ColorGouraudShader, 1, 1, 1 )();
       m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
@@ -109,6 +109,14 @@ public:
       m_clearColor = clearColor;
    }
    
+   Image[] activeTextures() {
+      return m_activeRasterizer.textures;
+   }
+
+   void activeTextures( Image[] textures ) {
+      m_activeRasterizer.textures = textures;
+   }
+
    uint registerRasterizer( IRasterizer rasterizer ) {
       assert( rasterizer !is null );
       m_rasterizers ~= rasterizer;
@@ -139,6 +147,7 @@ private:
       rasterizer.viewMatrix = m_activeRasterizer.viewMatrix;
       rasterizer.projectionMatrix = m_activeRasterizer.projectionMatrix;
       rasterizer.backfaceCulling = m_activeRasterizer.backfaceCulling;
+      rasterizer.textures = m_activeRasterizer.textures;
       
       m_activeRasterizer = rasterizer;
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
