@@ -1,6 +1,6 @@
 module d4.shader.ColorGouraudShader;
 
-template ColorGouraudShader( float lightDirX, float lightDirY, float lightDirZ ) {
+template ColorGouraudShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.ColoredNormalVertex;
    
    const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
@@ -11,12 +11,11 @@ template ColorGouraudShader( float lightDirX, float lightDirY, float lightDirZ )
       
       Vector3 worldNormal = worldNormalMatrix.rotateVector( cnv.normal );
       
-      // Light comes from top-left.
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
       
-      // 0.1 represents the ambient light.
-      if ( lightIntensity < 0.1 ) {
-         lightIntensity = 0.1;
+      // ambientLevel represents the ambient light.
+      if ( lightIntensity < ambientLevel ) {
+         lightIntensity = ambientLevel;
       }
       position = worldViewProjMatrix * cnv.position;
       variables.color = cnv.color * lightIntensity;

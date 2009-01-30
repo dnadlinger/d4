@@ -27,7 +27,7 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidGouraudRasterizer!( ColorGouraudShader, 1, 1, 1 )();
+      m_rasterizers ~= new SolidGouraudRasterizer!( ColorGouraudShader, 0.1, 1, 1, 1 )();
       m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );

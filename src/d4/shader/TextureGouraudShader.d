@@ -1,6 +1,6 @@
 module d4.shader.TextureGouraudShader;
 
-template TextureGouraudShader( float lightDirX, float lightDirY, float lightDirZ ) {
+template TextureGouraudShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.TexturedNormalVertex;
 
    const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
@@ -12,12 +12,11 @@ template TextureGouraudShader( float lightDirX, float lightDirY, float lightDirZ
       // Should probably use the inverse transposed matrix instead.
       Vector3 worldNormal = worldNormalMatrix.rotateVector( tnv.normal );
 
-      // Light comes from top-left.
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
 
-      // 0.1 represents the ambient light.
-      if ( lightIntensity < 0.1 ) {
-         lightIntensity = 0.1;
+      // ambientLevel represents the ambient light.
+      if ( lightIntensity < ambientLevel ) {
+         lightIntensity = ambientLevel;
       }
 
       position = worldViewProjMatrix * tnv.position;

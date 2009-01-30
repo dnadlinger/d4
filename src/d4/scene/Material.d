@@ -74,13 +74,13 @@ public:
             // and doing this crashes gdc:
             // auto lightDirection = Vector3( 0, -1, 1 );
             // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-            return new SolidGouraudRasterizer!( ColorGouraudShader, 0, -1, 1 )();
+            return new SolidGouraudRasterizer!( ColorGouraudShader, 0.2, 1, -1, -1 )();
          } else {
             return new SolidGouraudRasterizer!( ColorShader )();
          }
       } else if ( m_diffuseTexture !is null ) {
          if ( m_gouraudLighting ) {
-            return new SolidGouraudRasterizer!( TextureGouraudShader, 0, -1, 1 )();
+            return new SolidGouraudRasterizer!( TextureGouraudShader, 0.2, 1, -1, -1 )();
          } else {
             throw new Exception( "Texturing without gouraud lighting is currently not supported." );
          }
