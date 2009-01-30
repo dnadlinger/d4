@@ -58,7 +58,7 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
          
          vertexShader( vertex, current.pos, current.vars );
          // Note: The positions are still not divided by w (»homogenzied«).
-         
+
          transformed[ i ] = current;
       }
       
@@ -262,8 +262,8 @@ private:
    const CLIPPING_BUFFER_SIZE = 8;
 
    void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
-      // Clip all vertices against the view frustrum, which is now a cube from 
-      // [ -1; -1; -1 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
+      // Clip all vertices against the view frustrum, which is now a cuboid from
+      // [ -1; -1; 0 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
       // which is fast and happens before the coordinates are divided by w.
       // We (legitimately?) assume that there are never more than
       // CLIPPING_BUFFER_SIZE vertices created during clipping.
@@ -329,11 +329,11 @@ private:
          Vector4 p2 = vertices[ 2 ].pos;
          
          float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
-         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ > 0 ) ) {
+         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ < 0 ) ) {
             return;
          }
          
-         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CW ) && ( crossZ < 0 ) ) {
+         if ( ( m_backfaceCulling == BackfaceCulling.CULL_CW ) && ( crossZ > 0 ) ) {
             return;
          }
       }

@@ -55,9 +55,9 @@ struct Matrix4 {
       float cos = cos( angleRadians );
 
       m.m11 = cos;
-      m.m13 = -sin;
+      m.m13 = sin;
 
-      m.m31 = sin;
+      m.m31 = -sin;
       m.m33 = cos;
 
       return m;
@@ -93,24 +93,24 @@ struct Matrix4 {
    }
 
    static Matrix4 cameraAt( Vector3 position, Vector3 direction, Vector3 up ) {
-      Vector3 right = up.cross( direction );
+      Vector3 right = direction.cross( up );
 
       Matrix4 m = identity();
 
       m.m11 = right.x;
       m.m12 = up.x;
-      m.m13 = direction.x;
+      m.m13 = -direction.x;
       m.m14 = -right.dot( position );
 
       m.m21 = right.y;
       m.m22 = up.y;
-      m.m23 = direction.y;
+      m.m23 = -direction.y;
       m.m24 = -up.dot( position );
 
       m.m31 = right.z;
       m.m32 = up.z;
-      m.m33 = direction.z;
-      m.m34 = -direction.dot( position );
+      m.m33 = -direction.z;
+      m.m34 = direction.dot( position );
 
       return m;
    }
@@ -119,7 +119,7 @@ struct Matrix4 {
       Vector3 direction = target - position;
       direction.normalize();
 
-      Vector3 cameraUp = worldUp - ( direction * worldUp.dot( direction ) );
+      Vector3 cameraUp = worldUp - ( direction.dot( worldUp ) * direction );
       cameraUp.normalize();
 
       return cameraAt( position, direction, cameraUp );
@@ -133,8 +133,8 @@ struct Matrix4 {
             "Far clipping plane too close to near clipping plane." );
       }
 
-      float p = farDistance / ( farDistance - nearDistance );
-      float q = - p * nearDistance;
+      float p = farDistance / ( nearDistance - farDistance );
+      float q = p * nearDistance;
 
       float fovScale = 1 / tan( fovRadians * 0.5 );
       if ( fovScale < 0.01 ) {
@@ -151,7 +151,7 @@ struct Matrix4 {
       m.m33 = p;
       m.m34 = q;
 
-      m.m43 = 1;
+      m.m43 = -1;
       m.m44 = 0;
 
       return m;

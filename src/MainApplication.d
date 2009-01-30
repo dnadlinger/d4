@@ -51,8 +51,8 @@ protected:
 
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
-      m_renderer.setProjection( PI / 4, 1f, 1000f );
-      m_cameraPosition = Vector3( 0, 0, -5 );
+      m_renderer.setProjection( PI / 4, 1f, 100f );
+      m_cameraPosition = Vector3( 0, 0, 10 );
 
       m_materialManager = new MaterialManager( m_renderer );
 
@@ -73,7 +73,7 @@ protected:
       // Compute camera movement from keyboard input.
       Vector3 toCenter = Vector3( 0, 0, 0 ) - m_cameraPosition;
       toCenter.normalize();
-      Vector3 toRight = Vector3( 0, 1, 0 ).cross( toCenter );
+      Vector3 toRight = toCenter.cross( Vector3( 0, 1, 0 ) );
 
       float movementSpeed = 10f;
       if ( isKeyDown( Key.LSHIFT ) ) {
