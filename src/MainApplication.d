@@ -4,6 +4,7 @@ import tango.math.Math : sin;
 import d4.format.AssimpScene;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.MatrixTools;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.scene.MaterialManager;
@@ -30,11 +31,10 @@ protected:
    override void init() {
       assert( m_sceneFileName.length > 0 );
 
-      AssimpScene scene;
-
       // Try to import the scene using the normals given in the file. If this fails
       // (if there are none), generate them as specified in the params.
       // TODO: Make AssimpScene a loader and handle this in AssimpImporter itself.
+      AssimpScene scene;
       try {
          scene = new AssimpScene( m_sceneFileName, NormalType.FILE, m_fakeColors );
       } catch {
@@ -46,7 +46,6 @@ protected:
          }
          scene = new AssimpScene( m_sceneFileName, normals, m_fakeColors );
       }
-
       m_rootNode = scene.rootNode;
 
       m_renderer = new Renderer( screen() );
@@ -59,7 +58,7 @@ protected:
       m_rotateWorld = false;
       m_animateBackground = false;
       m_backgroundTime = 0;
-      m_renderer.clearColor = Color( 255, 255, 255 );
+      m_renderer.clearColor = Color( 0, 0, 0 );
    }
 
    override void render( float deltaTime ) {
@@ -134,15 +133,15 @@ private:
    }
 
    void updateRotatingWorld( float deltaTime ) {
-      Matrix4 rotation = Matrix4.rotationZ( deltaTime * 0.3 );
-      rotation *= Matrix4.rotationX( deltaTime * 0.7 );
-      rotation *= Matrix4.rotationY( deltaTime * 1.2 );
+      Matrix4 rotation = zRotationMatrix( deltaTime * 0.3 );
+      rotation *= yRotationMatrix( deltaTime * 0.7 );
+      rotation *= xRotationMatrix( deltaTime * 1.2 );
 
       m_rootNode.transformation = rotation * m_rootNode.transformation;
    }
    
    void updateViewMatrix() {
-      m_renderer.viewMatrix = Matrix4.lookAt( m_cameraPosition, Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
+      m_renderer.viewMatrix = lookAtMatrix( m_cameraPosition, Vector3( 0, 0, 0 ), Vector3( 0, 1, 0 ) );
    }
 
    char[] m_sceneFileName;

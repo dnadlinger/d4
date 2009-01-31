@@ -4,10 +4,10 @@ import tango.io.Stdout;
 import tango.math.Math : PI;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.MatrixTools;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
-import d4.shader.ColorGouraudShader;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
@@ -16,6 +16,24 @@ import d4.scene.Image;
 import d4.scene.Vertex;
 
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
+
+/**
+ * Workaround for compiler bug if the shaders are instantiated in two different
+ * modules. This is the same as SingleColorShader.
+ */
+template DefaultShader() {
+   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+      position = worldViewProjMatrix * vertex.position;
+   }
+   
+   Color pixelShader( VertexVariables variables ) {
+      return Color( 255, 255, 255 );
+   }
+   
+   struct VertexVariables {
+      float[0] values;
+   }
+}
 
 /**
  * The central interface to the rendering system.
@@ -27,7 +45,7 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidGouraudRasterizer!( ColorGouraudShader, 0.1, 1, 1, 1 )();
+      m_rasterizers ~= new SolidGouraudRasterizer!( DefaultShader )();
       m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
@@ -85,7 +103,7 @@ public:
    }
 
    void setProjection( float fovRadians, float nearDistance, float farDistance ) {
-      m_activeRasterizer.projectionMatrix = Matrix4.perspectiveProjection(
+      m_activeRasterizer.projectionMatrix = perspectiveProjectionMatrix(
          fovRadians,
          cast( float ) m_renderTarget.width / m_renderTarget.height,
          nearDistance,

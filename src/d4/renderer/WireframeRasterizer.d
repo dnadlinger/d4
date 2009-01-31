@@ -9,7 +9,9 @@ import d4.renderer.RasterizerBase;
 final class WireframeRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
-      Color color = Color( 0, 0, 0 );
+      // Use either one to get the color, the variables are not interpolated anyway. 
+      Color color = pixelShader( variables[ 0 ] );
+      
       drawLine( positions[ 0 ], positions[ 1 ], color );
       drawLine( positions[ 1 ], positions[ 2 ], color );
       drawLine( positions[ 2 ], positions[ 0 ], color );

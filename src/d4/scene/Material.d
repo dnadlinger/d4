@@ -1,22 +1,23 @@
 module d4.scene.Material;
 
+import d4.math.Color;
 import d4.math.Vector3;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.scene.Image;
 import d4.scene.IMaterial;
-import d4.shader.DefaultShader;
-import d4.shader.ColorGouraudShader;
-import d4.shader.ColorShader;
-import d4.shader.TextureGouraudShader;
+import d4.shader.LitVertexColorShader;
+import d4.shader.LitTextureShader;
+import d4.shader.SingleColorShader;
+import d4.shader.VertexColorShader;
 
 class Material : IMaterial {
 public:
    this() {
       m_wireframe = false;
-      m_useColor = false;
-      m_gouraudLighting = false;
+      m_vertexColors = false;
+      m_lighting = false;
 
       m_diffuseTexture = null;
    }
@@ -29,20 +30,20 @@ public:
       m_wireframe = wireframe;
    }
 
-   bool useColor() {
+   bool vertexColors() {
       return m_wireframe;
    }
 
-   void useColor( bool useColor ) {
-      m_useColor = useColor;
+   void vertexColors( bool vertexColors ) {
+      m_vertexColors = vertexColors;
    }
 
-   bool gouraudLighting() {
-      return m_gouraudLighting;
+   bool lighting() {
+      return m_lighting;
    }
 
-   void gouraudLighting( bool useGouraudLighting ) {
-      m_gouraudLighting = useGouraudLighting;
+   void lighting( bool useLighting ) {
+      m_lighting = useLighting;
    }
 
    Image diffuseTexture() {
@@ -62,40 +63,45 @@ public:
    }
 
    IRasterizer createRasterizer() {
-      if ( m_wireframe ) { 
-         return new WireframeRasterizer!( DefaultShader )();
+      if ( m_wireframe ) {
+         // This causes dmd to segfault:
+         // return new WireframeRasterizer!( SingleColorShader, Color() )();
+         return new WireframeRasterizer!( SingleColorShader )();
       }
 
-      if ( m_useColor ) {
-         if ( m_gouraudLighting ) {
+      if ( m_vertexColors ) {
+         if ( m_lighting ) {
             // Simply doing the following does not work:
             // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
             // 
             // and doing this crashes gdc:
             // auto lightDirection = Vector3( 0, -1, 1 );
             // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-            return new SolidGouraudRasterizer!( ColorGouraudShader, 0.2, 1, -1, -1 )();
+            return new SolidGouraudRasterizer!( LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
          } else {
-            return new SolidGouraudRasterizer!( ColorShader )();
+            return new SolidGouraudRasterizer!( VertexColorShader )();
          }
       } else if ( m_diffuseTexture !is null ) {
-         if ( m_gouraudLighting ) {
-            return new SolidGouraudRasterizer!( TextureGouraudShader, 0.2, 1, -1, -1 )();
+         if ( m_lighting ) {
+            return new SolidGouraudRasterizer!( LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
          } else {
-            throw new Exception( "Texturing without gouraud lighting is currently not supported." );
+            throw new Exception( "Texturing without lighting is currently not supported." );
          }
       } else {
-         if ( m_gouraudLighting ) {
-            throw new Exception( "Using gouraud lighting without coloring is currently not supported." );
+         if ( m_lighting ) {
+            throw new Exception( "Using lighting without either colored vertices or textures is currently not supported." );
          } else {
-            return new SolidGouraudRasterizer!( DefaultShader )();
+            // See above.
+            // return new SolidGouraudRasterizer!( SingleColorShader, Color() )();
+            return new SolidGouraudRasterizer!( SingleColorShader )();
          }
       }
    }
+   
+   const AMBIENT_LIGHT_LEVEL = 0.1;
 
    bool m_wireframe;
-   bool m_useColor;
-   bool m_gouraudLighting;
-
+   bool m_vertexColors;
+   bool m_lighting;
    Image m_diffuseTexture;
 }

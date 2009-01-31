@@ -1,6 +1,6 @@
-module d4.shader.TextureGouraudShader;
+module d4.shader.LitTextureShader;
 
-template TextureGouraudShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.TexturedNormalVertex;
 
    const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();

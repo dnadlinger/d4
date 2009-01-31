@@ -1,6 +1,6 @@
-module d4.shader.ColorGouraudShader;
+module d4.shader.LitVertexColorShader;
 
-template ColorGouraudShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+template LitVertexColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.ColoredNormalVertex;
    
    const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();

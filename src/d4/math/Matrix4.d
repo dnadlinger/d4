@@ -5,6 +5,9 @@ import tango.math.Math : sin, cos, tan;
 import d4.math.Vector3;
 import d4.math.Vector4;
 
+/**
+ * A basic 4x4 matrix (row-major memory layout).
+ */
 struct Matrix4 {
    static Matrix4 identity() {
       Matrix4 m;
@@ -18,145 +21,6 @@ struct Matrix4 {
 
       return m;
    }
-
-   static Matrix4 scaling( float factorX = 1.f, float factorY = 1.f, float factorZ = 1.f ) {
-      Matrix4 m = identity();
-
-      m.m11 = factorX;
-      m.m22 = factorY;
-      m.m33 = factorZ;
-
-      return m;
-   }
-
-   static Matrix4 scalingByVector( Vector3 vector ) {
-      return scaling( vector.x, vector.y, vector.z );
-   }
-
-   static Matrix4 rotationX( float angleRadians ) {
-      Matrix4 m = identity();
-
-      float sin = sin( angleRadians );
-      float cos = cos( angleRadians );
-
-      m.m22 = cos;
-      m.m23 = -sin;
-
-      m.m32 = sin;
-      m.m33 = cos;
-
-      return m;
-   }
-
-   static Matrix4 rotationY( float angleRadians ) {
-      Matrix4 m = identity();
-
-      float sin = sin( angleRadians );
-      float cos = cos( angleRadians );
-
-      m.m11 = cos;
-      m.m13 = sin;
-
-      m.m31 = -sin;
-      m.m33 = cos;
-
-      return m;
-   }
-
-   static Matrix4 rotationZ( float angleRadians ) {
-      Matrix4 m = identity();
-
-      float sin = sin( angleRadians );
-      float cos = cos( angleRadians );
-
-      m.m11 = cos;
-      m.m12 = -sin;
-
-      m.m21 = sin;
-      m.m22 = cos;
-
-      return m;
-   }
-
-   static Matrix4 translation( float deltaX = 0.f, float deltaY = 0.f, float deltaZ = 0.f ) {
-      Matrix4 m = identity();
-
-      m.m14 = deltaX;
-      m.m24 = deltaY;
-      m.m34 = deltaZ;
-
-      return m;
-   }
-
-   static Matrix4 translationByVector( Vector3 vector ) {
-      return translation( vector.x, vector.y, vector.z );
-   }
-
-   static Matrix4 cameraAt( Vector3 position, Vector3 direction, Vector3 up ) {
-      Vector3 right = direction.cross( up );
-
-      Matrix4 m = identity();
-
-      m.m11 = right.x;
-      m.m12 = up.x;
-      m.m13 = -direction.x;
-      m.m14 = -right.dot( position );
-
-      m.m21 = right.y;
-      m.m22 = up.y;
-      m.m23 = -direction.y;
-      m.m24 = -up.dot( position );
-
-      m.m31 = right.z;
-      m.m32 = up.z;
-      m.m33 = -direction.z;
-      m.m34 = direction.dot( position );
-
-      return m;
-   }
-
-   static Matrix4 lookAt( Vector3 position, Vector3 target, Vector3 worldUp ) {
-      Vector3 direction = target - position;
-      direction.normalize();
-
-      Vector3 cameraUp = worldUp - ( direction.dot( worldUp ) * direction );
-      cameraUp.normalize();
-
-      return cameraAt( position, direction, cameraUp );
-   }
-
-  static Matrix4 perspectiveProjection( float fovRadians, float aspectRatio,
-      float nearDistance, float farDistance ) {
-
-      if ( farDistance - nearDistance < 0.01 ) {
-         throw new Exception( "Could not create perspective projection matrix: " ~
-            "Far clipping plane too close to near clipping plane." );
-      }
-
-      float p = farDistance / ( nearDistance - farDistance );
-      float q = p * nearDistance;
-
-      float fovScale = 1 / tan( fovRadians * 0.5 );
-      if ( fovScale < 0.01 ) {
-         throw new Exception( "Could not create perspective projection matrix: " ~
-            "Field of view opening angle too big." );
-      }
-
-      Matrix4 m = identity();
-
-      m.m11 = fovScale * ( 1 / aspectRatio );
-
-      m.m22 = fovScale;
-
-      m.m33 = p;
-      m.m34 = q;
-
-      m.m43 = -1;
-      m.m44 = 0;
-
-      return m;
-   }
-
 
    Matrix4 transposed() {
       Matrix4 m;
@@ -385,5 +249,4 @@ struct Matrix4 {
       float[ 4 ][ 4 ] m;
       float[ 16 ] data;
    }
-
 }

@@ -1,6 +1,6 @@
-module d4.shader.ColorShader;
+module d4.shader.VertexColorShader;
 
-template ColorShader() {
+template VertexColorShader() {
    import d4.scene.ColoredVertex;
    
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {

@@ -147,12 +147,12 @@ private:
          }
          
          result.diffuseTexture = image;
-         result.useColor = false;
+         result.vertexColors = false;
       } else {
-         result.useColor = true;
+         result.vertexColors = true;
       }
 
-      result.gouraudLighting = true;
+      result.lighting = true;
       
       return result;
    }
