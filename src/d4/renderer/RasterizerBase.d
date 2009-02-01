@@ -17,6 +17,7 @@ import d4.scene.Image;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
 
+//class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
 abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    this() {
       m_worldMatrix = Matrix4.identity;
@@ -148,17 +149,19 @@ protected:
       Image texture = m_textures[ textureIndex ];
       assert( texture !is null );
 
-      float u = texCoords.x;
-      float v = texCoords.y;
-
       // TODO: Import proper clamping/tiling support.
-      if ( u < 0 ) u = 0;
-      if ( u > 1 ) u = 1;
+      uint width = texture.width - 1;
+      uint height = texture.height - 1;
+      int u = rndint( texCoords.x * texture.width ) % width;
+      int v = rndint( texCoords.y * texture.width ) % width;
+      if ( u < 0 ) {
+         u += width;
+      }
+      if ( v < 0 ) {
+         v += height;
+      }
 
-      if ( v < 0 ) v = 0;
-      if ( v > 1 ) v = 1;
-
-      return texture.getNearest( u * ( texture.width - 1 ), v * ( texture.height - 1 ) );
+      return texture.readColor( u, v );
    }
    // ----
 

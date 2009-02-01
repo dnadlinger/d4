@@ -9,6 +9,9 @@ interface IMaterial {
    bool wireframe();
    // TODO: Use general fallback material in MaterialManager instead?
    void wireframe( bool useWireframe );
+   
+   bool gouraudShading();
+   void gouraudShading( bool interpolate );
 
    Image[] textures();
 }

@@ -1,4 +1,4 @@
-module d4.renderer.SolidGouraudRasterizer;
+module d4.renderer.SolidFlatRasterizer;
 
 import tango.io.Stdout;
 import tango.math.Math : ceil, rndint;
@@ -6,11 +6,8 @@ import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
-final class SolidGouraudRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
+final class SolidFlatRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
-   /**
-    * Inspired by Muli3D.
-    */
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       // All coordinates have to be clipped to screen space.
       debug {
@@ -25,7 +22,7 @@ protected:
          sanityCheck( positions[ 1 ] );
          sanityCheck( positions[ 2 ] );
       }
-
+      
       // Calculate the triangle »gradients«.
       // The vertex at index 0 is the base vertex for the gradient calculations.
       // In screen space, the y-axis points in the other direction, so we have
@@ -48,34 +45,36 @@ protected:
       float dwPerDx =  ( deltaW1 * deltaY2 - deltaW2 * deltaY1 ) * invDenominator;
       float dwPerDy = -( deltaW1 * deltaX2 - deltaW2 * deltaX1 ) * invDenominator;
       
-      VertexVariables deltaVars1 = substract( variables[ 1 ], variables[ 0 ] );
-      VertexVariables deltaVars2 = substract( variables[ 2 ], variables[ 0 ] );
-      VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
-      VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
+      // Reverse the w division (which was applied for perspective-correct
+      // corrected interpolation) and divide the variables by three to compute 
+      // the arithmetic mean.
+      // TODO: Add parameter to RasterizerBase to switch off w division.
+      VertexVariables averageVars = scale( variables[ 0 ], 1f / ( 3 * positions[ 0 ].w ) );
+      averageVars = add( averageVars, scale( variables[ 1 ], 1f / ( 3 * positions[ 1 ].w ) ) );
+      averageVars = add( averageVars, scale( variables[ 2 ], 1f / ( 3 * positions[ 2 ].w ) ) );
+      Color triangleColor = pixelShader( averageVars );
       
       Color* colorBuffer = m_colorBuffer.pixels;
       float* zBuffer = m_zBuffer.data;
       
       void rasterizeScanline( uint pixelCount, uint startBufferIndex,
-         float startZ, float startW, VertexVariables startVariables ) {
+         float startZ, float startW, Color triangleColor ) {
          
          Color* currentPixel = colorBuffer + startBufferIndex;
          float* currentDepth = zBuffer + startBufferIndex;
          
          float currentZ = startZ;
          float currentW = startW;
-         VertexVariables currentVars = startVariables;
          
          while ( pixelCount-- ) {
             // Perform depth-test.
             if ( currentZ < (*currentDepth) ) {
                (*currentDepth) = currentZ;
-               (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
+               (*currentPixel) = triangleColor;
             }
 
             currentZ += dzPerDx;
             currentW += dwPerDx;
-            currentVars = add( currentVars, dVarsPerDx );
             ++currentPixel;
             ++currentDepth;
          }
@@ -137,12 +136,12 @@ protected:
       x1 += xDelta1 * yPreStep;
 
       uint bufferLineStride = m_colorBuffer.width;
-      uint lineStartBufferIndex =  currentY * bufferLineStride;
+      uint lineStartBufferIndex = currentY * bufferLineStride;
 
       while ( currentY < bottomY ) {
          uint intX0 = rndint( ceil( x0 ) );
          uint intX1 = rndint( ceil( x1 ) );
-         
+                  
          if ( intX0 < intX1 ) {
             // We used vertex 0 as base for the gradient calculations.
             float relativeX = cast( float ) intX0 - positions[ 0 ].x;
@@ -150,10 +149,8 @@ protected:
 
             float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
             float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-            VertexVariables lineStartVars = add( variables[ 0 ],
-               add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
 
-            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, triangleColor );
          }
 
          ++currentY;
@@ -186,10 +183,8 @@ protected:
 
             float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
             float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-            VertexVariables lineStartVars = add( variables[ 0 ],
-               add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
 
-            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+            rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, triangleColor );
          }
 
          ++currentY;

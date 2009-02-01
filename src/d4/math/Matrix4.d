@@ -64,7 +64,7 @@ struct Matrix4 {
    }
 
    Matrix4 opMul( Matrix4 rhs ) {
-      // Can we do this? opMul is defined to be commutative?!
+      // TODO: Can we do this? opMul is defined to be commutative?!
       Matrix4 m;
 
       m.m11 = m11 * rhs.m11 + m12 * rhs.m21 + m13 * rhs.m31 + m14 * rhs.m41;
@@ -156,6 +156,7 @@ struct Matrix4 {
    }
    
    Matrix4 inversed() {
+      // FIXME: Probably not correct.
       float determinant =
          ( m11 * m11 - m12 * m21 ) * ( m33 * m44 - m34 * m43 ) -
          ( m11 * m23 - m13 * m21 ) * ( m32 * m44 - m34 * m42 ) +

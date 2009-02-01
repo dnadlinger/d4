@@ -23,7 +23,7 @@ class Image {
       return m_colorData;
    }
    
-   Color getNearest( float x, float y ) {
+   Color readColor( uint x, uint y ) {
       assert( x >= 0 );
       assert( y >= 0 );
       assert( x < m_width );

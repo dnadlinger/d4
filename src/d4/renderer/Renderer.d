@@ -4,7 +4,7 @@ import tango.io.Stdout;
 import tango.math.Math : PI;
 import d4.math.Color;
 import d4.math.Matrix4;
-import d4.math.MatrixTools;
+import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
@@ -136,16 +136,20 @@ public:
    }
 
    uint registerRasterizer( IRasterizer rasterizer ) {
-      assert( rasterizer !is null );
+      assert( rasterizer !is null, "Cannot register null rasterizer." );
       m_rasterizers ~= rasterizer;
       return m_rasterizers.length - 1;
    }
    
    IRasterizer unregisterRasterizer( uint id ) {
       IRasterizer rasterizer = m_rasterizers[ id ];
-      assert( rasterizer !is null );
-      m_rasterizers[ id ] = m_rasterizers[ $ - 1 ];
-      m_rasterizers = m_rasterizers[ 0 .. ( $ - 1 ) ];
+      assert( rasterizer !is null, "Invalid rasterizer id (already unregistered?)." );
+      
+      // TODO: Better way to unregister without jumbling ids?
+      // m_rasterizers[ id ] = m_rasterizers[ $ - 1 ];
+      // m_rasterizers = m_rasterizers[ 0 .. ( $ - 1 ) ];
+      m_rasterizers[ id ] = null;
+      
       return rasterizer;
    }
    

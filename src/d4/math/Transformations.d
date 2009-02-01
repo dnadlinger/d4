@@ -1,6 +1,7 @@
-module d4.math.MatrixTools;
+module d4.math.Transformations;
 
 import d4.math.Matrix4;
+import d4.math.Quaternion;
 import d4.math.Vector3;
 import d4.math.Vector4;
 
@@ -63,6 +64,54 @@ static Matrix4 zRotationMatrix( float angleRadians ) {
    return m;
 }
 
+static Quaternion rotationQuaternion( float angle, Vector3 axis ) {
+   Quaternion result;
+
+   Vector3 v = axis.normalized();
+   v *= sin( angle );
+
+   result.w = cos( angle );
+   result.x = v.x;
+   result.y = v.y;
+   result.z = v.z;
+
+   return result;
+}
+
+static Matrix4 rotationMatrix( Quaternion q ) {
+   Matrix4 m = Matrix4.identity();
+
+   float _2x = q.x + q.x;
+   float _2y = q.y + q.y;
+   float _2z = q.z + q.z;
+
+   float _2xx = _2x * q.x;
+   float _2xy = _2x * q.y;
+   float _2xz = _2x * q.z;
+   float _2xw = _2x * q.w;
+
+   float _2yy = _2y * q.y;
+   float _2yz = _2y * q.z;
+   float _2yw = _2y * q.w;
+
+   float _2zz = _2z * q.z;
+   float _2zw = _2z * q.w;
+
+   m.m11 = 1 - _2yy - _2zz;
+   m.m12 = _2xy - _2zw;
+   m.m13 = _2xz + _2yw;
+
+   m.m21 = _2xy + _2zw;
+   m.m22 = 1 - _2xx - _2zz;
+   m.m23 = _2yz - _2xw;
+
+   m.m31 = _2xz - _2yw;
+   m.m32 = _2yz + _2xw;
+   m.m33 = 1 - _2xx - _2yy;
+
+   return m;
+}
+
 static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f, float deltaZ = 0.f ) {
    Matrix4 m = Matrix4.identity();
 
@@ -105,6 +154,11 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
    direction.normalize();
 
    Vector3 cameraUp = worldUp - ( direction.dot( worldUp ) * direction );
+   
+   if ( cameraUp.sqrLength() < 1e-6f ) {
+      throw new Exception( "Unsuitable world up vector (looking straight up or down?).");
+   }
+   
    cameraUp.normalize();
 
    return cameraMatrix( position, direction, cameraUp );

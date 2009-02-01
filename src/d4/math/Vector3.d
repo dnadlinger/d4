@@ -11,6 +11,10 @@ struct Vector3 {
       return result;
    }
 
+   Vector3 opNeg() {
+      return Vector3( -x, -y, -z );
+   }
+
    Vector3 opAdd( Vector3 rhs ) {
       return Vector3(
          x + rhs.x,
