@@ -140,19 +140,19 @@ public:
       m_rasterizers ~= rasterizer;
       return m_rasterizers.length - 1;
    }
-   
+
    IRasterizer unregisterRasterizer( uint id ) {
       IRasterizer rasterizer = m_rasterizers[ id ];
       assert( rasterizer !is null, "Invalid rasterizer id (already unregistered?)." );
-      
+
       // TODO: Better way to unregister without jumbling ids?
       // m_rasterizers[ id ] = m_rasterizers[ $ - 1 ];
       // m_rasterizers = m_rasterizers[ 0 .. ( $ - 1 ) ];
       m_rasterizers[ id ] = null;
-      
+
       return rasterizer;
    }
-   
+
    void useRasterizer( uint id ) {
       IRasterizer rasterizer = m_rasterizers[ id ];
       assert( rasterizer !is null );

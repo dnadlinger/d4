@@ -33,11 +33,11 @@ public:
    void wireframe( bool wireframe ) {
       m_wireframe = wireframe;
    }
-   
+
    bool gouraudShading() {
       return m_gouraudShading;
    }
-   
+
    void gouraudShading( bool interpolate ) {
       m_gouraudShading = interpolate;
    }
