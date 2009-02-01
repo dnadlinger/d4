@@ -137,10 +137,10 @@ private:
    
    void updateCamera( float deltaTime ) {
       // Compute camera movement from keyboard input.
-      float movementSpeed = 10f;
+      float movementSpeed = 6f;
       float rotationSpeed = PI / 8;
       if ( isKeyDown( Key.LSHIFT ) || isKeyDown( Key.RSHIFT ) ) {
-         movementSpeed *= 3;
+         movementSpeed *= 4;
          rotationSpeed *= 3;
       }
 
