@@ -42,7 +42,7 @@ private:
       
       Color data[] = new Color[ width * height ];
       
-      ilCopyPixels( 0, 0, 0, width, height, 1, IL_RGBA, IL_UNSIGNED_BYTE, &data[ 0 ] );
+      ilCopyPixels( 0, 0, 0, width, height, 1, IL_BGRA, IL_UNSIGNED_BYTE, &data[ 0 ] );
       
       Image resultImage = new Image( width, height, data );
       
