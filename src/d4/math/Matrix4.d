@@ -156,88 +156,67 @@ struct Matrix4 {
    }
    
    Matrix4 inversed() {
-      // FIXME: Probably not correct.
-      float determinant =
-         ( m11 * m11 - m12 * m21 ) * ( m33 * m44 - m34 * m43 ) -
-         ( m11 * m23 - m13 * m21 ) * ( m32 * m44 - m34 * m42 ) +
-         ( m11 * m24 - m14 * m21 ) * ( m32 * m43 - m33 * m42 ) +
-         ( m12 * m23 - m13 * m22 ) * ( m31 * m44 - m34 * m41 ) -
-         ( m12 * m24 - m14 * m22 ) * ( m31 * m43 - m33 * m41 ) +
-         ( m13 * m24 - m14 * m23 ) * ( m31 * m42 - m32 * m41 );
+      Matrix4 result;
 
-      if( determinant == 0 ) {
-         throw new Exception( "Could not calcualte inverse matrix because determinant is zero." );
+      float A = m33 * m44 - m34 * m43;
+      float B = m32 * m44 - m34 * m42;
+      float C = m32 * m43 - m33 * m42;
+      float D = m13 * m24 - m14 * m23;
+      float E = m12 * m24 - m14 * m22;
+      float F = m12 * m23 - m13 * m22;
+      float G = m31 * m44 - m34 * m41;
+      float H = m31 * m43 - m33 * m41;
+      float I = m11 * m24 - m14 * m21;
+      float J = m11 * m23 - m13 * m21;
+      float K = m31 * m42 - m32 * m41;
+      float L = m11 * m22 - m12 * m21;
+
+      float determinant = L * A - J * B + I * C + F * G - E * H + D * K;
+      if ( determinant == 0 ) {
+         throw new Exception( "Cannot inverse singular matix (determinant is zero)." );
       }
-        
+
       float invDet = 1f / determinant;
 
-      Matrix4 result;
-      result.m11 = invDet *
-         ( m22 * ( m33 * m44 - m34 * m43 ) +
-           m23 * ( m34 * m42 - m32 * m44 ) +
-           m24 * ( m32 * m43 - m33 * m42 ) );
-      result.m12 = invDet *
-         ( m32 * ( m13 * m44 - m14 * m43 ) +
-           m33 * ( m14 * m42 - m12 * m44 ) +
-           m34 * ( m12 * m43 - m13 * m42 ) );
-      result.m13 = invDet *
-         ( m42 * ( m13 * m24 - m14 * m23 ) +
-           m43 * ( m14 * m22 - m12 * m24 ) +
-           m44 * ( m12 * m23 - m13 * m22 ) );
-      result.m14 = invDet *
-         ( m12 * ( m24 * m33 - m23 * m34 ) +
-           m13 * ( m22 * m34 - m24 * m32 ) +
-           m14 * ( m23 * m32 - m22 * m33 ) );
-      result.m21 = invDet *
-         ( m23 * ( m31 * m44 - m34 * m41 ) +
-           m24 * ( m33 * m41 - m31 * m43 ) +
-           m21 * ( m34 * m43 - m33 * m44 ) );
-      result.m22 = invDet *
-         ( m33 * ( m11 * m44 - m14 * m41 ) +
-           m34 * ( m13 * m41 - m11 * m43 ) +
-           m31 * ( m14 * m43 - m13 * m44 ) );
-      result.m23 = invDet *
-         ( m43 * ( m11 * m24 - m14 * m21 ) +
-           m44 * ( m13 * m21 - m11 * m23 ) +
-           m41 * ( m14 * m23 - m13 * m24 ) );
-      result.m24 = invDet *
-         ( m13 * ( m24 * m31 - m21 * m34 ) +
-           m14 * ( m21 * m33 - m23 * m31 ) +
-           m11 * ( m23 * m34 - m24 * m33 ) );
-      result.m31 = invDet *
-         ( m24 * ( m31 * m42 - m32 * m41 ) +
-           m21 * ( m32 * m44 - m34 * m42 ) +
-           m22 * ( m34 * m41 - m31 * m44 ) );
-      result.m32 = invDet *
-         ( m34 * ( m11 * m42 - m12 * m41 ) +
-           m31 * ( m12 * m44 - m14 * m42 ) +
-           m32 * ( m14 * m41 - m11 * m44 ) );
-      result.m33 = invDet *
-         ( m44 * ( m11 * m22 - m12 * m21 ) +
-           m41 * ( m12 * m24 - m14 * m22 ) +
-           m42 * ( m14 * m21 - m11 * m24 ) );
-      result.m34 = invDet *
-         ( m14 * ( m22 * m31 - m21 * m32 ) +
-           m11 * ( m24 * m32 - m22 * m34 ) +
-           m12 * ( m21 * m34 - m24 * m31 ) );
-      result.m41 = invDet *
-         ( m21 * ( m33 * m42 - m32 * m43 ) +
-           m22 * ( m31 * m43 - m33 * m41 ) +
-           m23 * ( m32 * m41 - m31 * m42 ) );
-      result.m42 = invDet *
-         ( m31 * ( m13 * m42 - m12 * m43 ) +
-           m32 * ( m11 * m43 - m13 * m41 ) +
-           m33 * ( m12 * m41 - m11 * m42 ) );
-      result.m43 = invDet *
-         ( m41 * ( m13 * m22 - m12 * m23 ) +
-           m42 * ( m11 * m23 - m13 * m21 ) +
-           m43 * ( m12 * m21 - m11 * m22 ) );
-      result.m44 = invDet *
-         ( m11 * ( m22 * m33 - m23 * m32 ) +
-           m12 * ( m23 * m31 - m21 * m33 ) +
-           m13 * ( m21 * m32 - m22 * m31 ) );
-        
+      result.m11 = invDet * ( m22 * A - m23 * B + m24 * C );
+      result.m13 = invDet * ( m42 * D - m43 * E + m44 * F );
+      result.m21 = invDet * ( m23 * G - m24 * H - m21 * A );
+      result.m23 = invDet * ( m43 * I - m44 * J - m41 * D );
+      result.m31 = invDet * ( m24 * K + m21 * B - m22 * G );
+      result.m33 = invDet * ( m44 * L + m41 * E - m42 * I );
+      result.m41 = invDet * (-m21 * C + m22 * H - m23 * K );
+      result.m43 = invDet * (-m41 * F + m42 * J - m43 * L );
+
+      A = m13 * m44 - m14 * m43;
+      B = m14 * m42 - m12 * m44;
+      C = m12 * m43 - m13 * m42;
+      D = m24 * m33 - m23 * m34;
+      E = m22 * m34 - m24 * m32;
+      F = m23 * m32 - m22 * m33;
+      G = m11 * m44 - m14 * m41;
+      H = m13 * m41 - m11 * m43;
+      I = m24 * m31 - m21 * m34;
+      J = m21 * m33 - m23 * m31;
+      K = m11 * m42 - m12 * m41;
+      L = m22 * m31 - m21 * m32;
+
+      result.m12 = invDet * ( m32 * A + m33 * B + m34 * C );
+      result.m14 = invDet * ( m12 * D + m13 * E + m14 * F );
+      result.m22 = invDet * ( m33 * G + m34 * H - m31 * A );
+      result.m24 = invDet * ( m13 * I + m14 * J - m11 * D );
+      result.m32 = invDet * ( m34 * K - m31 * B - m32 * G );
+      result.m34 = invDet * ( m14 * L - m11 * E - m12 * I );
+      result.m42 = invDet * (-m31 * C - m32 * H - m33 * K );
+      result.m44 = invDet * (-m11 * F - m12 * J - m13 * L );
+
       return result;
+   }
+
+   void print() {
+      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m11, m12, m13, m14 ).newline;
+      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m21, m22, m23, m24 ).newline;
+      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m31, m32, m33, m34 ).newline;
+      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m41, m42, m43, m44 ).newline;
    }
 
    union {
