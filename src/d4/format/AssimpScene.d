@@ -5,7 +5,7 @@ import tango.io.Stdout;
 import tango.stdc.stringz : fromStringz, toStringz;
 import tango.text.convert.Integer;
 import tango.util.Convert;
-import assimp.all;
+import assimp.assimp;
 import d4.format.DevilImporter;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -383,4 +383,12 @@ private:
    uint m_coloredMeshCount;
    uint m_fakeColorMeshCount;
    uint m_defaultColorMeshCount;
+   
+   static this() {
+      Assimp.load();
+   }
+   
+   static ~this() {
+      Assimp.unload();
+   }
 }

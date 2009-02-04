@@ -13,19 +13,19 @@ extern ( C ) {
    enum aiPropertyTypeInfo : uint {
       /** Array of single-precision floats
       */
-      aiPTI_Float = 0x1,
+      Float = 0x1,
 
       /** aiString data structure
       */
-      aiPTI_String = 0x3,
+      String = 0x3,
 
       /** Array of Integers
       */
-      aiPTI_Integer = 0x4,
+      Integer = 0x4,
 
       /** Simple binary buffer
       */
-      aiPTI_Buffer = 0x5
+      Buffer = 0x5
    }
 
    // ---------------------------------------------------------------------------
@@ -35,27 +35,27 @@ extern ( C ) {
    enum aiTextureOp : uint {
       /** T = T1 * T2
       */
-      aiTextureOp_Multiply = 0x0,
+      Multiply = 0x0,
 
       /** T = T1 + T2
       */
-      aiTextureOp_Add = 0x1,
+      Add = 0x1,
 
       /** T = T1 - T2
       */
-      aiTextureOp_Subtract = 0x2,
+      Subtract = 0x2,
 
       /** T = T1 / T2
       */
-      aiTextureOp_Divide = 0x3,
+      Divide = 0x3,
 
       /** T = (T1 + T2) - (T1 * T2)
       */
-      aiTextureOp_SmoothAdd = 0x4,
+      SmoothAdd = 0x4,
 
       /** T = T1 + (T2-0.5)
       */
-      aiTextureOp_SignedAdd = 0x5
+      SignedAdd = 0x5
    }
 
    // ---------------------------------------------------------------------------
@@ -64,22 +64,22 @@ extern ( C ) {
    enum aiTextureMapMode : uint {
       /** A texture coordinate u|v is translated to u%1|v%1
       */
-      aiTextureMapMode_Wrap = 0x0,
+      Wrap = 0x0,
 
       /** Texture coordinates outside [0...1]
       *  are clamped to the nearest valid value.
       */
-      aiTextureMapMode_Clamp = 0x1,
+      Clamp = 0x1,
 
       /** If the texture coordinates for a pixel are outside [0...1]
       *  the texture is not applied to that pixel
       */
-      aiTextureMapMode_Decal = 0x3,
+      Decal = 0x3,
 
       /** A texture coordinate u|v becomes u%1|v%1 if (u-(u%1))%2 is zero and
       *  1-(u%1)|1-(v%1) otherwise
       */
-      aiTextureMapMode_Mirror = 0x2
+      Mirror = 0x2
    }
 
    // ---------------------------------------------------------------------------
@@ -93,27 +93,27 @@ extern ( C ) {
       *  The AI_MATKEY_UVSRC key specifies from which (remember,
       *  meshes can have more than one UV channel).
       */
-      aiTextureMapping_UV = 0x0 ,
+      UV = 0x0 ,
 
       /** Spherical mapping
       */
-      aiTextureMapping_SPHERE = 0x1,
+      SPHERE = 0x1,
 
       /** Cylindrical mapping
       */
-      aiTextureMapping_CYLINDER = 0x2,
+      CYLINDER = 0x2,
 
       /** Cubic mapping
       */
-      aiTextureMapping_BOX = 0x3,
+      BOX = 0x3,
 
       /** Planar mapping
       */
-      aiTextureMapping_PLANE = 0x4,
+      PLANE = 0x4,
 
       /** Undefined mapping. Have fun.
       */
-      aiTextureMapping_OTHER = 0x5
+      OTHER = 0x5
    }
 
    // ---------------------------------------------------------------------------
@@ -123,9 +123,9 @@ extern ( C ) {
    *  This corresponds to the AI_MATKEY_TEXMAP_AXIS property.
    */
    enum aiAxis : uint {
-      aiAxis_X = 0x0,
-      aiAxis_Y = 0x1,
-      aiAxis_Z = 0x2
+      X = 0x0,
+      Y = 0x1,
+      Z = 0x2
    }
 
    // ---------------------------------------------------------------------------
@@ -195,18 +195,18 @@ extern ( C ) {
       /** Flat shading. Shading is done on per-face base,
       *  diffuse only.
       */
-      aiShadingMode_Flat = 0x1,
+      Flat = 0x1,
 
       /** Diffuse gouraud shading. Shading on per-vertex base
       */
-      aiShadingMode_Gouraud =   0x2,
+      Gouraud =   0x2,
 
       /** Diffuse/Specular Phong-Shading
       *
       *  Shading is applied on per-pixel base. This is the
       *  slowest algorithm, but generates the best results.
       */
-      aiShadingMode_Phong = 0x3,
+      Phong = 0x3,
 
       /** Diffuse/Specular Phong-Blinn-Shading
       *
@@ -214,14 +214,14 @@ extern ( C ) {
       *  bit faster than phong and in some cases even
       *  more realistic
       */
-      aiShadingMode_Blinn = 0x4,
+      Blinn = 0x4,
 
       /** Toon-Shading per pixel
       *
       *  Shading is applied on per-pixel base. The output looks
       *  like a comic. Often combined with edge detection.
       */
-      aiShadingMode_Toon = 0x5,
+      Toon = 0x5,
 
       /** OrenNayar-Shading per pixel
       *
@@ -229,26 +229,26 @@ extern ( C ) {
       *  roughness of the material into account
       *
       */
-      aiShadingMode_OrenNayar = 0x6,
+      OrenNayar = 0x6,
 
       /** Minnaert-Shading per pixel
       *
       *  Extension to standard lambertian shading, taking the
       *  "darkness" of the material into account
       */
-      aiShadingMode_Minnaert = 0x7,
+      Minnaert = 0x7,
 
       /** CookTorrance-Shading per pixel
       */
-      aiShadingMode_CookTorrance = 0x8,
+      CookTorrance = 0x8,
 
       /** No shading at all
       */
-      aiShadingMode_NoShading = 0x9,
+      NoShading = 0x9,
 
       /** Fresnel shading
       */
-      aiShadingMode_Fresnel = 0xa
+      Fresnel = 0xa
    }
 
 
@@ -602,149 +602,5 @@ extern ( C ) {
    */
    char* AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = "$global.bg.image2d";
 
-
-   // ---------------------------------------------------------------------------
-   /** Retrieve a material property with a specific key from the material
-   *
-   *  @param pMat Pointer to the input material. May not be NULL
-   *  @param pKey Key to search for. One of the AI_MATKEY_XXX constants.
-   *  @param pPropOut Pointer to receive a pointer to a valid aiMaterialProperty
-   *         structure or NULL if the key has not been found.
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialProperty(
-      aiMaterial* pMat,
-      char* pKey,
-      aiTextureType type,
-      uint index,
-      aiMaterialProperty** pPropOut
-   );
-
-
-   // ---------------------------------------------------------------------------
-   /** Retrieve an array of float values with a specific key
-   *  from the material
-   *
-   * Pass one of the AI_MATKEY_XXX constants for the last three parameters (the
-   * example reads the AI_MATKEY_UVTRANSFORM property of the first diffuse texture)
-   * @begincode
-   *
-   * aiUVTransform trafo;
-   * uint max = sizeof(aiUVTransform);
-   * if (AI_SUCCESS != aiGetMaterialFloatArray(mat, AI_MATKEY_UVTRANSFORM(aiTextureType_DIFFUSE,0),
-   *    (float*)&trafo, &max) || sizeof(aiUVTransform) != max)
-   * {
-   *   // error handling
-   * }
-   * @endcode
-   *
-   * @param pMat Pointer to the input material. May not be NULL
-   * @param pKey Key to search for. One of the AI_MATKEY_XXX constants.
-   * @param pOut Pointer to a buffer to receive the result.
-   * @param pMax Specifies the size of the given buffer, in float's.
-   *        Receives the number of values (not bytes!) read.
-   * @param type (see the code sample above)
-   * @param index (see the code sample above)
-   * @return Specifies whether the key has been found. If not, the output
-   *   arrays remains unmodified and pMax is set to 0.
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialFloatArray(
-      aiMaterial* pMat,
-      char* pKey,
-      uint type,
-      uint index,
-      float* pOut,
-      uint* pMax = null
-   );
-
-   alias aiGetMaterialFloatArray aiGetMaterialFloat;
-
-   // ---------------------------------------------------------------------------
-   /** Retrieve an array of integer values with a specific key
-   *  from a material
-   *
-   * See the sample for aiGetMaterialFloatArray for more information.
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialIntegerArray(
-      aiMaterial* pMat,
-      char* pKey,
-      uint  type,
-      uint  index,
-      int* pOut,
-      uint* pMax = null
-   );
-
-   alias aiGetMaterialIntegerArray aiGetMaterialInteger;
-
-   // ---------------------------------------------------------------------------
-   /** Retrieve a color value from the material property table
-   *
-   * See the sample for aiGetMaterialFloat for more information.
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialColor(
-      aiMaterial* pMat,
-      char* pKey,
-      uint type,
-      uint index,
-      aiColor4D* pOut
-   );
-
-
-   // ---------------------------------------------------------------------------
-   /** Retrieve a string from the material property table
-   *
-   * See the sample for aiGetMaterialFloat for more information.
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialString(
-      aiMaterial* pMat,
-      char* pKey,
-      uint type,
-      uint index,
-      aiString* pOut
-   );
-
-
-   // ---------------------------------------------------------------------------
-   /** Helper function to get a texture from a material structure.
-   *
-   *  This function is provided just for convinience.
-   *  @param mat Pointer to the input material. May not be NULL
-   *  @param index Index of the texture to retrieve. If the index is too
-   *    large the function fails.
-   *  @param type Specifies the type of the texture to retrieve (e.g. diffuse,
-   *     specular, height map ...)
-   *  @param path Receives the output path
-   *    NULL is no allowed as value
-   *  @param uvindex Receives the UV index of the texture.
-   *    NULL is allowed as value. The return value is
-   *  @param blend Receives the blend factor for the texture
-   *    NULL is allowed as value.
-   *  @param op Receives the texture operation to perform between
-   *    this texture and the previous texture. NULL is allowed as value.
-   *  @param mapmode Receives the mapping modes to be used for the texture.
-   *      The parameter may be NULL but if it is a valid pointer it MUST
-   *      point to an array of 3 aiTextureMapMode variables (one for each
-   *      axis: UVW order (=XYZ)).
-   */
-   // ---------------------------------------------------------------------------
-   aiReturn aiGetMaterialTexture(
-      aiMaterial* mat,
-      aiTextureType type,
-      uint  index,
-      aiString* path,
-      aiTextureMapping* mapping = null,
-      uint* uvindex = null,
-      float* blend = null,
-      aiTextureOp* op = null,
-      aiTextureMapMode* mapmode = null
-   );
-}
-
-// Tell DSSS to link against the assimp lib.
-version ( build ) {
-    pragma( link, "assimp" );
+   // Functions have been moved into assimp.api.
 }
