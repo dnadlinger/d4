@@ -132,17 +132,17 @@ static Matrix4 cameraMatrix( Vector3 position, Vector3 direction, Vector3 up ) {
    Matrix4 m = Matrix4.identity();
 
    m.m11 = right.x;
-   m.m12 = up.x;
-   m.m13 = -direction.x;
+   m.m12 = right.y;
+   m.m13 = right.z;
    m.m14 = -right.dot( position );
 
-   m.m21 = right.y;
+   m.m21 = up.x;
    m.m22 = up.y;
-   m.m23 = -direction.y;
+   m.m23 = up.z;
    m.m24 = -up.dot( position );
 
-   m.m31 = right.z;
-   m.m32 = up.z;
+   m.m31 = -direction.x;
+   m.m32 = -direction.y;
    m.m33 = -direction.z;
    m.m34 = direction.dot( position );
 
