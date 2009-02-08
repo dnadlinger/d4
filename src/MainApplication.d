@@ -96,6 +96,7 @@ protected:
       super.handleKeyUp( key );
       switch ( key ) {
          case Key.y:
+         case Key.z:
             m_shadingMode = cast( ShadingMode )( ( m_shadingMode + 1 ) % ( m_shadingMode.max + 1 ) );
             updateShadingMode();
             break;
