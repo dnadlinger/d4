@@ -180,6 +180,8 @@ private:
       if ( fakeColors ) {
          ++m_fakeColorMeshCount;
          result.vertices = importFakeColorVertices( mesh );
+         result.material.vertexColors = true;
+         result.material.diffuseTexture = null;
       } else if ( mesh.mTextureCoords[ 0 ] !is null ) {
          ++m_texturedMeshCount;
          result.vertices = importTexturedVertices( mesh );
