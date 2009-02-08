@@ -1,5 +1,6 @@
 module d4.format.AssimpScene;
 
+import tango.io.Path : standardizePath = standard;
 import tango.io.FilePath;
 import tango.io.Stdout;
 import tango.stdc.stringz : fromStringz, toStringz;
@@ -45,21 +46,22 @@ class AssimpScene {
          importFlags |= aiProcess.GenSmoothNormals;
       }
       
-      aiScene* scene = aiImportFile( toStringz( fileName ), importFlags );
+      auto sceneFile = FilePath( standardizePath( fileName ) );
 
-      if ( scene == null ) {
+      aiScene* scene = aiImportFile( toStringz( sceneFile.toString() ), importFlags );
+
+      if ( scene is null ) {
          throw new Exception( "Failed to load scene from file (" ~ fileName ~ "): " ~ fromStringz( aiGetErrorString() ) );
       }
 
-      if ( scene.mRootNode == null ) {
+      if ( scene.mRootNode is null ) {
          throw new Exception( "Model file contains no root node (" ~ fileName ~ ")." );
       }
       
-      auto path = new FilePath( fileName );
-      char[] filePath = path.path();
+      char[] scenePath = sceneFile.path();
 
       for ( uint i = 0; i < scene.mNumMaterials; ++i ) {
-         m_materials ~= importMaterial( *( scene.mMaterials[ i ] ), *scene, filePath );
+         m_materials ~= importMaterial( *( scene.mMaterials[ i ] ), *scene, scenePath );
       }
 
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
