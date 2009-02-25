@@ -97,6 +97,7 @@ public:
       return m_forceWireframe;
    }
 
+   /// ditto
    void forceWireframe( bool forceWireframe ) {
       m_forceWireframe = forceWireframe;
       clearCache();
@@ -110,6 +111,7 @@ public:
       return m_forceFlatShading;
    }
 
+   /// ditto
    void forceFlatShading( bool forceFlatShading ) {
       m_forceFlatShading = forceFlatShading;
       clearCache();
@@ -122,6 +124,7 @@ public:
       return m_skipTextures;
    }
 
+   /// ditto
    void skipTextures( bool skipTextures ) {
       m_skipTextures = skipTextures;
       clearCache();

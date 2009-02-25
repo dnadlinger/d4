@@ -6,14 +6,30 @@ import d4.renderer.Renderer;
 import d4.scene.MaterialManager;
 import d4.scene.Mesh;
 
+/**
+ * A node in the tree-like scenegraph.
+ * 
+ * It can contain any number of child nodes and meshes and stores a local
+ * transformation matrix.
+ */
 class Node {
 public:
+   /**
+    * Constructs an empty node with no children and no local transformations.
+    */
    this() {
       m_localMatrix = Matrix4.identity;
       m_worldMatrix = Matrix4.identity;
       m_worldMatrixValid = false;
    }
 
+   /**
+    * Adds a child node to the tree. If the node already has another parent
+    * node, it is removed from the tree first.
+    * 
+    * Params:
+    *     childNode = The child node to add.
+    */
    void addChild( Node childNode ) {
       if ( childNode.parent !is null ) {
          childNode.parent.removeChild( childNode );
@@ -23,6 +39,13 @@ public:
       childNode.parent = this;
    }
 
+   /**
+    * Removes a child node from the tree. This works only with direct children,
+    * not with child nodes which are attached somewhere deep down the hierachy.
+    * 
+    * Params:
+    *     childNode = The child node to remove from the tree.
+    */
    void removeChild( Node childNode ) {
       foreach ( i, currentNode; m_children ) {
          if ( currentNode == childNode ) {
@@ -37,10 +60,23 @@ public:
       throw new Exception( "Could not remove child: Node not found in child list." );
    }
 
+   /**
+    * Adds a child mesh to the node.
+    * 
+    * Params:
+    *     mesh = The mesh to add.
+    */
    void addMesh( Mesh mesh ) {
       m_meshes ~= mesh;
    }
 
+   /**
+    * Renders the local meshes and all child nodes using the specified renderer.
+    * 
+    * Params:
+    *     renderer = The renderer to use.
+    *     manager = The material manager to use for rendering.
+    */
    void render( Renderer renderer, MaterialManager manager ) {
       renderer.worldMatrix = worldMatrix();
       foreach ( mesh; m_meshes ) {
@@ -54,10 +90,14 @@ public:
       }
    }
 
+   /**
+    * The local transformation matrix.
+    */
    Matrix4 transformation() {
       return m_localMatrix;
    }
 
+   /// ditto
    void transformation( Matrix4 localMatrix ) {
       m_localMatrix = localMatrix;
       invalidateWorldMatrix();

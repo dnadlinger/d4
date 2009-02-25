@@ -15,8 +15,14 @@ import d4.shader.SingleColorShader;
 import d4.shader.TextureShader;
 import d4.shader.VertexColorShader;
 
+/**
+ * A simple, straightforward IMaterial implementation.
+ */
 class Material : IMaterial {
 public:
+   /**
+    * Constructs a new material with the default settings.
+    */
    this() {
       m_wireframe = false;
       m_gouraudShading = true;
@@ -26,46 +32,72 @@ public:
       m_diffuseTexture = null;
    }
 
+   /**
+    * Whether the material is drawn as a wireframe or solid.
+    */
    bool wireframe() {
       return m_wireframe;
    }
 
+   /// ditto
    void wireframe( bool wireframe ) {
       m_wireframe = wireframe;
    }
 
+   /**
+    * Whether the material uses gouraud shading to interpolate between the
+    * vertex variables.
+    */
    bool gouraudShading() {
       return m_gouraudShading;
    }
 
+   /// ditto
    void gouraudShading( bool interpolate ) {
       m_gouraudShading = interpolate;
    }
 
+   /**
+    * Whether vertex colors should be respected.
+    */
    bool vertexColors() {
       return m_wireframe;
    }
 
+   /// ditto
    void vertexColors( bool vertexColors ) {
       m_vertexColors = vertexColors;
    }
 
+   
+   /**
+    * Whether lighting is enable for the material.
+    */
    bool lighting() {
       return m_lighting;
    }
 
+   /// ditto
    void lighting( bool useLighting ) {
       m_lighting = useLighting;
    }
 
+   /**
+    * The diffuse texture for the material (null if none).
+    */
    Image diffuseTexture() {
       return m_diffuseTexture;
    }
 
+   /// ditto
    void diffuseTexture( Image texture ) {
       m_diffuseTexture = texture;
    }
 
+   /**
+    * The textures the material is using (just the diffuse texture if any, null
+    * otherwise).
+    */
    Image[] textures() {
       if ( m_diffuseTexture !is null ) {
          return [ m_diffuseTexture ];
@@ -74,6 +106,10 @@ public:
       }
    }
 
+   /**
+    * Whether the material uses gouraud shading to interpolate between the
+    * vertex variables.
+    */
    IRasterizer createRasterizer() {
       if ( m_wireframe ) {
          // This causes dmd to segfault:

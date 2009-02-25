@@ -1,7 +1,13 @@
+/**
+ * Utility mixins for creating the VertexVariable structs.
+ */
 module d4.shader.VertexVariableUtils;
 
 import util.StringMixinUtils;
 
+/**
+ * Declares a scalar float variable.
+ */
 template floatVariable( char[] name, uint index ) {
    const char[] floatVariable =
       "float " ~ name ~ "() { "
@@ -12,6 +18,9 @@ template floatVariable( char[] name, uint index ) {
       "}";
 }
 
+/**
+ * Declares a Vector2 variable.
+ */
 template vector2Variable( char[] name, uint index ) {
    const char[] vector2Variable =
       "Vector2 " ~ name ~ "() { "
@@ -24,6 +33,9 @@ template vector2Variable( char[] name, uint index ) {
       "}";
 }
 
+/**
+ * Declares a Vector3 variable.
+ */
 template vector3Variable( char[] name, uint index ) {
    const char[] vector3Variable =
       "Vector3 " ~ name ~ "() { "
@@ -37,6 +49,10 @@ template vector3Variable( char[] name, uint index ) {
       "}";
 }
 
+/**
+ * Declares a Color variable which uses all four components.
+ * If the alpha channel is not needed, consider using colorNoAlphaVariable instead.
+ */
 template colorVariable( char[] name, uint index ) {
    const char[] colorVariable =
       "Color " ~ name ~ "() {"
@@ -56,7 +72,7 @@ template colorVariable( char[] name, uint index ) {
 }
 
 /**
- * Decleares a color variable that does not use the alpha channel
+ * Declares a color variable that does not use the alpha channel
  * (it is always set to 255).
  * 
  * Using this over colorVariable when no alpha channel is needed gives a 

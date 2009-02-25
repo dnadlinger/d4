@@ -4,6 +4,10 @@ import tango.io.Stdout;
 import d4.output.Surface;
 import d4.util.Key;
 
+/**
+ * Provides basic functionality for all kinds of 3d applications
+ * (event loop, key handling, ...). 
+ */
 abstract class Application {
 public:
    /**
@@ -70,35 +74,89 @@ public:
    }
 
 protected:
+   /*
+    *  
+    */
+   
+   /**
+    * Initializes the application.
+    */
    abstract void init();
+   
+   /**
+    * Ticks the world and renders the scene.
+    * 
+    * Params:
+    *     deltaTime = The time which elapsed since the last frame.
+    */
    abstract void render( float deltaTime );
+   
+   /**
+    * Shuts the application down.
+    */
    abstract void shutdown();
 
+   
+   /**
+    * Returns: The surface whose contents are displayed on the screen.
+    */
    abstract Surface screen();
+   
+   /**
+    * Returns: The current time in milliseconds (only use it for relative 
+    * calculations).
+    */
    abstract uint currentTicks();
+   
+   /**
+    * Processes all events in some external event queue (OS, ...).
+    */
    abstract void processEvents();
 
+   
+   /**
+    * Causes the application to exit after the current frame is finished.
+    */
    final void exit() {
       m_appFinished = true;
    }
+   
 
-
+   /**
+    * Returns: The total amount of time the event loop was running (in milliseconds).
+    */
    final uint totalTicksPassed() {
       return m_totalTicksPassed;
    }
 
+   /**
+    * Returns: The total amount of time the event loop was running (in seconds).
+    */
    final float totalTimePassed() {
       return m_totalTicksPassed / 1000.f;
    }
 
+   /**
+    * Tests whether a key is currently pressed.
+    * 
+    * Params:
+    *     key = The questionable key.
+    * Returns: true if the key is pressed, false if it isn't.
+    */
    final bool isKeyDown( Key key ) {
       return m_keyDownList[ key ];
    }
 
+   /**
+    * Returns: The current (averaged) fps.
+    */
    final float fps() {
       return m_fps;
    }
 
+   /*
+    * Callback functions for the key tracking system.
+    */
    void handleKeyDown( Key key ) {
       m_keyDownList[ key ] = true;
    }

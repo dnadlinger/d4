@@ -1,11 +1,16 @@
 module d4.renderer.WireframeRasterizer;
 
-import tango.io.Stdout;
 import tango.math.Math : abs;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
+/**
+ * A simple wireframe rasterizer which connects the vertices with
+ * Bresenham-generated lines.
+ *
+ * This rasterizer does not use or respect the z buffer!
+ */
 final class WireframeRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
@@ -18,6 +23,10 @@ protected:
    }
    
 private:
+   /**
+    * Helper function to draw a line on the screen using the
+    * Bresenham line algorithm.
+    */
    void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
       int startX = cast( int ) startPos.x;
       int startY = cast( int ) startPos.y;

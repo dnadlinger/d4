@@ -20,13 +20,27 @@ import d4.scene.Vertex;
 import d4.scene.ColoredNormalVertex;
 import d4.scene.TexturedNormalVertex;
 
+/**
+ * The origin of the vertex normals.
+ */
 enum NormalType {
-   FILE,
-   GENERATE,
-   GENERATE_SMOOTH
+   FILE, /// Read the normals from the model file.
+   GENERATE, /// Let Assimp generate hard normals.
+   GENERATE_SMOOTH /// Let Assimp generate smooth normals.
 }
 
+/**
+ * Provides functionality to load and access a scene by using the Assimp library.
+ */
 class AssimpScene {
+   /**
+    * Constructs a new scene object with the contents from a scene file.
+    * 
+    * Params:
+    *     fileName = The file to load (see Assimp docs for accepted file formats). 
+    *     normalType = The type of normals to use/generate.
+    *     fakeColors = If fake vertex colors should be generated.
+    */
    this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
@@ -88,6 +102,9 @@ class AssimpScene {
       aiReleaseImport( scene );
    }
 
+   /**
+    * Returns: The root node of the scene.
+    */
    Node rootNode() {
       return m_rootNode;
    }

@@ -1,3 +1,9 @@
+/**
+ * A shader which combines the vertex colors with gouraud lightnig (via the
+ * vertex normal vectors) to determine the pixel colors.
+ * 
+ * Vertex type: ColoredNormalVertex.
+ */
 module d4.shader.LitVertexColorShader;
 
 template LitVertexColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {

@@ -2,7 +2,16 @@ module d4.math.Plane;
 
 import d4.math.Vector4;
 
+/**
+ * A plane in three-dimensional space.
+ */
 struct Plane {
+   /**
+    * Constructs a new plane from the plane equation coefficients.
+    * (ax + by + cz + d = 0)
+    *  
+    * Returns: The new plane instance.
+    */
    static Plane opCall( float a, float b, float c, float d ) {
       Plane plane;
       plane.a = a;
@@ -27,8 +36,8 @@ struct Plane {
       return a * position.x + b * position.y + c * position.z + d * position.w;
    }
    
-   float a;
-   float b;
-   float c;
-   float d;
+   float a; /// The a coefficient of the plane equation.
+   float b; /// The b coefficient of the plane equation.
+   float c; /// The c coefficient of the plane equation.
+   float d; /// The d coefficient of the plane equation.
 }

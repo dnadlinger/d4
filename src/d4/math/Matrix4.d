@@ -9,6 +9,11 @@ import d4.math.Vector4;
  * A basic 4x4 matrix (row-major memory layout).
  */
 struct Matrix4 {
+   /**
+    * Constructs a new identity matrix.
+    * 
+    * Returns: A new identity matrix.
+    */
    static Matrix4 identity() {
       Matrix4 m;
 
@@ -22,6 +27,11 @@ struct Matrix4 {
       return m;
    }
 
+   /**
+    * Transposes the matrix and returns the result in a new matrix.
+    * 
+    * Returns: The transposed matrix.
+    */
    Matrix4 transposed() {
       Matrix4 m;
 
@@ -48,6 +58,9 @@ struct Matrix4 {
       return m;
    }
 
+   /**
+    * Transposes the matrix and stores the result to the matrix itself.
+    */
    void transpose() {
       void swap( uint x, uint y ) {
          float temp = m[ x ][ y ];
@@ -63,6 +76,14 @@ struct Matrix4 {
       swap( 3, 4 );
    }
 
+   /**
+    * Multiplies the matrix with another Matrix4.
+    * This operation is not commutative!
+    * 
+    * Params:
+    *     rhs = The right hand side matrix. 
+    * Returns: The matrix product.
+    */
    Matrix4 opMul( Matrix4 rhs ) {
       // TODO: Can we do this? opMul is defined to be commutative?!
       Matrix4 m;
@@ -90,6 +111,13 @@ struct Matrix4 {
       return m;
    }
 
+   /**
+    * Multiplies this matrix with another Matrix4 and save the result to this
+    * matrix.
+    * This is also known as concatenation.
+    * Params:
+    *     rhs = The right hand side matrix.
+    */
    void opMulAssign( Matrix4 rhs ) {
       float old1;
       float old2;
@@ -128,6 +156,14 @@ struct Matrix4 {
       m44 = old1 * rhs.m14 + old2 * rhs.m24 + old3 * rhs.m34 + m44 * rhs.m44;
    }
 
+   /**
+    * Multiplies this matrix with a vector.
+    * This is also known as vector transformation.
+    * 
+    * Params:
+    *     rhs = The vector to transform. 
+    * Returns: The transformed vector.
+    */
    Vector4 opMul( Vector4 rhs ) {
       return Vector4(
          m11 * rhs.x + m12 * rhs.y + m13 * rhs.z + m14 * rhs.w,
@@ -137,6 +173,13 @@ struct Matrix4 {
       );
    }
 
+   /**
+    * Transforms a (three-dimensional) vector, implicitely setting w = 1.
+    * 
+    * Params:
+    *     rhs = The vector to transform.
+    * Returns: The resulting (four-dimensional) vector.
+    */
    Vector4 opMul( Vector3 rhs ) {
       // Implicitely setting w = 1 here.
       return Vector4(
@@ -147,6 +190,14 @@ struct Matrix4 {
       );
    }
    
+   /**
+    * Transforms a vector, using only the rotational (top-left 3x3) part of the matrix.
+    * The w component of the vector is not modified.
+    * 
+    * Params:
+    *     rhs = The vector to transform.
+    * Returns: The rotated vector.
+    */
    Vector3 rotateVector( Vector3 rhs ) {
       return Vector3(
          m11 * rhs.x + m12 * rhs.y + m13 * rhs.z,
@@ -155,6 +206,11 @@ struct Matrix4 {
       );
    }
    
+   /**
+    * Computes the matrix inverse.
+    * 
+    * Returns: The inversed matrix.
+    */
    Matrix4 inversed() {
       Matrix4 result;
 
@@ -212,6 +268,9 @@ struct Matrix4 {
       return result;
    }
 
+   /**
+    * Pretty-prints the elements of the matrix to the standard output.
+    */
    void print() {
       Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m11, m12, m13, m14 ).newline;
       Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m21, m22, m23, m24 ).newline;

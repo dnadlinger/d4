@@ -1,6 +1,12 @@
+/**
+ * A shader which paints all object white, but takes gouraud lighting (via the
+ * vertex normal vectors) into account. 
+ * 
+ * Vertex type: TexturedNormalVertex.
+ */
 module d4.shader.LitSingleColorShader;
 
-/**
+/*
  * See SingleColorShader.
  */
 template LitSingleColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {

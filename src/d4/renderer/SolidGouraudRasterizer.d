@@ -1,16 +1,21 @@
 module d4.renderer.SolidGouraudRasterizer;
 
-import tango.io.Stdout;
 import tango.math.Math : ceil, rndint;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
+/**
+ * A rasterizer which draws solid triangles using the Scanline algorithm.
+ * 
+ * The vertex variables are linearly interpolated (perspective-correct
+ * Gouraud shading).
+ * 
+ * Partly inspired by the excellent Muli3D software rasterizer
+ * (http://muli3d.sourceforge.net).
+ */
 final class SolidGouraudRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
-   /**
-    * Inspired by Muli3D.
-    */
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       // All coordinates have to be clipped to screen space.
       debug {

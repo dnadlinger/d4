@@ -1,3 +1,8 @@
+/**
+ * A shader which simply uses the vertex colors to determine the pixel colors.
+ * 
+ * Vertex type: ColoredVertex.
+ */
 module d4.shader.VertexColorShader;
 
 template VertexColorShader() {

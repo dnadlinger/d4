@@ -1,5 +1,12 @@
 module util.StringMixinUtils;
 
+/**
+ * Converts an integer to a string containing all the digits.
+ * 
+ * Params:
+ *     number = The number to convert.
+ * Returns: The string representation of the number.
+ */
 char[] intToString( uint number ) {
    char digits[];
    if ( number > 10 ) {
@@ -10,6 +17,10 @@ char[] intToString( uint number ) {
    return digits;
 }
 
+/**
+ * Unrolls a string operation.
+ * You probably want to use this to prepare string mixins. 
+ */
 char[] stringUnroll( char[] front, char[] between, char[] back, uint times ) {
    char[] string = "";
    
@@ -21,6 +32,10 @@ char[] stringUnroll( char[] front, char[] between, char[] back, uint times ) {
    return string;
 }
 
+/**
+ * Unrolls a string operation.
+ * You probably want to use this to prepare string mixins. 
+ */
 char[] stringUnroll( char[] front, char[] between1, char[] between2, char[] back, uint times ) {
    char[] string = "";
    

@@ -1,6 +1,5 @@
 module d4.renderer.Renderer;
 
-import tango.io.Stdout;
 import tango.math.Math : PI;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -18,8 +17,8 @@ import d4.scene.Vertex;
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
 
 /**
- * Workaround for compiler bug if the shaders are instantiated in two different
- * modules. This is the same as SingleColorShader.
+ * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
+ * optimization modules. This is the same as SingleColorShader.
  */
 template DefaultShader() {
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
@@ -37,9 +36,19 @@ template DefaultShader() {
 
 /**
  * The central interface to the rendering system.
+ * 
+ * To render triangles, call <code>beginScene</code> first, then 
+ * <code>renderTriangleList</code> for any number of times and finally
+ * <code>endScene</code> to finish the rendering process.
  */
 class Renderer {
 public:
+   /**
+    * Constructs a new renderer instance with the given render target.
+    * 
+    * Params:
+    *     renderTarget = The target to render to.
+    */
    this( Surface renderTarget ) {
       m_renderTarget = renderTarget;
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
@@ -53,6 +62,13 @@ public:
       m_rendering = false;
    }
 
+   /**
+    * Begins the rendering process. 
+    * 
+    * Params:
+    *     clearColor = Whether to clear the framebuffer. 
+    *     clearZ = Whether to clear the z buffer.
+    */
    void beginScene( bool clearColor = true, bool clearZ = true ) {
       assert( !m_rendering );
       m_rendering = true;
@@ -79,6 +95,11 @@ public:
       m_activeRasterizer.renderTriangleList( vertices, indices );
    }
 
+   /**
+    * Ends the rendering process.
+    * 
+    * You have to call this before calling <code>beginScene</code> again.
+    */
    void endScene() {
       assert( m_rendering );
       m_renderTarget.unlock();
@@ -86,22 +107,38 @@ public:
    }
 
 
+   /**
+    * The world matrix to use.
+    */
    Matrix4 worldMatrix() {
       return m_activeRasterizer.worldMatrix;
    }
 
+   /// ditto
    void worldMatrix( Matrix4 worldMatrix ) {
       m_activeRasterizer.worldMatrix = worldMatrix;
    }
 
+   /**
+    * The view matrix to use.
+    */
    Matrix4 viewMatrix() {
       return m_activeRasterizer.viewMatrix;
    }
 
+   /// ditto
    void viewMatrix( Matrix4 viewMatrix ) {
       m_activeRasterizer.viewMatrix = viewMatrix;
    }
 
+   /**
+    * Sets the (perspective) projection to use for rendering.
+    * 
+    * Params:
+    *     fovRadians = The vertical viewing angle (in radians). 
+    *     nearDistance = The distance of the near clipping plane (>0).
+    *     farDistance = The distance of the far clipping plane (>nearDistance).
+    */
    void setProjection( float fovRadians, float nearDistance, float farDistance ) {
       m_activeRasterizer.projectionMatrix = perspectiveProjectionMatrix(
          fovRadians,
@@ -111,36 +148,64 @@ public:
       );
    }
    
+   /**
+    * Which type of backface culling to use.
+    */
    BackfaceCulling backfaceCulling() {
       return m_activeRasterizer.backfaceCulling;
    }
    
+   /// ditto
    void backfaceCulling( BackfaceCulling cullingMode ) {
       m_activeRasterizer.backfaceCulling = cullingMode;
    }
    
+   /**
+    * The color to clear the framebuffer with when a new frame is started.
+    */
    Color clearColor() {
       return m_clearColor;
    }
 
+   /// ditto
    void clearColor( Color clearColor ) {
       m_clearColor = clearColor;
    }
    
+   /**
+    * The textures needed for the active rasterizer.
+    */
    Image[] activeTextures() {
       return m_activeRasterizer.textures;
    }
 
+   /// ditto
    void activeTextures( Image[] textures ) {
       m_activeRasterizer.textures = textures;
    }
 
+   
+   /**
+    * Registers a new rasterizer so that it can be activated later.
+    * 
+    * Params:
+    *     rasterizer = The rasterizer to register.
+    * Returns: The rasterizer id which is used to activate the rasterizer later.
+    */
    uint registerRasterizer( IRasterizer rasterizer ) {
       assert( rasterizer !is null, "Cannot register null rasterizer." );
       m_rasterizers ~= rasterizer;
       return m_rasterizers.length - 1;
    }
 
+   /**
+    * Unregister an already registered rasterizer because it is not needed
+    * anymore.
+    * 
+    * Params:
+    *     id = The id of the rasterizer to unregister. 
+    * Returns: A reference to the unregistered rasterizer.
+    */
    IRasterizer unregisterRasterizer( uint id ) {
       IRasterizer rasterizer = m_rasterizers[ id ];
       assert( rasterizer !is null, "Invalid rasterizer id (already unregistered?)." );
@@ -153,6 +218,13 @@ public:
       return rasterizer;
    }
 
+   /**
+    * Activates a rasterizer for rendering.
+    * 
+    * Params:
+    *     id = The rasterizer id which was returned by
+    *     <code>registerRasterizer</code>.
+    */
    void useRasterizer( uint id ) {
       IRasterizer rasterizer = m_rasterizers[ id ];
       assert( rasterizer !is null );

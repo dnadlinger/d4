@@ -1,3 +1,9 @@
+/**
+ * A shader which combines a diffuse texture and gouraud lightnig (via the
+ * vertex normal vectors) to determine the pixel colors.
+ * 
+ * Vertex type: TexturedNormalVertex.
+ */
 module d4.shader.LitTextureShader;
 
 template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {

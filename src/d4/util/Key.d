@@ -1,7 +1,9 @@
 module d4.util.Key;
 
-// Adapted from derelict.sdl.keysym.
-
+/**
+ * The keycodes used by d4.util.Application
+ * (adapted from derelict.sdl.keysym).
+ */
 enum Key {
    // The keyboard syms have been cleverly chosen to map to ASCII
    FIRST      = 0,

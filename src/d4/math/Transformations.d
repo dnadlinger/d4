@@ -1,10 +1,23 @@
+/**
+ * Functions to construct transformation matrices and quaternions.
+ */
 module d4.math.Transformations;
 
+import tango.math.Math : sin, cos, tan;
 import d4.math.Matrix4;
 import d4.math.Quaternion;
 import d4.math.Vector3;
 import d4.math.Vector4;
 
+/**
+ * Constructs a scaling matrix from the three axis scaling factors (100% = 1).
+ * 
+ * Params:
+ *     factorX = The scaling factor along the x axis.
+ *     factorY = The scaling factor along the y axis.
+ *     factorZ = The scaling factor along the z axis.
+ * Returns: The scaling matix.
+ */
 static Matrix4 scalingMatrix( float factorX = 1.f, float factorY = 1.f, float factorZ = 1.f ) {
    Matrix4 m = Matrix4.identity();
 
@@ -15,10 +28,25 @@ static Matrix4 scalingMatrix( float factorX = 1.f, float factorY = 1.f, float fa
    return m;
 }
 
+/**
+ * Constructs a scaling matrix from the three axis scaling factors stored in
+ * a Vector3 (100% = 1).
+ * 
+ * Params:
+ *     vector = The scaling factors. 
+ * Returns: The scaling matrix.
+ */
 static Matrix4 scalingMatrix( Vector3 vector ) {
    return scalingMatrix( vector.x, vector.y, vector.z );
 }
 
+/**
+ * Constructs a matrix which represents a rotation aroud the x axis.
+ * 
+ * Params:
+ *     angleRadians = The angle to rotate about (in radians).
+ * Returns: The rotation matrix.
+ */
 static Matrix4 xRotationMatrix( float angleRadians ) {
    Matrix4 m = Matrix4.identity();
 
@@ -34,6 +62,13 @@ static Matrix4 xRotationMatrix( float angleRadians ) {
    return m;
 }
 
+/**
+ * Constructs a matrix which represents a rotation aroud the y axis.
+ * 
+ * Params:
+ *     angleRadians = The angle to rotate about (in radians).
+ * Returns: The rotation matrix.
+ */
 static Matrix4 yRotationMatrix( float angleRadians ) {
    Matrix4 m = Matrix4.identity();
 
@@ -49,6 +84,13 @@ static Matrix4 yRotationMatrix( float angleRadians ) {
    return m;
 }
 
+/**
+ * Constructs a matrix which represents a rotation aroud the z axis.
+ * 
+ * Params:
+ *     angleRadians = The angle to rotate about (in radians).
+ * Returns: The rotation matrix.
+ */
 static Matrix4 zRotationMatrix( float angleRadians ) {
    Matrix4 m = Matrix4.identity();
 
@@ -64,6 +106,14 @@ static Matrix4 zRotationMatrix( float angleRadians ) {
    return m;
 }
 
+/**
+ * Constructs a rotation quaternion from the rotation axis and the rotation angle.
+ * 
+ * Params:
+ *     angle = The angle to rotate about (in radians). 
+ *     axis = The axis to rotate around.
+ * Returns: The rotation quaternion.
+ */
 static Quaternion rotationQuaternion( float angle, Vector3 axis ) {
    Quaternion result;
 
@@ -78,6 +128,13 @@ static Quaternion rotationQuaternion( float angle, Vector3 axis ) {
    return result;
 }
 
+/**
+ * Constructs a rotation matrix from the given rotation quaternion.
+ * 
+ * Params:
+ *     q = The rotation quaternion.
+ * Returns: A matrix representing the same rotation as the quaternion.
+ */
 static Matrix4 rotationMatrix( Quaternion q ) {
    Matrix4 m = Matrix4.identity();
 
@@ -112,6 +169,15 @@ static Matrix4 rotationMatrix( Quaternion q ) {
    return m;
 }
 
+/**
+ * Constructs a translation matrix with the amount given component-wise.
+ * 
+ * Params:
+ *     deltaX = The distance to move along the x axis.
+ *     deltaY = The distance to move along the y axis.
+ *     deltaZ = The distance to move along the z axis.
+ * Returns: The translation matrix.
+ */
 static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f, float deltaZ = 0.f ) {
    Matrix4 m = Matrix4.identity();
 
@@ -122,10 +188,26 @@ static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f, float 
    return m;
 }
 
+/**
+ * Constructs a translation matrix with the amount given as a vector.
+ * 
+ * Params:
+ *     vector = The distance to move. 
+ * Returns: The translation matrix.
+ */
 static Matrix4 translationMatrix( Vector3 vector ) {
    return translationMatrix( vector.x, vector.y, vector.z );
 }
 
+/**
+ * Constructs a view matrix from the camera position and direction.
+ * 
+ * Params:
+ *     position = The position of the camera (usually in world coordinates. 
+ *     direction = The direction the camera is facing.
+ *     up = The camera up vector.
+ * Returns: The view matrix.
+ */
 static Matrix4 cameraMatrix( Vector3 position, Vector3 direction, Vector3 up ) {
    Vector3 right = direction.cross( up );
 
@@ -149,6 +231,17 @@ static Matrix4 cameraMatrix( Vector3 position, Vector3 direction, Vector3 up ) {
    return m;
 }
 
+/**
+ * Constructs a view matrix from the camera position and a target.
+ * The world up vector is used to derive the camera up vector and must not be
+ * too close to the direction vector.
+ * 
+ * Params:
+ *     position = The camera position.
+ *     target = The point the camera is looking at.
+ *     worldUp = The world up vector (usually [0,1,0]).  
+ * Returns: The view matrix.
+ */
 static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp ) {
    Vector3 direction = target - position;
    direction.normalize();
@@ -164,6 +257,16 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
    return cameraMatrix( position, direction, cameraUp );
 }
 
+/**
+ * Constructs a perspective projection matrix from the projection parameters.
+ * 
+ * Params:
+ *     fovRadians = The vertical view angle.
+ *     aspectRatio = The aspect ratio of the viewing window (i.e. the output device).
+ *     nearDistance = The distance of the near clipping plane (>0).
+ *     farDistance = The distance of the far clipping plane (>nearDistance).
+ * Returns: The projection matrix.
+ */
 static Matrix4 perspectiveProjectionMatrix( float fovRadians, float aspectRatio,
    float nearDistance, float farDistance ) {
 

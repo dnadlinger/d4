@@ -1,6 +1,6 @@
-module d4.renderer.Rasterizer;
+module d4.renderer.RasterizerBase;
 
-import tango.io.Stdout;
+import tango.math.Math : rndint;
 import tango.math.IEEE : RoundingMode, setIeeeRounding;
 import util.ArrayAllocation;
 import util.StringMixinUtils;
@@ -17,8 +17,19 @@ import d4.scene.Image;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
 
-//class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+/**
+ * Provides common basic functionality for most kinds of rasterizers.
+ * This includes: shader support, matrix caching, clipping, backface culling, ...
+ * 
+ * The concrete subclasses only need to implement <code>drawTriangle</code>,
+ * every thing else is handled by this class.
+ */
 abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
+// abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+   /**
+    * Initializes the render states and transformation matrices
+    * with sane default values.
+    */
    this() {
       m_worldMatrix = Matrix4.identity;
       m_worldNormalMatrix = Matrix4.identity;
@@ -44,7 +55,8 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
       
       // Set the FPU to truncation rounding. We have to restore the old state
-      // when leaving the function.
+      // when leaving the function, otherwise really strange things happen
+      // (most probably, the machine crashes).
       auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
       scope ( exit ) setIeeeRounding( oldRoundingMode );
 
@@ -69,18 +81,31 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       free( transformed );
    }
    
+   /**
+    * Sets the render target to use, which is a framebuffer and its z buffer
+    * companion.
+    * 
+    * Params:
+    *     colorBuffer = The framebuffer to use. 
+    *     zBuffer = The z buffer to use.
+    */
    void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
       assert( colorBuffer.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
       assert( colorBuffer.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
 
       m_colorBuffer = colorBuffer;
       m_zBuffer = zBuffer;
-   }   
+   }
    
+   
+   /**
+    * The world matrix to use.
+    */
    Matrix4 worldMatrix() {
       return m_worldMatrix;
    }
 
+   /// ditto
    void worldMatrix( Matrix4 worldMatrix ) {
       m_worldMatrix = worldMatrix;
       m_worldNormalMatrix = worldMatrix.inversed().transposed();
@@ -88,37 +113,53 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       updateWorldViewProjMatrix();
    }
 
+   /**
+    * The view matrix to use.
+    */
    Matrix4 viewMatrix() {
       return m_viewMatrix;
    }
 
+   /// ditto
    void viewMatrix( Matrix4 viewMatrix ) {
       m_viewMatrix = viewMatrix;
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
    }
    
+   /**
+    * The projection matrix to use.
+    */   
    Matrix4 projectionMatrix() {
       return m_projMatrix;
    }
-
+   
+   /// ditto
    void projectionMatrix( Matrix4 projectionMatrix ) {
       m_projMatrix = projectionMatrix;
       updateWorldViewProjMatrix();
    }
 
+   /**
+    * The backface culling mode to use.
+    */
    BackfaceCulling backfaceCulling() {
       return m_backfaceCulling;
    }
    
+   /// ditto
    void backfaceCulling( BackfaceCulling cullingMode ) {
       m_backfaceCulling = cullingMode;
    }
 
+   /**
+    * The textures to use.
+    */
    Image[] textures() {
       return m_textures;
    }
 
+   /// ditto
    void textures( Image[] textures ) {
       m_textures = textures;
    }
@@ -347,6 +388,16 @@ private:
       }
    }
    
+   /**
+    * Clips a polygon against a plane using homogeneous clipping.
+    * 
+    * Params:
+    *     sourceBuffer = The buffer to read the source vertices from.
+    *     targetBuffer = The buffer to write the clipped vertices to.
+    *     vertexCount = The number of vertices in the source buffer.
+    *     plane = The plane to clip against.
+    * Returns: The number of vertices in the target buffer.
+    */
    uint clipToPlane( TransformedVertex[] sourceBuffer, TransformedVertex[] targetBuffer,
       uint vertexCount, Plane plane ) {
       // Due to some function overloading strangeness, we have to alias the other

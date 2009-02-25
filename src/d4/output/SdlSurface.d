@@ -4,6 +4,9 @@ import derelict.sdl.sdl;
 import d4.math.Color;
 import d4.output.Surface;
 
+/**
+ * A Surface implementation using the SDL_Surface functionality.
+ */
 class SdlSurface : Surface {
 public:
    this( SDL_Surface* sdlSurface ) {

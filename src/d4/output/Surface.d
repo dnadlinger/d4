@@ -2,6 +2,9 @@ module d4.output.Surface;
 
 import d4.math.Color;
 
+/**
+ * An output surface (screen, texture, ...).
+ */
 abstract class Surface {
    /**
     * Locks the surface.

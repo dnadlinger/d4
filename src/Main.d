@@ -1,3 +1,8 @@
+/**
+ * The entry point for the application. The functions here deal with
+ * rather low-level stuff, the "real" application lies in the
+ * <code>MainApplication</code> package.
+ */
 module Main;
 
 import tango.core.Array;
@@ -7,6 +12,9 @@ import tango.core.Runtime;
 import tango.io.Stdout;
 import MainApplication;
 
+/**
+ * Invoke a possible attached debugger if a false assertion is encountered.
+ */
 void assertHandler( char[] file, size_t line, char[] msg = null ) {
    Stdout.format( "Assertion false in {}, line {}", file, line );
    if ( msg !is null ) {
@@ -20,6 +28,9 @@ void assertHandler( char[] file, size_t line, char[] msg = null ) {
    }
 }
 
+/**
+ * Print a glyph to stdout whenever an object is garbage collected.
+ */
 bool printGlyph( Object object ) {
    // Not immediately flushing to save time.
    Stdout( "›" );
@@ -37,6 +48,9 @@ bool printClass( Object object ) {
    return true;
 }
 
+/**
+ * The entry point for the application.
+ */
 void main( char[][] args ) {
    // Execute asm "int 3" when encountering a false assert to be able to debug it.
    setAssertHandler( &assertHandler );

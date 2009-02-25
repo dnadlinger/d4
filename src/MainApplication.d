@@ -1,7 +1,7 @@
 module MainApplication;
 
 import tango.io.Stdout;
-import tango.math.Math : sin;
+import tango.math.Math : sin, PI;
 import d4.format.AssimpScene;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -15,12 +15,19 @@ import d4.scene.Vertex;
 import d4.util.Key;
 import d4.util.SdlApplication;
 
+/**
+ * The available shading modes.
+ */
 enum ShadingMode {
    FLAT,
    GOURAUD,
    GOURAUD_TEXTURED
 }
 
+/**
+ * The main application class.
+ * Manages the scene, reacts to user input, etc.
+ */
 class MainApplication : SdlApplication {
 public:
    void sceneFile( char[] fileName ) {

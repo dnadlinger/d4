@@ -1,7 +1,11 @@
+/**
+ * A shader which simply paints all objects white. 
+ * 
+ * Vertex types: any.
+ */
 module d4.shader.SingleColorShader;
 
-/**
- * 
+/*
  * A command like this:
  * new SolidGouraudRasterizer!( SingleColorShader, Color() )();
  * will somehow cause dmd to abort with a segfault. Just removed the color

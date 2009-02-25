@@ -9,6 +9,9 @@ import d4.output.SdlSurface;
 import d4.util.Application;
 import d4.util.Key;
 
+/**
+ * Implements the parts of Application for which SDL can be used.
+ */
 abstract class SdlApplication : Application {
 public:
    this() {

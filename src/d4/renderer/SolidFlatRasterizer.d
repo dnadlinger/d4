@@ -1,11 +1,17 @@
 module d4.renderer.SolidFlatRasterizer;
 
-import tango.io.Stdout;
 import tango.math.Math : ceil, rndint;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
 
+/**
+ * A rasterizer which draws solid triangles using the Scanline algorithm.
+ *
+ * The vertex variables are not interpolated (flat shading).
+ * 
+ * Note: This is a quick and dirty copy of SolidGouraudRasterizer.
+ */
 final class SolidFlatRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
