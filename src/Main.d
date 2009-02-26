@@ -9,23 +9,25 @@ import tango.core.Array;
 import tango.core.Exception;
 import tango.core.Memory;
 import tango.core.Runtime;
+import tango.io.Console;
 import tango.io.Stdout;
+import tango.text.convert.Integer;
 import MainApplication;
 
 /**
- * Invoke a possible attached debugger if a false assertion is encountered.
+ * Converts assertion errors to exceptions to be able to wait for user input
+ * in Windows before the program is closed.
  */
-void assertHandler( char[] file, size_t line, char[] msg = null ) {
-   Stdout.format( "Assertion false in {}, line {}", file, line );
-   if ( msg !is null ) {
-      Stdout( ": " ~ msg );
+void assertHandler( char[] file, size_t line, char[] assertionMessage = null ) {
+   char[] message = "Assertion false in " ~ file ~ ", line " ~ toString( line );
+   
+   if ( assertionMessage !is null ) {
+      message ~= ": " ~ assertionMessage;
+   } else {
+      message ~= "!";
    }
-   Stdout.newline;
-
-   asm {
-      // int 3 (0x33) invokes the attached debugger if any.
-      int 3;
-   }
+   
+   throw new Exception( message );
 }
 
 /**
@@ -58,15 +60,46 @@ void main( char[][] args ) {
    // Show garbage collection activity while the program is running.
    Runtime.collectHandler = &printGlyph;
 
-   auto app = new MainApplication();
-   // The application has to be deleted when tho program ends, even if something
-   // has gone wrong before, because Derelict causes a segfault if not
-   // unloaded properly.
-   scope ( exit ) {
+   MainApplication app;
+   try {
+      app = new MainApplication();
+      
+      // Parse command line options.
+      if ( args.length < 2 ) {
+         throw new Exception( "Please specify a model file at the command line" );
+      }
+      
+      app.sceneFile = args[ 1 ];
+   
+      if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
+         app.generateSmoothNormals = true;
+      }
+      
+      if ( contains( args[ 2..$ ], "fakeColors" ) ) {
+         app.fakeColors = true;
+      }
+      
+      // Start the application main loop.
+      app.run();
+   } catch ( Exception e ) {
+      Stdout( "ERROR: " )( e ).newline;
+      
+      // In a debug build, set off the debugger trap/signal.
+      // FIXME: Why is this not working?
+      //debug {
+         asm {
+            // int 3 (0x33) invokes the attached debugger if any.
+            int 3;
+         }
+      //}
+   } finally {
       // Count objects collected on program end.
       collectedObjects = 0;
       Runtime.collectHandler = &countObject;
 
+      // The application has to be deleted when tho program ends, even if something
+      // has gone wrong before, because Derelict causes a segfault if not
+      // unloaded properly.
       delete app;
       GC.collect();
 
@@ -74,24 +107,12 @@ void main( char[][] args ) {
 
       // Print the class name if any remaining object should be collected,
       // because this should not happen.
-      Runtime.collectHandler = &printClass;
+      // Runtime.collectHandler = &printClass;
+      
+      // On Windows, wait for user pressing <Enter> before exiting.
+      version ( Windows ) {
+         Stdout( "Press <Enter> to exit." ).newline;
+         Cin.get();
+      }
    }
-   
-   // Parse command line options.
-   if ( args.length < 2 ) {
-      throw new Exception( "Please specify a model file at the command line" );
-   }
-   
-   app.sceneFile = args[ 1 ];
-
-   if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-      app.generateSmoothNormals = true;
-   }
-   
-   if ( contains( args[ 2..$ ], "fakeColors" ) ) {
-      app.fakeColors = true;
-   }
-   
-   // Start the application main loop.
-   app.run();
 }
