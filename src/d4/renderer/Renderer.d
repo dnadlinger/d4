@@ -1,6 +1,5 @@
 module d4.renderer.Renderer;
 
-import d4.shader.SingleColorShader;
 import tango.math.Math : PI;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -16,6 +15,24 @@ import d4.scene.Image;
 import d4.scene.Vertex;
 
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
+
+/**
+ * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
+ * optimization modules. This is the same as SingleColorShader.
+ */
+template DefaultShader() {
+   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+      position = worldViewProjMatrix * vertex.position;
+   }
+
+   Color pixelShader( VertexVariables variables ) {
+      return Color( 255, 255, 255 );
+   }
+
+   struct VertexVariables {
+      float[0] values;
+   }
+}
 
 /**
  * The central interface to the rendering system.
@@ -37,7 +54,7 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidGouraudRasterizer!( SingleColorShader )();
+      m_rasterizers ~= new SolidGouraudRasterizer!( DefaultShader )();
       m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
