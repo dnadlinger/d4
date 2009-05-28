@@ -334,12 +334,12 @@ private:
          }
       }
       
-      // FIXME: The substaction of 1 is a temporary workaround for off-by-one error.
+      // FIXME: The substaction of 1 is a (temporary?) workaround for off-by-one error.
       float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
       float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
       
       for( uint i = 0; i < vertexCount; ++i ) {
-         // TODO: How to use a ref instead a pointer?
+         // TODO: How to use a ref instead of a pointer?
          TransformedVertex* vertex = &vertices[ i ];
 
          // Divide the vertex coordinates by w to get the »normal« (projected) positions.
