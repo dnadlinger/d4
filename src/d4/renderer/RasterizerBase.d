@@ -199,39 +199,95 @@ protected:
       return m_worldViewProjMatrix;
    }
 
-   Color readTexture( bool tile )
+   Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
 
-      int u;
-      int v;
+      static if ( !bilinearInterpolation ) {
+         int u;
+         int v;
 
-      static if ( tile ) {
-         // Tile.
-         u = rndint( texCoords.x * m_texXLimits[ textureIndex ] ) % m_texWidths[ textureIndex ];
-         v = rndint( texCoords.y * m_texYLimits[ textureIndex ] ) % m_texHeights[ textureIndex ];
-         if ( u < 0 ) {
-            u += m_texWidths[ textureIndex ];
+         static if ( tile ) {
+            // Tile.
+            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] ) % m_texWidths[ textureIndex ];
+            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] ) % m_texHeights[ textureIndex ];
+            if ( u < 0 ) {
+               u += m_texWidths[ textureIndex ];
+            }
+            if ( v < 0 ) {
+               v += m_texHeights[ textureIndex ];
+            }
+         } else {
+            // Clamp.
+            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] );
+            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] );
+            if ( u < 0 ) {
+               u = 0;
+            } else if ( u > m_texXLimits[ textureIndex ] ) {
+               u = m_texXLimits[ textureIndex ];
+            }
+            if ( v < 0 ) {
+               v = 0;
+            } else if ( v > m_texYLimits[ textureIndex ] ) {
+               v = m_texYLimits[ textureIndex ];
+            }
          }
-         if ( v < 0 ) {
-            v += m_texHeights[ textureIndex ];
-         }
+
+         return m_textureDataPointers[ textureIndex ][ v * m_texWidths[ textureIndex ] + u ];
       } else {
-         // Clamp.
-         u = rndint( texCoords.x * m_texXLimits[ textureIndex ] );
-         v = rndint( texCoords.y * m_texYLimits[ textureIndex ] );
+         // Interpolation code shamelessly taken from DShade
+         // (http://h3.team0xf.com/proj/).
+
+         // TODO: Implement clamping support.
+         static assert ( tile, "Bilinear clamping not implemented yet!" );
+
+         // Shift the coordinates to the left to be able to perfom the subpixel
+         // calculations using integer arithmetic.
+         const shift = 8;
+         int widthSH = m_texWidths[ textureIndex ] << shift;
+         int heightSH = m_texHeights[ textureIndex ] << shift;
+
+         // Tile the texture coordinates.
+         int u = rndint( texCoords.x * widthSH ) % widthSH;
+         int v = rndint( texCoords.y * heightSH ) % heightSH;
          if ( u < 0 ) {
-            u = 0;
-         } else if ( u > m_texXLimits[ textureIndex ] ) {
-            u = m_texXLimits[ textureIndex ];
+            u += widthSH;
          }
          if ( v < 0 ) {
-            v = 0;
-         } else if ( v > m_texYLimits[ textureIndex ] ) {
-            v = m_texYLimits[ textureIndex ];
+            v += heightSH;
          }
-      }
 
-      return m_textureDataPointers[ textureIndex ][ v * m_texWidths[ textureIndex ] + u ];
+         // Remove the low extra bits and calculate the indices of the four
+         // surrounding pixels.
+         int u0 = u >> shift;
+         int v0 = v >> shift;
+         int u1 = ( u0 + 1 ) % m_texWidths[ textureIndex ];
+         int v1 = ( v0 + 1 ) % m_texHeights[ textureIndex ];
+
+         // Read the four surrounding pixels.
+         Color c00 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v0 ];
+         Color c10 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v0 ];
+         Color c01 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v1 ];
+         Color c11 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
+
+         // Use only the low, added bits to calculate the interpolation point.
+         int uoff = u & ( ( 1 << shift ) - 1 );
+         int voff = v & ( ( 1 << shift ) - 1 );
+
+         return Color(
+             (((cast(uint)c00.r * ((1 << shift) - uoff) + uoff * c10.r))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.r * ((1 << shift) - uoff) + uoff * c11.r))
+                 * voff) >> shift*2,
+             (((cast(uint)c00.g * ((1 << shift) - uoff) + uoff * c10.g))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.g * ((1 << shift) - uoff) + uoff * c11.g))
+                 * voff) >> shift*2,
+             (((cast(uint)c00.b * ((1 << shift) - uoff) + uoff * c10.b))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.b * ((1 << shift) - uoff) + uoff * c11.b))
+                 * voff) >> shift*2
+         );
+      }
    }
    // ----
 
