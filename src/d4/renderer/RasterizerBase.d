@@ -57,8 +57,9 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       // Set the FPU to truncation rounding. We have to restore the old state
       // when leaving the function, otherwise really strange things happen
       // (most probably, the machine crashes).
-      auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
-      scope ( exit ) setIeeeRounding( oldRoundingMode );
+      // TODO: Fix rounding mode issues.
+      // auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
+      // scope ( exit ) setIeeeRounding( oldRoundingMode );
 
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
