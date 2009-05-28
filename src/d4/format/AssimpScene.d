@@ -44,14 +44,18 @@ class AssimpScene {
    this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
-         | AI_PROCESS_CONVERT_TO_LEFT_HANDED
          | aiProcess.Triangulate
-         | aiProcess.FixInfacingNormals
-         | aiProcess.ValidateDataStructure
          | aiProcess.RemoveRedundantMaterials
-         | aiProcess.ImproveCacheLocality
-//         | aiProcess.OptimizeGraph
-//         | aiProcess.GenUVCoords
+         | aiProcess.FixInfacingNormals
+         | aiProcess.FindInvalidData
+         | aiProcess.ValidateDataStructure
+         // Generally, we are using coordinate systems which go by the OpenGL
+         // specifications. However, the OpenGL texture coordinate system would
+         // require to flip the y coordinate when reading from the texture
+         // files (it has its origin in the bottom-left corner), so we convert
+         // the texture coordinates to the DirectX system, which has its origin
+         // in the top-left corner.
+         | aiProcess.FlipUVs
       ;
       
       if ( normalType == NormalType.GENERATE ) {
