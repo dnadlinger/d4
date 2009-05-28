@@ -162,6 +162,18 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    /// ditto
    void textures( Image[] textures ) {
       m_textures = textures;
+      m_textureDataPointers = [];
+      m_texWidths = [];
+      m_texHeights = [];
+      m_texXLimits = [];
+      m_texYLimits = [];
+      foreach ( i, texture; textures ) {
+         m_textureDataPointers ~= texture.colorData;
+         m_texWidths ~= texture.width;
+         m_texHeights ~= texture.height;
+         m_texXLimits ~= texture.width - 1;
+         m_texYLimits ~= texture.height - 1;
+      }
    }
 
 protected:
@@ -186,23 +198,39 @@ protected:
       return m_worldViewProjMatrix;
    }
 
-   Color readTextureNearest( uint textureIndex, Vector2 texCoords ) {
-      Image texture = m_textures[ textureIndex ];
-      assert( texture !is null );
+   Color readTexture( bool tile )
+      ( uint textureIndex, Vector2 texCoords ) {
 
-      // TODO: Import proper clamping/tiling support.
-      uint width = texture.width - 1;
-      uint height = texture.height - 1;
-      int u = rndint( texCoords.x * texture.width ) % width;
-      int v = rndint( texCoords.y * texture.height ) % height;
-      if ( u < 0 ) {
-         u += width;
-      }
-      if ( v < 0 ) {
-         v += height;
+      int u;
+      int v;
+
+      static if ( tile ) {
+         // Tile.
+         u = rndint( texCoords.x * m_texXLimits[ textureIndex ] ) % m_texWidths[ textureIndex ];
+         v = rndint( texCoords.y * m_texYLimits[ textureIndex ] ) % m_texHeights[ textureIndex ];
+         if ( u < 0 ) {
+            u += m_texWidths[ textureIndex ];
+         }
+         if ( v < 0 ) {
+            v += m_texHeights[ textureIndex ];
+         }
+      } else {
+         // Clamp.
+         u = rndint( texCoords.x * m_texXLimits[ textureIndex ] );
+         v = rndint( texCoords.y * m_texYLimits[ textureIndex ] );
+         if ( u < 0 ) {
+            u = 0;
+         } else if ( u > m_texXLimits[ textureIndex ] ) {
+            u = m_texXLimits[ textureIndex ];
+         }
+         if ( v < 0 ) {
+            v = 0;
+         } else if ( v > m_texYLimits[ textureIndex ] ) {
+            v = m_texYLimits[ textureIndex ];
+         }
       }
 
-      return texture.readColor( u, v );
+      return m_textureDataPointers[ textureIndex ][ v * m_texWidths[ textureIndex ] + u ];
    }
    // ----
 
@@ -458,4 +486,9 @@ private:
    BackfaceCulling m_backfaceCulling;
 
    Image[] m_textures;
+   Color[][] m_textureDataPointers;
+   uint[] m_texWidths;
+   uint[] m_texHeights;
+   uint[] m_texXLimits;
+   uint[] m_texYLimits;
 }

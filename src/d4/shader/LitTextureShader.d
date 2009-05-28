@@ -30,7 +30,7 @@ template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY,
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return readTextureNearest( 0, variables.texCoords ) * variables.brightness;
+      return readTexture!( true )( 0, variables.texCoords ) * variables.brightness;
    }
 
    struct VertexVariables {
