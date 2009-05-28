@@ -404,12 +404,4 @@ private:
    uint m_coloredMeshCount;
    uint m_fakeColorMeshCount;
    uint m_defaultColorMeshCount;
-   
-   static this() {
-      Assimp.load();
-   }
-   
-   static ~this() {
-      Assimp.unload();
-   }
 }
