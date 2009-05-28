@@ -199,7 +199,10 @@ private:
          result.vertices = importFakeColorVertices( mesh );
          result.material.vertexColors = true;
          result.material.diffuseTexture = null;
-      } else if ( mesh.mTextureCoords[ 0 ] !is null ) {
+      } else if ( ( mesh.mTextureCoords[ 0 ] !is null ) &&
+         ( m_materials[ mesh.mMaterialIndex ].diffuseTexture !is null ) ) {
+         // Check if there really is a texture, because some models contain
+         // unused texture coordinates.
          ++m_texturedMeshCount;
          result.vertices = importTexturedVertices( mesh );
       } else if ( mesh.mColors[ 0 ] !is null ) {
