@@ -12,6 +12,11 @@ public {
 
 import tango.sys.SharedLib;
 
+/**
+ * Loader for the Assimp library (http://assimp.sf.net), rev 425.
+ * 
+ * Headers still missing: aiAnim.h, aiCamera.h, aiConfig.h, aiFileIO.h, aiLight.h
+ */
 struct Assimp {
 public:
    static void load() {
@@ -23,8 +28,10 @@ public:
             m_sLibrary = SharedLib.load( "libassimp.so" );
          }
 
+         // General API
          bind( aiImportFile )( "aiImportFile" );
          bind( aiImportFileEx )( "aiImportFileEx" );
+         bind( aiApplyPostProcessing )( "aiApplyPostProcessing" );
          bind( aiReleaseImport )( "aiReleaseImport" );
          bind( aiGetErrorString )( "aiGetErrorString" );
          bind( aiIsExtensionSupported )( "aiIsExtensionSupported" );
@@ -33,6 +40,10 @@ public:
          bind( aiSetImportPropertyInteger )( "aiSetImportPropertyInteger" );
          bind( aiSetImportPropertyFloat )( "aiSetImportPropertyFloat" );
          bind( aiSetImportPropertyString )( "aiSetImportPropertyString" );
+         bind( aiCreateQuaternionFromMatrix )( "aiCreateQuaternionFromMatrix" );
+         bind( aiDecomposeMatrix )( "aiDecomposeMatrix" );
+
+         // Material system
          // TODO: Why is this not exported into the dll?
          // bind( aiGetMaterialProperty )( "aiGetMaterialProperty" );
          bind( aiGetMaterialFloatArray )( "aiGetMaterialFloatArray" );
@@ -40,6 +51,13 @@ public:
          bind( aiGetMaterialColor )( "aiGetMaterialColor" );
          bind( aiGetMaterialString )( "aiGetMaterialString" );
          bind( aiGetMaterialTexture )( "aiGetMaterialTexture" );
+
+         // Versioning
+         bind( aiGetLegalString )( "aiGetLegalString" );
+         bind( aiGetVersionMinor )( "aiGetVersionMinor" );
+         bind( aiGetVersionMajor )( "aiGetVersionMajor" );
+         bind( aiGetVersionRevision )( "aiGetVersionRevision" );
+         bind( aiGetCompileFlags )( "aiGetCompileFlags" );
       }
       ++m_sRefCount;
    }

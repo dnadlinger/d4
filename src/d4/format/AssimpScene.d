@@ -44,7 +44,7 @@ class AssimpScene {
    this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
       uint importFlags =
          aiProcess.JoinIdenticalVertices
-         | aiProcess.ConvertToLeftHanded
+         | AI_PROCESS_CONVERT_TO_LEFT_HANDED
          | aiProcess.Triangulate
          | aiProcess.FixInfacingNormals
          | aiProcess.ValidateDataStructure

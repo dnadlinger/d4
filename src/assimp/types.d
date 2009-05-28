@@ -1,8 +1,14 @@
 module assimp.types;
 
 extern ( C ) {
-   /** Maximum dimension for strings, ASSIMP strings are zero terminated */
+   /** Maximum dimension for strings, ASSIMP strings are zero terminated. */
    const size_t MAXLEN = 1024;
+   
+   /** Our own C boolean type */
+   enum aiBool : int {
+      FALSE = 0,
+      TRUE = 1
+   }
 
    // ---------------------------------------------------------------------------
    /** Represents a two-dimensional vector. */
@@ -17,9 +23,19 @@ extern ( C ) {
    align ( 1 ):
       float x, y, z;
    }
+   
+   // ---------------------------------------------------------------------------
+   /** Represents a quaternion in a 4D vector. */
+   struct aiQuaternion {
+      float w, x, y, z;
+   }
 
    // ---------------------------------------------------------------------------
-   /** Represents a row-major 3x3 matrix
+   /** @brief Represents a row-major 3x3 matrix
+   *
+   *  There's much confusion about matrix layouts (colum vs. row order).
+   *  This is *always* a row-major matrix. Even with the
+   *  aiProcess_ConvertToLeftHanded flag.
    */
    struct aiMatrix3x3 {
       float a1, a2, a3;
@@ -28,9 +44,13 @@ extern ( C ) {
    }
 
    // ---------------------------------------------------------------------------
-   /** Represents a row-major 4x4 matrix,
-   *  use this for homogenious coordinates
-   */
+   /** @brief Represents a row-major 4x4 matrix, use this for homogeneous
+    *   coordinates.
+    *
+    *  There's much confusion about matrix layouts (colum vs. row order).
+    *  This is *always* a row-major matrix. Even with the
+    *  aiProcess_ConvertToLeftHanded flag.
+    */
    struct aiMatrix4x4 {
    align ( 1 ):
       float a1, a2, a3, a4;
@@ -77,7 +97,10 @@ extern ( C ) {
    }
 
    // ---------------------------------------------------------------------------
-   /** Represents a string, zero byte terminated
+   /** Represents a string, zero byte terminated.
+    *
+    *  We use this representation to be C-compatible. The length of such a string
+    *  is limited to MAXLEN characters (excluding the terminal zero).
    */
    struct aiString {
       //! Length of the string excluding the terminal 0
@@ -88,60 +111,67 @@ extern ( C ) {
    }
 
    // ---------------------------------------------------------------------------
-   /**   Standard return type for all library functions.
-   *
-   * To check whether or not a function failed check against
-   * AI_SUCCESS. The error codes are mainly used by the C-API.
-   */
-   enum aiReturn {
-      //! Indicates that a function was successful
+   /**  Standard return type for some library functions.
+    * Rarely used, and if, mostly in the C API.
+    */
+   enum aiReturn : uint {
+      /** Indicates that a function was successful */
       SUCCESS = 0x0,
 
-      //! Indicates that a function failed
+      /** Indicates that a function failed */
       FAILURE = -0x1,
 
-      //! Indicates that a file was invalid
-      INVALIDFILE = -0x2,
-
-      //! Indicates that not enough memory was available
-      //! to perform the requested operation
-      OUTOFMEMORY = -0x3,
-
-      //! Indicates that an illegal argument has been
-      //! passed to a function. This is rarely used,
-      //! most functions assert in this case.
-      INVALIDARG = -0x4
+      /** Indicates that not enough memory was available
+       * to perform the requested operation
+       */
+      OUTOFMEMORY = -0x3
    }
+   
+   // ---------------------------------------------------------------------------
+   /** Seek origins (for the virtual file system API).
+    *  Much cooler than using SEEK_SET, SEEK_CUR or SEEK_END.
+    */
+   enum aiOrigin : uint {
+    /** Beginning of the file */
+      SET = 0x0,
+
+    /** Current position of the file pointer */
+      CUR = 0x1,
+
+    /** End of the file, offsets must be negative */
+      END = 0x2
+   }
+   
+   // TODO: Include aiDefaultLogStream.
 
    // ---------------------------------------------------------------------------
-   /** Stores the memory requirements for different parts (e.g. meshes, materials,
-   *  animations) of an import.
-   *  @see Importer::GetMemoryRequirements()
-   */
+   /** Stores the memory requirements for different components (e.g. meshes, materials,
+    *  animations) of an import. All sizes are in bytes.
+    *  @see Importer::GetMemoryRequirements()
+    */
    struct aiMemoryInfo {
-      //! Storage allocated for texture data, in bytes
+      /** Storage allocated for texture data */
       uint textures;
-
-      //! Storage allocated for material data, in bytes
+      
+      /** Storage allocated for material data  */
       uint materials;
-
-      //! Storage allocated for mesh data, in bytes
+      
+      /** Storage allocated for mesh data */
       uint meshes;
-
-      //! Storage allocated for node data, in bytes
+      
+      /** Storage allocated for node data */
       uint nodes;
-
-      //! Storage allocated for animation data, in bytes
+      
+      /** Storage allocated for animation data */
       uint animations;
-
-      //! Storage allocated for camera data, in bytes
+      
+      /** Storage allocated for camera data */
       uint cameras;
-
-      //! Storage allocated for light data, in bytes
+      
+      /** Storage allocated for light data */
       uint lights;
-
-      //! Storage allocated for the import, in bytes
+      
+      /** Total storage allocated for the full import. */
       uint total;
    }
-
 }
