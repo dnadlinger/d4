@@ -194,7 +194,7 @@ protected:
       uint width = texture.width - 1;
       uint height = texture.height - 1;
       int u = rndint( texCoords.x * texture.width ) % width;
-      int v = rndint( texCoords.y * texture.width ) % width;
+      int v = rndint( texCoords.y * texture.height ) % height;
       if ( u < 0 ) {
          u += width;
       }
