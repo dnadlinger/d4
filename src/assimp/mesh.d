@@ -1,16 +1,36 @@
+/** @file aiMesh.h
+ *  @brief Declares the data structures in which the imported geometry is
+    returned by ASSIMP: aiMesh, aiFace and aiBone data structures.
+ */
 module assimp.mesh;
 
 import assimp.types;
 
 extern ( C ) {
    // ---------------------------------------------------------------------------
-   /** A single face in a mesh, referring to multiple vertices.
-   *
-   * If mNumIndices is 3, the face is a triangle,
-   * for mNumIndices > 3 it's a polygon.
-   * Point and line primitives are rarely used and are NOT supported. However,
-   * a load could pass them as degenerated triangles.
-   */
+   /** @brief A single face in a mesh, referring to multiple vertices.
+    *
+    * If mNumIndices is 3, we call the face 'triangle', for mNumIndices > 3
+    * it's called 'polygon' (hey, that's just a definition!).
+    * 
+    * aiMesh::mPrimitiveTypes can be queried to quickly examine which types of
+    * primitive are actually present in a mesh. The #aiProcess_SortByPType flag
+    * executes a special post-processing algorithm which splits meshes with
+    * *different* primitive types mixed up (e.g. lines and triangles) in several
+    * 'clean' submeshes. Furthermore there is a configuration option (
+    * #AI_CONFIG_PP_SBP_REMOVE) to force #aiProcess_SortByPType to remove
+    * specific kinds of primitives from the imported scene, completely and forever.
+    * 
+    * In many cases you'll probably want to set this setting to
+    * @code
+    * aiPrimitiveType_LINE|aiPrimitiveType_POINT
+    * @endcode
+    * 
+    * Together with the #aiProcess_Triangulate flag you can then be sure that
+    * #aiFace::mNumIndices is always 3.
+    * @note Take a look at the @link data Data Structures page @endlink for
+    * more information on the layout and winding order of a face.
+    */
    struct aiFace {
       //! Number of indices defining this face. 3 for a triangle, >3 for polygon
       uint mNumIndices;
@@ -21,8 +41,8 @@ extern ( C ) {
 
 
    // ---------------------------------------------------------------------------
-   /** A single influence of a bone on a vertex.
-   */
+   /** @brief A single influence of a bone on a vertex.
+    */
    struct aiVertexWeight {
       //! Index of the vertex which is influenced by the bone.
       uint mVertexId;
@@ -34,10 +54,12 @@ extern ( C ) {
 
 
    // ---------------------------------------------------------------------------
-   /** A single bone of a mesh. A bone has a name by which it can be found
-   * in the frame hierarchy and by which it can be addressed by animations.
-   * In addition it has a number of influences on vertices.
-   */
+   /** @brief A single bone of a mesh.
+    *
+    *  A bone has a name by which it can be found in the frame hierarchy and by
+    *  which it can be addressed by animations. In addition it has a number of
+    *  influences on vertices.
+    */
    struct aiBone {
       //! The name of the bone.
       aiString mName;
@@ -52,46 +74,74 @@ extern ( C ) {
       aiMatrix4x4 mOffsetMatrix;
    }
 
+   // ---------------------------------------------------------------------------
+   /** @def AI_MAX_NUMBER_OF_COLOR_SETS
+    *  Maximum number of vertex color sets per mesh.
+    *
+    *  Normally: Diffuse, specular, ambient and emissive
+    *  However one could use the vertex color sets for any other purpose, too.
+    *
+    *  @note Some internal structures expect (and assert) this value
+    *    to be at least 4. For the moment it is absolutely safe to assume that
+    *    this will never change.
+    */
    const uint AI_MAX_NUMBER_OF_COLOR_SETS = 0x4;
+   
+   /** @def AI_MAX_NUMBER_OF_TEXTURECOORDS
+    *  Maximum number of texture coord sets (UV(W) channels) per mesh
+    *
+    *  The material system uses the AI_MATKEY_UVWSRC_XXX keys to specify
+    *  which UVW channel serves as data source for a texture.
+    *
+    *  @note Some internal structures expect (and assert) this value
+    *    to be at least 4. For the moment it is absolutely safe to assume that
+    *    this will never change.
+    */
    const uint AI_MAX_NUMBER_OF_TEXTURECOORDS = 0x4;
 
    // ---------------------------------------------------------------------------
-   /** Enumerates the types of geometric primitives supported by Assimp.
+   /** @brief Enumerates the types of geometric primitives supported by Assimp.
+   *
+   *  @see aiFace Face data structure
+   *  @see aiProcess_SortByPType Per-primitive sorting of meshes
+   *  @see aiProcess_Triangulate Automatic triangulation
+   *  @see AI_CONFIG_PP_SBP_REMOVE Removal of specific primitive types.
    */
-   enum aiPrimitiveType {
+   enum aiPrimitiveType : uint {
       /** A point primitive.
-      *
-      * This is just a single vertex in the virtual world,
-      * #aiFace contains just one index for such a primitive.
-      */
+       *
+       * This is just a single vertex in the virtual world,
+       * #aiFace contains just one index for such a primitive.
+       */
       POINT       = 0x1,
 
       /** A line primitive.
-      *
-      * This is a line defined through a start and an end position.
-      * #aiFace contains exactly two indices for such a primitive.
-      */
+       *
+       * This is a line defined through a start and an end position.
+       * #aiFace contains exactly two indices for such a primitive.
+       */
       LINE        = 0x2,
 
       /** A triangular primitive.
-      *
-      * A triangle consists of three indices.
-      */
+       *
+       * A triangle consists of three indices.
+       */
       TRIANGLE    = 0x4,
 
       /** A higher-level polygon with more than 3 edges.
-      *
-      * A triangle is a polygon, but polygon in this context means
-      * "all polygons that are not triangles". The "Triangulate"-Step
-      * is provided for your convinience, it splits all polygons in
-      * triangles (which are much easier to handle).
-      */
+       *
+       * A triangle is a polygon, but polygon in this context means
+       * "all polygons that are not triangles". The "Triangulate"-Step
+       * is provided for your convinience, it splits all polygons in
+       * triangles (which are much easier to handle).
+       */
       POLYGON     = 0x8
    }
 
+   // TODO: Integrate AI_PRIMITIVE_TYPE_FOR_N_INDICES(n)
 
    // ---------------------------------------------------------------------------
-   /** A mesh represents a geometry or model with a single material.
+   /** @brief A mesh represents a geometry or model with a single material.
    *
    * It usually consists of a number of vertices and a series of primitives/faces
    * referencing the vertices. In addition there might be a series of bones, each
@@ -103,16 +153,18 @@ extern ( C ) {
    * test for the presence of various data streams.
    *
    * A Mesh uses only a single material which is referenced by a material ID.
-   * \note The mPositions member is not optional, although a Has()-Method is
-   * provided for it. However, positions *could* be missing if the
-   * AI_SCENE_FLAGS_INCOMPLETE flag is set in aiScene::mFlags.
+   * @note The mPositions member is usually not optional. However, vertex positions
+   * *could* be missing if the AI_SCENE_FLAGS_INCOMPLETE flag is set in
+   * @code
+   * aiScene::mFlags
+   * @endcode
    */
    struct aiMesh {
       /** Bitwise combination of the members of the #aiPrimitiveType enum.
-      * This specifies which types of primitives are present in the mesh.
-      * The "SortByPrimitiveType"-Step can be used to make sure the
-      * output meshes consist of one primitive type each.
-      */
+       * This specifies which types of primitives are present in the mesh.
+       * The "SortByPrimitiveType"-Step can be used to make sure the
+       * output meshes consist of one primitive type each.
+       */
       uint mPrimitiveTypes;
 
       /** The number of vertices in this mesh.

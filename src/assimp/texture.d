@@ -21,13 +21,13 @@ extern ( C ) {
 
    // --------------------------------------------------------------------------------
    /** Helper structure to describe an embedded texture
-   * 
-   * Normally textures are contained in external files but some file formats
-   * embed them directly in the model file. There are two types of embedded
-   * textures: 1. Uncompressed textures. The color data is directly given.
-   * 2. Compressed textures stored in a file format like png or jpg. The raw
-   * file is given, the application must utilize an image decoder (e.g. DevIL)
-   * to get access to the color data.
+   *
+   * Normally textures are contained in external files but some file formats embed
+   * them directly in the model file. There are two types of embedded textures:
+   * 1. Uncompressed textures. The color data is given in an uncompressed format.
+   * 2. Compressed textures stored in a file format like png or jpg. The raw file
+   * bytes are given so the application must utilize an image decoder (e.g. DevIL) to
+   * get access to the actual color data.
    */
    struct aiTexture {
     /** Width of the texture, in pixels
@@ -51,10 +51,11 @@ extern ( C ) {
      * If mHeight != 0 this member is undefined. Otherwise it
      * is set set to '\\0\\0\\0\\0' if the loader has no additional
      * information about the texture file format used OR the
-     * file extension of the format without a trailing dot. If there 
-     * are multiple file extensions for a format, the shortest 
+     * file extension of the format without a trailing dot. If there
+     * are multiple file extensions for a format, the shortest
      * extension is chosen (JPEG maps to 'jpg', not to 'jpeg').
-     * E.g. 'dds\\0', 'pcx\\0', 'jpg'.  All characters are lower-case.
+     * E.g. 'dds\\0', 'pcx\\0', 'jpg\\0'.  All characters are lower-case.
+     * The fourth character will always be '\\0'.
      */
     char achFormatHint[4];
 

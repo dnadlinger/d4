@@ -18,7 +18,7 @@ template TextureShader() {
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return readTextureNearest( 0, variables.texCoords );
+      return readTexture!( true, true )( 0, variables.texCoords );
    }
 
    struct VertexVariables {

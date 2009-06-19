@@ -57,8 +57,9 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
       // Set the FPU to truncation rounding. We have to restore the old state
       // when leaving the function, otherwise really strange things happen
       // (most probably, the machine crashes).
-      auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
-      scope ( exit ) setIeeeRounding( oldRoundingMode );
+      // TODO: Fix rounding mode issues.
+      // auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
+      // scope ( exit ) setIeeeRounding( oldRoundingMode );
 
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
@@ -162,6 +163,18 @@ abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
    /// ditto
    void textures( Image[] textures ) {
       m_textures = textures;
+      m_textureDataPointers = [];
+      m_texWidths = [];
+      m_texHeights = [];
+      m_texXLimits = [];
+      m_texYLimits = [];
+      foreach ( i, texture; textures ) {
+         m_textureDataPointers ~= texture.colorData;
+         m_texWidths ~= texture.width;
+         m_texHeights ~= texture.height;
+         m_texXLimits ~= texture.width - 1;
+         m_texYLimits ~= texture.height - 1;
+      }
    }
 
 protected:
@@ -186,23 +199,95 @@ protected:
       return m_worldViewProjMatrix;
    }
 
-   Color readTextureNearest( uint textureIndex, Vector2 texCoords ) {
-      Image texture = m_textures[ textureIndex ];
-      assert( texture !is null );
+   Color readTexture( bool bilinearInterpolation = false, bool tile = true )
+      ( uint textureIndex, Vector2 texCoords ) {
 
-      // TODO: Import proper clamping/tiling support.
-      uint width = texture.width - 1;
-      uint height = texture.height - 1;
-      int u = rndint( texCoords.x * texture.width ) % width;
-      int v = rndint( texCoords.y * texture.width ) % width;
-      if ( u < 0 ) {
-         u += width;
-      }
-      if ( v < 0 ) {
-         v += height;
-      }
+      static if ( !bilinearInterpolation ) {
+         int u;
+         int v;
 
-      return texture.readColor( u, v );
+         static if ( tile ) {
+            // Tile.
+            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] ) % m_texWidths[ textureIndex ];
+            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] ) % m_texHeights[ textureIndex ];
+            if ( u < 0 ) {
+               u += m_texWidths[ textureIndex ];
+            }
+            if ( v < 0 ) {
+               v += m_texHeights[ textureIndex ];
+            }
+         } else {
+            // Clamp.
+            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] );
+            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] );
+            if ( u < 0 ) {
+               u = 0;
+            } else if ( u > m_texXLimits[ textureIndex ] ) {
+               u = m_texXLimits[ textureIndex ];
+            }
+            if ( v < 0 ) {
+               v = 0;
+            } else if ( v > m_texYLimits[ textureIndex ] ) {
+               v = m_texYLimits[ textureIndex ];
+            }
+         }
+
+         return m_textureDataPointers[ textureIndex ][ v * m_texWidths[ textureIndex ] + u ];
+      } else {
+         // Interpolation code shamelessly taken from DShade
+         // (http://h3.team0xf.com/proj/).
+
+         // TODO: Implement clamping support.
+         static assert ( tile, "Bilinear clamping not implemented yet!" );
+
+         // Shift the coordinates to the left to be able to perfom the subpixel
+         // calculations using integer arithmetic.
+         const shift = 8;
+         int widthSH = m_texWidths[ textureIndex ] << shift;
+         int heightSH = m_texHeights[ textureIndex ] << shift;
+
+         // Tile the texture coordinates.
+         int u = rndint( texCoords.x * widthSH ) % widthSH;
+         int v = rndint( texCoords.y * heightSH ) % heightSH;
+         if ( u < 0 ) {
+            u += widthSH;
+         }
+         if ( v < 0 ) {
+            v += heightSH;
+         }
+
+         // Remove the low extra bits and calculate the indices of the four
+         // surrounding pixels.
+         int u0 = u >> shift;
+         int v0 = v >> shift;
+         int u1 = ( u0 + 1 ) % m_texWidths[ textureIndex ];
+         int v1 = ( v0 + 1 ) % m_texHeights[ textureIndex ];
+
+         // Read the four surrounding pixels.
+         Color c00 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v0 ];
+         Color c10 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v0 ];
+         Color c01 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v1 ];
+         Color c11 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
+
+         // Use only the low, added bits to calculate the interpolation point.
+         int uoff = u & ( ( 1 << shift ) - 1 );
+         int voff = v & ( ( 1 << shift ) - 1 );
+
+         return Color(
+             (((cast(uint)c00.r * ((1 << shift) - uoff) + uoff * c10.r))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.r * ((1 << shift) - uoff) + uoff * c11.r))
+                 * voff) >> shift*2,
+             (((cast(uint)c00.g * ((1 << shift) - uoff) + uoff * c10.g))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.g * ((1 << shift) - uoff) + uoff * c11.g))
+                 * voff) >> shift*2,
+             (((cast(uint)c00.b * ((1 << shift) - uoff) + uoff * c10.b))
+                 * ((1 << shift) - voff)
+             + ((cast(uint)c01.b * ((1 << shift) - uoff) + uoff * c11.b))
+                 * voff) >> shift*2
+         );
+      }
    }
    // ----
 
@@ -334,12 +419,12 @@ private:
          }
       }
       
-      // FIXME: The substaction of 1 is a temporary workaround for off-by-one error.
+      // FIXME: The substaction of 1 is a (temporary?) workaround for off-by-one error.
       float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
       float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
       
       for( uint i = 0; i < vertexCount; ++i ) {
-         // TODO: How to use a ref instead a pointer?
+         // TODO: How to use a ref instead of a pointer?
          TransformedVertex* vertex = &vertices[ i ];
 
          // Divide the vertex coordinates by w to get the »normal« (projected) positions.
@@ -458,4 +543,9 @@ private:
    BackfaceCulling m_backfaceCulling;
 
    Image[] m_textures;
+   Color[][] m_textureDataPointers;
+   uint[] m_texWidths;
+   uint[] m_texHeights;
+   uint[] m_texXLimits;
+   uint[] m_texYLimits;
 }

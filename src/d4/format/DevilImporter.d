@@ -21,9 +21,10 @@ public:
          DerelictIL.load();
          ilInit();
 
-         // TODO: OpenGL vs. DirectX?
+         // Set the origin of the image to the lower left corner because we are
+         // using OpenGL-style texture coordinates.
          ilEnable( IL_ORIGIN_SET );
-         ilOriginFunc( IL_ORIGIN_UPPER_LEFT );
+         ilOriginFunc( IL_ORIGIN_LOWER_LEFT );
       }
    }
 

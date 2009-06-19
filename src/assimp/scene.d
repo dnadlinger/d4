@@ -21,10 +21,19 @@ extern ( C ) {
    // ---------------------------------------------------------------------------
    struct aiNode {
       /** The name of the node.
-      *
-      * The name might be empty (length of zero) but all nodes which
-      * need to be accessed afterwards by bones or anims are usually named.
-      */
+       *
+       * The name might be empty (length of zero) but all nodes which
+       * need to be accessed afterwards by bones or anims are usually named.
+       * Multiple nodes may have the same name, but nodes which are accessed
+       * by bones (see #aiBone and #aiMesh::mBones) *must* be unique.
+       *
+       * Cameras and lights are assigned to a specific node name - if there
+       * are multiple nodes with this name, they're assigned to each of them.
+       * 
+       * There are no limitations regarding the characters contained in
+       * this text. You should be able to handle stuff like whitespace, tabs,
+       * linefeeds, quotation marks, ampersands, ... .
+       */
       aiString mName;
 
       /** The transformation relative to the node's parent. */
@@ -80,13 +89,30 @@ extern ( C ) {
       * verbose format anymore. In the verbose format all vertices are unique,
       * no vertex is ever referenced by more than one face.
       */
-      AI_SCENE_FLAGS_NON_VERBOSE_FORMAT = 0x8
+      AI_SCENE_FLAGS_NON_VERBOSE_FORMAT = 0x8,
+      
+      /** @def AI_SCENE_FLAGS_TERRAIN
+       * Denotes pure height-map terrain data. Pure terrains usually consist of quads,
+       * sometimes triangles, in a regular grid. The x,y coordinates of all vertex
+       * positions refer to the x,y coordinates on the terrain height map, the z-axis
+       * stores the elevation at a specific point.
+       *
+       * TER (Terragen) and HMP (3D Game Studio) are height map formats.
+       * @note Assimp is probably not the best choice for loading *huge* terrains -
+       * fully triangulated data takes extremely much free store and should be avoided
+       * as long as possible (typically you'll do the triangulation when you actually
+       * need to render it).
+       */
+      AI_SCENE_FLAGS_TERRAIN = 0x10
    }
 
    // ---------------------------------------------------------------------------
    /** The root structure of the imported data.
    *
-   * Everything that was imported from the given file can be accessed from here.
+   *  Everything that was imported from the given file can be accessed from here.
+   *  Objects of this class are generally maintained and owned by Assimp, not
+   *  by the caller. You shouldn't want to instance it, nor should you ever try to
+   *  delete a given scene on your own.
    */
    // ---------------------------------------------------------------------------
    struct aiScene {
@@ -154,15 +180,18 @@ extern ( C ) {
 
       /** The array of embedded textures.
       *
-      * Not many file formats embedd their textures into the file.
+      * Not many file formats embed their textures into the file.
       * An example is Quake's MDL format (which is also used by
       * some GameStudio versions)
       */
       aiTexture** mTextures;
 
 
-      /** The number of light sources in the scene. Light sources
-      are fully optional, in most cases this attribute will be 0 */
+      /** The number of light sources in the scene.
+      *  
+      * Light sources are fully optional, in most cases this attribute
+      * will be 0.
+      */
       uint mNumLights;
 
       /** The array of light sources.
@@ -173,8 +202,11 @@ extern ( C ) {
       aiLight** mLights;
 
 
-      /** The number of cameras in the scene. Cameras
-      are fully optional, in most cases this attribute will be 0 */
+      /** The number of cameras in the scene.
+       *  
+       * Cameras are fully optional, in most cases this attribute
+       * will be 0.
+       */
       uint mNumCameras;
 
       /** The array of cameras.

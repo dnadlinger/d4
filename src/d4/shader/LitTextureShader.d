@@ -15,7 +15,6 @@ template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY,
       TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
       assert( tnv !is null );
 
-      // Should probably use the inverse transposed matrix instead.
       Vector3 worldNormal = worldNormalMatrix.rotateVector( tnv.normal );
 
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
@@ -31,7 +30,7 @@ template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY,
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return readTextureNearest( 0, variables.texCoords ) * variables.brightness;
+      return readTexture!( true, true )( 0, variables.texCoords ) * variables.brightness;
    }
 
    struct VertexVariables {
