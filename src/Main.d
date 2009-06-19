@@ -70,6 +70,7 @@ void main( char[][] args ) {
       delete app;
       GC.collect();
 
+      Stdout.newline;
       Stdout.format( "{} objects collected.", collectedObjects ).newline;
 
       // Print the class name if any remaining object should be collected,
@@ -79,7 +80,7 @@ void main( char[][] args ) {
    
    // Parse command line options.
    if ( args.length < 2 ) {
-      throw new Exception( "Please specify a model file at the command line" );
+      throw new Exception( "Please specify a model file at the command line." );
    }
    
    app.sceneFile = args[ 1 ];
