@@ -196,7 +196,7 @@ protected:
          xDelta1 = xStep1;
       }
 
-      float yPreStep = cast( float ) currentY - p0.y;
+      float yPreStep = ( cast( float ) currentY ) - p0.y;
       x0 += xDelta0 * yPreStep;
       x1 += xDelta1 * yPreStep;
 
@@ -206,7 +206,7 @@ protected:
       // Now draw the lower part (currentY is now the previous bottomY).
       bottomY = rndint( ceil( p2.y ) );
 
-      yPreStep = cast( float ) currentY - p1.y;
+      yPreStep = ( cast( float ) currentY ) - p1.y;
       if ( xStep1 > xStep2 ) {
          xDelta0 = xStep1;
          xDelta1 = xStep2;
