@@ -11,7 +11,7 @@ import d4.math.Vector4;
 struct Matrix4 {
    /**
     * Constructs a new identity matrix.
-    * 
+    *
     * Returns: A new identity matrix.
     */
    static Matrix4 identity() {
@@ -29,7 +29,7 @@ struct Matrix4 {
 
    /**
     * Transposes the matrix and returns the result in a new matrix.
-    * 
+    *
     * Returns: The transposed matrix.
     */
    Matrix4 transposed() {
@@ -79,9 +79,9 @@ struct Matrix4 {
    /**
     * Multiplies the matrix with another Matrix4.
     * This operation is not commutative!
-    * 
+    *
     * Params:
-    *     rhs = The right hand side matrix. 
+    *     rhs = The right hand side matrix.
     * Returns: The matrix product.
     */
    Matrix4 opMul( Matrix4 rhs ) {
@@ -159,9 +159,9 @@ struct Matrix4 {
    /**
     * Multiplies this matrix with a vector.
     * This is also known as vector transformation.
-    * 
+    *
     * Params:
-    *     rhs = The vector to transform. 
+    *     rhs = The vector to transform.
     * Returns: The transformed vector.
     */
    Vector4 opMul( Vector4 rhs ) {
@@ -175,7 +175,7 @@ struct Matrix4 {
 
    /**
     * Transforms a (three-dimensional) vector, implicitely setting w = 1.
-    * 
+    *
     * Params:
     *     rhs = The vector to transform.
     * Returns: The resulting (four-dimensional) vector.
@@ -189,11 +189,11 @@ struct Matrix4 {
          m41 * rhs.x + m42 * rhs.y + m43 * rhs.z + m44
       );
    }
-   
+
    /**
     * Transforms a vector, using only the rotational (top-left 3x3) part of the matrix.
     * The w component of the vector is not modified.
-    * 
+    *
     * Params:
     *     rhs = The vector to transform.
     * Returns: The rotated vector.
@@ -205,10 +205,10 @@ struct Matrix4 {
          m31 * rhs.x + m32 * rhs.y + m33 * rhs.z
       );
    }
-   
+
    /**
     * Computes the matrix inverse.
-    * 
+    *
     * Returns: The inversed matrix.
     */
    Matrix4 inversed() {

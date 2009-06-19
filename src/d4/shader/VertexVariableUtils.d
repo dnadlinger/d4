@@ -74,8 +74,8 @@ template colorVariable( char[] name, uint index ) {
 /**
  * Declares a color variable that does not use the alpha channel
  * (it is always set to 255).
- * 
- * Using this over colorVariable when no alpha channel is needed gives a 
+ *
+ * Using this over colorVariable when no alpha channel is needed gives a
  * significant performance boost.
  */
 template colorNoAlphaVariable( char[] name, uint index ) {

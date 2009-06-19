@@ -11,7 +11,7 @@ module assimp.texture;
 extern ( C ) {
    // --------------------------------------------------------------------------------
    /** @brief Helper structure to represent a texel in a ARGB8888 format
-   * 
+   *
    *  Used by aiTexture.
    */
    struct aiTexel {

@@ -27,9 +27,9 @@ import d4.scene.TexturedNormalVertex;
 class AssimpScene : Scene {
    /**
     * Constructs a new scene object with the contents from a scene file.
-    * 
+    *
     * Params:
-    *     fileName = The file to load (see Assimp docs for accepted file formats). 
+    *     fileName = The file to load (see Assimp docs for accepted file formats).
     *     normalType = If no normals are found in the model file, Assimp
     *        generates a set of normals. This parameter specifies whether
     *        they will be smoothed.
@@ -49,13 +49,13 @@ class AssimpScene : Scene {
          | aiProcess.FindInvalidData
          | aiProcess.ValidateDataStructure
       ;
-      
+
       if ( smoothNormals ) {
          importFlags |= aiProcess.GenSmoothNormals;
       } else {
          importFlags |= aiProcess.GenNormals;
       }
-      
+
       auto sceneFile = FilePath( standardizePath( fileName ) );
 
       aiScene* scene = aiImportFile( toStringz( sceneFile.toString() ), importFlags );
@@ -67,7 +67,7 @@ class AssimpScene : Scene {
       if ( scene.mRootNode is null ) {
          throw new Exception( "Model file contains no root node." );
       }
-      
+
       char[] scenePath = sceneFile.path();
 
       for ( uint i = 0; i < scene.mNumMaterials; ++i ) {
@@ -79,7 +79,7 @@ class AssimpScene : Scene {
       }
 
       m_rootNode = importNode( *( scene.mRootNode ) );
-      
+
       uint triangleCount = 0;
       foreach ( mesh; m_meshes ) {
          triangleCount += mesh.indices.length / 3;
@@ -110,12 +110,12 @@ class AssimpScene : Scene {
 private:
    Material importMaterial( aiMaterial material, aiScene scene, char[] modelPath ) {
       Material result = new Material();
-      
+
       // Read wireframe mode.
       int useWireframe = 0;
       aiGetMaterialInteger( &material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
       result.wireframe = ( useWireframe == 1 );
-      
+
       // Read the first diffuse texture (if any).
       aiString targetString;
       if ( aiGetMaterialTexture( &material, aiTextureType.DIFFUSE, 0, &targetString ) == aiReturn.SUCCESS ) {
@@ -123,14 +123,14 @@ private:
 
          DevilImporter imageLoader = new DevilImporter();
          Image image;
-         
+
          if ( textureFileName[ 0 ] == '*' ) {
             // The texture is embedded into the file.
             aiTexture* texture = scene.mTextures[ toInt( textureFileName[ 1 .. $ ] ) ];
-            
+
             uint width = texture.mWidth;
             uint height = texture.mHeight;
-            
+
             if ( height > 0 ) {
                // If it is uncompressed, just copy the data over to an Image.
                image = new Image( width, height, ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
@@ -162,7 +162,7 @@ private:
                }
             }
          }
-         
+
          result.diffuseTexture = image;
          result.vertexColors = false;
       } else {
@@ -170,13 +170,13 @@ private:
       }
 
       result.lighting = true;
-      
+
       return result;
    }
 
    Mesh importMesh( aiMesh mesh, bool fakeColors ) {
       Mesh result = new Mesh();
-      
+
       // If assimp's preprocessing worked correctly, the mesh should not be
       // empty and it should only contain triangles by now.
       assert( mesh.mNumFaces > 0 );
@@ -187,8 +187,8 @@ private:
 
       // The meshes store only incides for the global material buffer.
       assert( m_materials[ mesh.mMaterialIndex ] !is null );
-      result.material = m_materials[ mesh.mMaterialIndex ];      
-      
+      result.material = m_materials[ mesh.mMaterialIndex ];
+
       // Guess the right vertex type and import the vertices.
       if ( fakeColors ) {
          ++m_fakeColorMeshCount;
@@ -224,29 +224,29 @@ private:
 
       return result;
    }
-   
+
    ColoredNormalVertex[] importFakeColorVertices( aiMesh mesh ) {
       ColoredNormalVertex[] result;
-      
+
       // The fake color mechanism assigns a color from the list to each vertex.
-      // If two vertices within colorLookbackLimit have the same position, they 
+      // If two vertices within colorLookbackLimit have the same position, they
       // get the same color.
       Color[] colors = [
          Color( 255, 0, 0 ),
          Color( 0, 255, 0 ),
          Color( 0, 0, 255 ),
          Color( 255, 255, 0 ),
-         Color( 255, 0, 255 ),         
+         Color( 255, 0, 255 ),
          Color( 0, 255, 255 ),
          Color( 255, 255, 255 )
       ];
       ColoredNormalVertex[ 6 ] fakeColorBuffer;
-      
+
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
          ColoredNormalVertex vertex = new ColoredNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         
+
          // vertex.normal.normalize() does not work because of the indirection
          // via the getter/setter function.
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
@@ -265,18 +265,18 @@ private:
 
          result ~= vertex;
       }
-      
+
       return result;
    }
-   
+
    ColoredNormalVertex[] importColoredVertices( aiMesh mesh ) {
       ColoredNormalVertex[] result;
-      
+
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
          ColoredNormalVertex vertex = new ColoredNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         
+
          // vertex.normal.normalize() does not work because of the indirection
          // via the getter/setter function.
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
@@ -285,18 +285,18 @@ private:
 
          result ~= vertex;
       }
-      
+
       return result;
    }
-   
+
    ColoredNormalVertex[] importVerticesWithFixedColor( aiMesh mesh, Color color ) {
       ColoredNormalVertex[] result;
-      
+
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
          ColoredNormalVertex vertex = new ColoredNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         
+
          // vertex.normal.normalize() does not work because of the indirection
          // via the getter/setter function.
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
@@ -305,10 +305,10 @@ private:
 
          result ~= vertex;
       }
-      
+
       return result;
    }
-   
+
    TexturedNormalVertex[] importTexturedVertices( aiMesh mesh ) {
       TexturedNormalVertex[] result;
 
@@ -316,7 +316,7 @@ private:
          TexturedNormalVertex vertex = new TexturedNormalVertex();
 
          vertex.position = importVector3( mesh.mVertices[ i ] );
-         
+
          // vertex.normal.normalize() does not work because of the indirection
          // via the getter/setter function.
          vertex.normal = importVector3( mesh.mNormals[ i ] ).normalized();
@@ -324,8 +324,8 @@ private:
          vertex.texCoords = importTexCoords( mesh.mTextureCoords[ 0 ][ i ] );
 
          result ~= vertex;
-      }      
-      
+      }
+
       return result;
    }
 
@@ -373,11 +373,11 @@ private:
 
       return r;
    }
-   
+
    Vector3 importVector3( aiVector3D v ) {
       return Vector3( v.x, v.y, v.z );
    }
-   
+
    Color importColor( aiColor4D c ) {
       return Color(
          cast( ubyte )( c.r * 255f ),
@@ -386,11 +386,11 @@ private:
          cast( ubyte )( c.a * 255f )
       );
    }
-   
+
    Vector2 importTexCoords( aiVector3D c ) {
       return Vector2( c.x, c.y );
    }
-   
+
    char[] importString( aiString* s ) {
       return s.data[ 0 .. s.length ];
    }

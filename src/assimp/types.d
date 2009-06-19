@@ -3,7 +3,7 @@ module assimp.types;
 extern ( C ) {
    /** Maximum dimension for strings, ASSIMP strings are zero terminated. */
    const size_t MAXLEN = 1024;
-   
+
    /** Our own C boolean type */
    enum aiBool : int {
       FALSE = 0,
@@ -23,7 +23,7 @@ extern ( C ) {
    align ( 1 ):
       float x, y, z;
    }
-   
+
    // ---------------------------------------------------------------------------
    /** Represents a quaternion in a 4D vector. */
    struct aiQuaternion {
@@ -126,7 +126,7 @@ extern ( C ) {
        */
       OUTOFMEMORY = -0x3
    }
-   
+
    // ---------------------------------------------------------------------------
    /** Seek origins (for the virtual file system API).
     *  Much cooler than using SEEK_SET, SEEK_CUR or SEEK_END.
@@ -141,7 +141,7 @@ extern ( C ) {
     /** End of the file, offsets must be negative */
       END = 0x2
    }
-   
+
    // TODO: Include aiDefaultLogStream.
 
    // ---------------------------------------------------------------------------
@@ -152,25 +152,25 @@ extern ( C ) {
    struct aiMemoryInfo {
       /** Storage allocated for texture data */
       uint textures;
-      
+
       /** Storage allocated for material data  */
       uint materials;
-      
+
       /** Storage allocated for mesh data */
       uint meshes;
-      
+
       /** Storage allocated for node data */
       uint nodes;
-      
+
       /** Storage allocated for animation data */
       uint animations;
-      
+
       /** Storage allocated for camera data */
       uint cameras;
-      
+
       /** Storage allocated for light data */
       uint lights;
-      
+
       /** Total storage allocated for the full import. */
       uint total;
    }

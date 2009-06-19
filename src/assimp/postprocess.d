@@ -24,7 +24,7 @@ extern ( C ) {
        * want to let the default value. Thanks.
        */
       CalcTangentSpace = 0x1,
-      
+
       /** Identifies and joins identical vertex data sets within all
        *  imported meshes.
        *
@@ -36,7 +36,7 @@ extern ( C ) {
        * more than one face and <b>no index buffer is required</b> for rendering.
        */
       JoinIdenticalVertices = 0x2,
-      
+
       /** Converts all the imported data to a left-handed coordinate space.
        *
        * By default the data is returned in a right-handed coordinate space which
@@ -51,7 +51,7 @@ extern ( C ) {
        * applications.
        */
       MakeLeftHanded = 0x4,
-      
+
       /** Triangulates all faces of all meshes.
        *
        * By default the imported mesh data might contain faces with more than 3
@@ -66,7 +66,7 @@ extern ( C ) {
        * </ul>
        */
       Triangulate = 0x8,
-      
+
       /** Removes some parts of the data structure (animations, materials,
        *  light sources, cameras, textures, vertex components).
        *
@@ -91,7 +91,7 @@ extern ( C ) {
        * thus opening more room for internal optimzations.
        */
       RemoveComponent = 0x10,
-      
+
       /** Generates normals for all faces of all meshes.
        *
        * This is ignored if normals are already there at the time where this flag
@@ -104,7 +104,7 @@ extern ( C ) {
        * This flag may not be specified together with #aiProcess_GenSmoothNormals.
        */
       GenNormals = 0x20,
-      
+
       /** Generates smooth normals for all vertices in the mesh.
        *
        * This is ignored if normals are already there at the time where this flag
@@ -120,7 +120,7 @@ extern ( C ) {
        * appearance.
        */
       GenSmoothNormals = 0x40,
-      
+
       /** Splits large meshes into smaller submeshes
        *
        * This is quite useful for realtime rendering where the number of triangles
@@ -138,17 +138,17 @@ extern ( C ) {
        * nothing to split. The use of this step is recommended for most users.
        */
       SplitLargeMeshes = 0x80,
-      
+
       /** Removes the node graph and pre-transforms all vertices with
        * the local transformation matrices of their nodes.
-       * 
+       *
        * The output scene does still contain nodes, however, there is only
        * a root node with children, each one referencing only one mesh,
        * each mesh referencing one material. For rendering, you can
        * simply render all meshes in order, you don't need to pay
        * attention to local transformations and the node hierarchy.
        * Animations are removed during this step.
-       * 
+       *
        * This step is intended for applications that have no scenegraph.
        * The step CAN cause some problems: if e.g. a mesh of the asset
        * contains normals and another, using the same material index, does
@@ -156,7 +156,7 @@ extern ( C ) {
        * the normal list will be zeroed.
        */
       PreTransformVertices = 0x100,
-      
+
       /** Limits the number of bones simultaneously affecting a single vertex
        *  to a maximum value.
        *
@@ -171,7 +171,7 @@ extern ( C ) {
        * step might be of interest for you.
        */
       LimitBoneWeights = 0x200,
-      
+
       /** Validates the imported scene data structure
        * This makes sure that all indices are valid, all animations and
        * bones are linked correctly, all material references are correct .. etc.
@@ -198,7 +198,7 @@ extern ( C ) {
        * compulsory, but recommended.
        */
       ValidateDataStructure = 0x400,
-      
+
       /** Reorders triangles for better vertex cache locality.
        *
        * The step tries to improve the ACMR (average post-transform vertex cache
@@ -212,7 +212,7 @@ extern ( C ) {
        * setting can be used to fine-tune the cache optimization.
        */
       ImproveCacheLocality = 0x800,
-      
+
       /** <hr>Searches for redundant/unreferenced materials and removes them.
        *
        * This is especially useful in combination with the
@@ -232,7 +232,7 @@ extern ( C ) {
        * <tt>#AI_CONFIG_PP_RRM_EXCLUDE_LIST</tt> setting.
        */
       RemoveRedundantMaterials = 0x1000,
-      
+
       /** This step tries to determine which meshes have normal vectors
        * that are facing inwards. The algorithm is simple but effective:
        * the bounding box of all vertices + their normals is compared against
@@ -243,7 +243,7 @@ extern ( C ) {
        * to enable this step, although the result is not always correct.
        */
       FixInfacingNormals = 0x2000,
-      
+
       /** This step splits meshes with more than one primitive type in
        *  homogeneous submeshes.
        *
@@ -256,7 +256,7 @@ extern ( C ) {
        *  lines and points, which are rarely used, from the import.
        */
       SortByPType = 0x8000,
-      
+
       /** This step searches all meshes for degenerated primitives and
        *  converts them to proper lines or points.
        *
@@ -293,7 +293,7 @@ extern ( C ) {
        * format specification and write them as degenerated triangle instead.
        */
       FindDegenerates = 0x10000,
-      
+
       /** <hr>This step searches all meshes for invalid data, such as zeroed
        *  normal vectors or invalid UV coords and removes them.
        *
@@ -303,7 +303,7 @@ extern ( C ) {
        * The step will also remove meshes that are infinitely small.
        */
       FindInvalidData = 0x20000,
-      
+
       /** This step converts non-UV mappings (such as spherical or
        *  cylindrical apping) to proper texture coordinate channels.
        *
@@ -319,7 +319,7 @@ extern ( C ) {
        * properly.
        */
       GenUVCoords = 0x40000,
-      
+
       /** This step applies per-texture UV transformations and bakes
        *  them to stand-alone vtexture coordinate channelss.
        *
@@ -335,7 +335,7 @@ extern ( C ) {
        * (homogenous) transformation matrix.
        */
       TransformUVCoords = 0x80000,
-      
+
       /** This step searches for duplicate meshes and replaces duplicates
        *  with references to the first mesh.
        *
@@ -349,7 +349,7 @@ extern ( C ) {
        *  planned for future versions.
        */
       FindInstances = 0x100000,
-      
+
       /** A postprocessing step to reduce the number of meshes.
        *
        *  In fact, it will reduce the number of drawcalls.
@@ -359,7 +359,7 @@ extern ( C ) {
        *  compatible with both #aiProcess_SplitLargeMeshes and #aiProcess_SortByPType.
       */
       OptimizeMeshes  = 0x200000,
-      
+
       /** A postprocessing step to optimize the scene hierarchy.
        *
        *  Nodes with no animations, bones, lights or cameras assigned are
@@ -386,10 +386,10 @@ extern ( C ) {
        *  usually fixes them all and makes them renderable.
        */
       OptimizeGraph  = 0x400000,
-      
+
       /** This step flips all UV coordinates along the y-axis and adjusts
        * material settings and bitangents accordingly.
-       * 
+       *
        * Output UV coordinate system:
        * @code
        * 0y|0y ---------- 1x|0y
@@ -405,7 +405,7 @@ extern ( C ) {
        * applications.
       */
       FlipUVs = 0x800000,
-      
+
       /** This step adjusts the output face winding order to be cw.
        *
        * The default face winding order is counter clockwise.
@@ -419,7 +419,7 @@ extern ( C ) {
       */
       FlipWindingOrder  = 0x1000000
    }
-   
+
    // Abbrevation for convenience.
    alias aiPostProcessSteps aiProcess;
 
@@ -435,7 +435,7 @@ extern ( C ) {
     */
    const aiPostProcessSteps AI_PROCESS_CONVERT_TO_LEFT_HANDED =
       aiProcess.MakeLeftHanded |
-      aiProcess.FlipUVs | 
+      aiProcess.FlipUVs |
       aiProcess.FlipWindingOrder;
 
 

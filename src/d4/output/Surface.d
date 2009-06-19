@@ -8,7 +8,7 @@ import d4.math.Color;
 abstract class Surface {
    /**
     * Locks the surface.
-    * 
+    *
     * The surface has to be locked in order to alter it. If it is already
     * locked, an exception is thrown.
     */
@@ -27,24 +27,24 @@ abstract class Surface {
    void unlock() {
       assert( m_locked );
       m_locked = false;
-   }   
-   
+   }
+
    /**
     * The width (in pixels) of the surface.
     * Returns: The width.
     */
    abstract uint width();
-   
+
    /**
     * The height (in pixels) of the surface.
     * Returns: The height.
     */
    abstract uint height();
-   
+
    /**
     * Returns a pointer to the pixel data through which it can be directly
     * modified.
-    * 
+    *
     * Use this only where performance is critical, because you loose all safety checks.
     * Returns: A pointer to the pixel data.
     */
@@ -62,7 +62,7 @@ abstract class Surface {
       assert( x < width(), "The x-coordinate must not exceed surface size." );
       assert( 0 <= y, "The y-coordinate must not be negative." );
       assert( y < height(), "The y-coordinate must not exceed surface size." );
-      
+
       return pixels()[ y * width() + x ];
    }
 
@@ -79,7 +79,7 @@ abstract class Surface {
       assert( x < width(), "The x-coordinate must not exceed surface size." );
       assert( 0 <= y, "The y-coordinate must not be negative." );
       assert( y < height(), "The y-coordinate must not exceed surface size." );
-      
+
       pixels()[ y * width() + x ] = color;
    }
 
@@ -90,7 +90,7 @@ abstract class Surface {
     */
    void clear( Color clearColor ) {
       assert( m_locked );
-      
+
       Color* currentPixel = pixels();
       uint pixelCount = width() * height();
       while ( pixelCount-- ) {
@@ -98,7 +98,7 @@ abstract class Surface {
          ++currentPixel;
       }
    }
-   
+
 protected:
    bool m_locked;
 }

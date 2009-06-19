@@ -24,11 +24,11 @@ struct Quaternion {
       result.z = newZ;
       return result;
    }
-   
+
    /**
     * Constructs a new quaternion from the scalar and the vector part.
     * Params:
-    *     scalar = The scalar part of the quaternion (w). 
+    *     scalar = The scalar part of the quaternion (w).
     *     vector = The vector part of the quaternion (x, y, z).
     * Returns: The new quaternion.
     */
@@ -44,9 +44,9 @@ struct Quaternion {
    /**
     * Multiplies this quaternion with another quaternion.
     * Note: This operation is not commutative!
-    * 
+    *
     * Params:
-    *     rhs = The right hand side quaternion. 
+    *     rhs = The right hand side quaternion.
     * Returns: A new quaternion containing the product.
     */
    Quaternion opMul( Quaternion rhs ) {
@@ -64,21 +64,21 @@ struct Quaternion {
    /**
     * Multiplies this quaternion with another quaternion and saves the result
     * to this object.
-    * 
+    *
     * Params:
     *     rhs = The right hand side quaternion.
     */
    void opMulAssign( Quaternion rhs ) {
       (*this) = (*this) * rhs;
    }
-   
+
    /**
     * Multiplies this quaternion with another quaternion and saves the result
     * to this object.
-    * 
+    *
     * This is basically the same as the *= operator, but the two quaternions are
     * swapped. This allows for easy and concise concatenation of rotations.
-    *  
+    *
     * Params:
     *     lhs = The left hand side quaternion.
     */

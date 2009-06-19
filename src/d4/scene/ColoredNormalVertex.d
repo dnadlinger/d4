@@ -14,7 +14,7 @@ public:
    Vector3 normal() {
       return m_normal;
    }
-   
+
    /// ditto
    void normal( Vector3 normal ) {
       m_normal = normal;

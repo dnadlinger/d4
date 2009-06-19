@@ -20,7 +20,7 @@ import d4.shader.VertexVariableUtils;
 /**
  * Provides common basic functionality for most kinds of rasterizers.
  * This includes: shader support, matrix caching, clipping, backface culling, ...
- * 
+ *
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
  * every thing else is handled by this class.
  */
@@ -36,23 +36,23 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       m_projMatrix = Matrix4.identity;
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
-      
+
       m_backfaceCulling = BackfaceCulling.CULL_CW;
    }
-   
+
    /**
     * Renders a set of indexed triangles using the stored transformations.
-    * 
+    *
     * The results are written to the Frame-/Z-Buffer specified by
     * <code>setRenderTarget</code>.
-    * 
+    *
     * Params:
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
    void renderTriangleList( Vertex[] vertices, uint[] indices ) {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
-      
+
       // Set the FPU to truncation rounding. We have to restore the old state
       // when leaving the function, otherwise really strange things happen
       // (most probably, the machine crashes).
@@ -64,29 +64,29 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       // and to compute any additional per-vertex data.
       TransformedVertex[] transformed;
       allocate( transformed, vertices.length );
-      
+
       foreach ( i, vertex; vertices ) {
          TransformedVertex current;
-         
+
          vertexShader( vertex, current.pos, current.vars );
          // Note: The positions are still not divided by w (»homogenzied«).
 
          transformed[ i ] = current;
       }
-      
+
       for ( uint i = 0; i < indices.length; i += 3 ) {
          renderTriangle( transformed[ indices[ i ] ], transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }
 
       free( transformed );
    }
-   
+
    /**
     * Sets the render target to use, which is a framebuffer and its z buffer
     * companion.
-    * 
+    *
     * Params:
-    *     colorBuffer = The framebuffer to use. 
+    *     colorBuffer = The framebuffer to use.
     *     zBuffer = The z buffer to use.
     */
    void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
@@ -96,8 +96,8 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       m_colorBuffer = colorBuffer;
       m_zBuffer = zBuffer;
    }
-   
-   
+
+
    /**
     * The world matrix to use.
     */
@@ -126,14 +126,14 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
    }
-   
+
    /**
     * The projection matrix to use.
-    */   
+    */
    Matrix4 projectionMatrix() {
       return m_projMatrix;
    }
-   
+
    /// ditto
    void projectionMatrix( Matrix4 projectionMatrix ) {
       m_projMatrix = projectionMatrix;
@@ -146,7 +146,7 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
    BackfaceCulling backfaceCulling() {
       return m_backfaceCulling;
    }
-   
+
    /// ditto
    void backfaceCulling( BackfaceCulling cullingMode ) {
       m_backfaceCulling = cullingMode;
@@ -167,7 +167,7 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       m_shiftedHeights = [];
       m_shiftedXLimits = [];
       m_shiftedYLimits = [];
-      
+
       foreach ( i, texture; textures ) {
          m_textureDataPointers ~= texture.colorData;
          m_texWidths ~= texture.width;
@@ -183,14 +183,14 @@ protected:
    /**
     * Imports the shader template passed to the class template into the class
     * scope.
-    * 
+    *
     * The shader has to provide:
     *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
     *  - Color pixelShader( VertexVariables variables );
     *  - struct VertexVariables presenting an array of float values[].
     */
    mixin Shader!( ShaderParams );
-   
+
    // ----
    // Shader interface
    Matrix4 worldNormalMatrix() {
@@ -203,12 +203,12 @@ protected:
 
    Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
-      
+
       // Parts of the interpolation code shamelessly taken from DShade
       // (http://h3.team0xf.com/proj/).
       int u;
       int v;
-      
+
       static if ( tile ) {
          // Tile.
          u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) % m_shiftedWidths[ textureIndex ];
@@ -234,7 +234,7 @@ protected:
             v = m_shiftedYLimits[ textureIndex ];
          }
       }
-      
+
       // Remove the low extra bits.
       int u0 = u >> TEX_COORD_SHIFT;
       int v0 = v >> TEX_COORD_SHIFT;
@@ -277,7 +277,7 @@ protected:
    VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
-   
+
    VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
@@ -287,7 +287,7 @@ protected:
          result.values.length ) );
       return result;
    }
-   
+
    VertexVariables add( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
@@ -297,7 +297,7 @@ protected:
          result.values.length ) );
       return result;
    }
-   
+
    VertexVariables substract( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
@@ -318,16 +318,16 @@ protected:
 
    /**
     * Rasters the specified triangle to the screen.
-    * 
+    *
     * The values of the per-vertex data at the pixel position are interpolated and
     * feeded into the pixel shader to compute the color value.
-    * 
+    *
     * Params:
     *   positions = The vertex positions in screen coordinates.
     *   variables = The per-vertex variables.
     */
    abstract void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables );
-   
+
    /**
     * The color buffer to write the output to.
     * It is set by setRenderTarget.
@@ -338,7 +338,7 @@ protected:
     * It is set by <code>setRenderTarget</code>.
     */
    ZBuffer m_zBuffer;
-   
+
 private:
    /**
     * Recalculates the cached world-view combo matrix.
@@ -353,7 +353,7 @@ private:
    void updateWorldViewProjMatrix() {
       m_worldViewProjMatrix = m_projMatrix * m_worldViewMatrix;
    }
-   
+
    /**
     * View frustrum (clipping) planes for homogeneous clipping.
     */
@@ -381,13 +381,13 @@ private:
       // TODO: Allocate as class member?
       TransformedVertex[ CLIPPING_BUFFER_SIZE ] vertices;
       TransformedVertex[ CLIPPING_BUFFER_SIZE ] clippingBuffer;
-      
+
       vertices[ 0 ] = vertex0;
       vertices[ 1 ] = vertex1;
       vertices[ 2 ] = vertex2;
 
       uint vertexCount = 3;
-      
+
       foreach ( i, plane; CLIPPING_PLANES ) {
          if ( i & 1 ) {
             // Even pass (first pass -> i=0).
@@ -401,11 +401,11 @@ private:
             return;
          }
       }
-      
+
       // FIXME: The substaction of 1 is a (temporary?) workaround for off-by-one error.
       float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
       float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
-      
+
       for( uint i = 0; i < vertexCount; ++i ) {
          // TODO: How to use a ref instead of a pointer?
          TransformedVertex* vertex = &vertices[ i ];
@@ -415,7 +415,7 @@ private:
          vertex.pos.x *= invW;
          vertex.pos.y *= invW;
          vertex.pos.z *= invW;
-         
+
          static if ( PrepareForPerspectiveCorrection ) {
             // Additionally, divide all vertex variables by w so that we can linearely
             // interpolate between them in screen space. Save invW to the w coordinate
@@ -423,44 +423,44 @@ private:
             vertex.vars = scale( vertex.vars, invW );
             vertex.pos.w = invW;
          }
-         
+
          // Transform the position into viewport coordinates. We have to invert the
-         // y-coordinate because the y-axis is pointing in the other direction in 
+         // y-coordinate because the y-axis is pointing in the other direction in
          // the viewport coordinate system.
          vertex.pos.x = ( vertex.pos.x + 1f ) * halfViewportWidth;
          vertex.pos.y = ( 1f - vertex.pos.y ) * halfViewportHeight;
       }
-      
+
       // As we already have screen coordinates, looking at the z component
       // of the cross product of two triangle sides is enough. If it is positive,
-      // the triangle normal is pointing away from the camera (screen) which 
+      // the triangle normal is pointing away from the camera (screen) which
       // means that the triangle can be culled.
       // TODO: Better position for this.
       if ( m_backfaceCulling != BackfaceCulling.NONE ) {
          Vector4 p0 = vertices[ 0 ].pos;
          Vector4 p1 = vertices[ 1 ].pos;
          Vector4 p2 = vertices[ 2 ].pos;
-         
+
          float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
          if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ < 0 ) ) {
             return;
          }
-         
+
          if ( ( m_backfaceCulling == BackfaceCulling.CULL_CW ) && ( crossZ > 0 ) ) {
             return;
          }
       }
-      
+
       uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
          drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
             [ vertices[ 0 ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
       }
    }
-   
+
    /**
     * Clips a polygon against a plane using homogeneous clipping.
-    * 
+    *
     * Params:
     *     sourceBuffer = The buffer to read the source vertices from.
     *     targetBuffer = The buffer to write the clipped vertices to.
@@ -475,33 +475,33 @@ private:
       // TODO: Why is this necessary?
       alias d4.math.Vector4.lerp lerpVector;
       alias lerp lerpVars;
-      
+
       TransformedVertex lerpVertex( TransformedVertex first, TransformedVertex second, float position ) {
          TransformedVertex result;
          result.pos = lerpVector( first.pos, second.pos, position );
          result.vars = lerpVars( first.vars, second.vars, position );
          return result;
       }
-      
+
       uint newCount = 0;
-      
+
       for ( uint i = 0, j = 1; i < vertexCount; ++i, ++j ) {
          if ( j == vertexCount ) {
             // "Wrap" over the end to clip the last->first edge.
             j = 0;
          }
-         
+
          // Distances of the current and the next vertex to the clipping plane.
          float currDist = plane.classifyHomogenous( sourceBuffer[ i ].pos );
          float nextDist = plane.classifyHomogenous( sourceBuffer[ j ].pos );
-         
+
          if ( currDist >= 0.f ) {
             // The current vertex is »inside«, append it to the result.
             assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
             targetBuffer[ newCount++ ] = sourceBuffer[ i ];
-            
+
             if ( nextDist < 0.f ) {
-               // The edge to the next vertex is crossing the plane, interpolate the 
+               // The edge to the next vertex is crossing the plane, interpolate the
                // vertex which is exactly on the plane and append it to the result.
                assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
                targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
@@ -516,27 +516,27 @@ private:
       }
 
       return newCount;
-   }   
-   
+   }
+
    Matrix4 m_worldMatrix;
    Matrix4 m_worldNormalMatrix;
    Matrix4 m_viewMatrix;
    Matrix4 m_projMatrix;
    Matrix4 m_worldViewMatrix;
    Matrix4 m_worldViewProjMatrix;
-   
+
    BackfaceCulling m_backfaceCulling;
 
    Image[] m_textures;
    Color[][] m_textureDataPointers;
-   
+
    // Shift the coordinates to the left to be able to perfom the subpixel
    // calculations using integer arithmetic.
    const TEX_COORD_SHIFT = 8;
    uint[] m_shiftedWidths;
-   uint[] m_shiftedHeights;   
+   uint[] m_shiftedHeights;
    uint[] m_shiftedXLimits;
    uint[] m_shiftedYLimits;
    uint[] m_texWidths;
-   uint[] m_texHeights;   
+   uint[] m_texHeights;
 }

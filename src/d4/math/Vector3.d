@@ -8,7 +8,7 @@ import tango.math.Math : sin, cos, acos, sqrt;
 struct Vector3 {
    /**
     * Constructs a new vector from the given components.
-    * 
+    *
     * Params:
     *     newX = The x coordinate of the new vector.
     *     newY = The y coordinate of the new vector.
@@ -25,7 +25,7 @@ struct Vector3 {
 
    /**
     * Negates the vector (negales all compontents).
-    * 
+    *
     * Returns: The negated vector.
     */
    Vector3 opNeg() {
@@ -34,7 +34,7 @@ struct Vector3 {
 
    /**
     * Adds another vector to this vector and returns the sum in a new object.
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     * Returns: The vector sum.
@@ -46,10 +46,10 @@ struct Vector3 {
          z + rhs.z
       );
    }
-   
+
    /**
     * Adds another vector to this vector and saves the sum to this object.
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     */
@@ -58,11 +58,11 @@ struct Vector3 {
       y += rhs.y;
       z += rhs.z;
    }
-   
+
    /**
     * Substracts another vector from this vector and returns the difference
     * in a new object.
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     * Returns: The vector sum.
@@ -78,7 +78,7 @@ struct Vector3 {
    /**
     * Substracts another vector from this vector and saves the result
     * to this object.
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     */
@@ -91,9 +91,9 @@ struct Vector3 {
    /**
     * Scales the vector (all three components) and returns the result as
     * a new vector.
-    *   
+    *
     * Params:
-    *     factor = The scaling factor. 
+    *     factor = The scaling factor.
     * Returns: The scaled vector.
     */
    Vector3 opMul( float factor ) {
@@ -103,10 +103,10 @@ struct Vector3 {
          z * factor
       );
    }
-   
+
    /**
     * Scales the vector (all four components) and saves the result to this object.
-    * 
+    *
     * Params:
     *     factor = The scaling factor.
     */
@@ -118,9 +118,9 @@ struct Vector3 {
 
    /**
     * Computes the dot product of this and another vector.
-    * 
+    *
     * Params:
-    *     rhs = The right hand side vector. 
+    *     rhs = The right hand side vector.
     * Returns: The dot product.
     */
    float dot( Vector3 rhs ) {
@@ -130,7 +130,7 @@ struct Vector3 {
    /**
     * Computes the cross (or vector) product of this and another vector:
     * Remember: The cross product is not commutative!
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     * Returns: The result vector.
@@ -160,7 +160,7 @@ struct Vector3 {
    /**
     * Normalizes the vector (it points in the same direction, but has
     * the length 1) and returns the result as a new vector.
-    * 
+    *
     * Returns: The normalized vector.
     */
    Vector3 normalized() {
@@ -176,9 +176,9 @@ struct Vector3 {
 
    /**
     * Computes the angle between this and another vector.
-    * 
+    *
     * Params:
-    *     other = The other vector. 
+    *     other = The other vector.
     * Returns: The angle between the two vectors (in radians).
     */
    float angleWith( Vector3 other ) {

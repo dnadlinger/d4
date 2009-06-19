@@ -1,6 +1,6 @@
 /**
  * Bindings for the Assimp library (http://assimp.sf.net).
- * 
+ *
  * There are still a few C headers missing, namely: aiAnim.h, aiCamera.h,
  * aiConfig.h, aiFileIO.h, aiLight.h.
  */
@@ -21,17 +21,17 @@ import tango.sys.SharedLib;
 
 /**
  * The SVN revision of Assimp the bindings were created against.
- * 
+ *
  * Because the Assimp guys seemingly update the number by hand, it is not
  * necessarily the same as the SVN revision counter (although it should be).
- * 
+ *
  * Current SVN revision: 425.
  */
 const uint ASSIMP_BINDINGS_REVISION = 423;
 
 /**
  * Loader class for dynamically loading the Assimp library.
- * 
+ *
  * The library is »reference-counted«, meaning that the library is not
  * unloaded on a call to <code>unload()</code> if there are still other
  * references to it.
@@ -40,7 +40,7 @@ struct Assimp {
 public:
    /**
     * Loads the library if it is not already loaded and increases the
-    * reference counter. 
+    * reference counter.
     *
     * The library file (<code>libassimp.so</code> on POSIX systems,
     * <code>Assimp32.dll</code> on Win32) is loaded via Tango's SharedLib
@@ -86,7 +86,7 @@ public:
          bind( aiGetVersionMajor )( "aiGetVersionMajor" );
          bind( aiGetVersionRevision )( "aiGetVersionRevision" );
          bind( aiGetCompileFlags )( "aiGetCompileFlags" );
-         
+
          Stdout( "done." ).newline;
 
          // TODO: Replace this with major/minor version check once Assimp's
@@ -121,7 +121,7 @@ private:
          binder.m_functionPointerAddress = functionPointerAddress;
          return binder;
       }
-      
+
       void opCall( char* name ) {
          *m_functionPointerAddress = m_sLibrary.getSymbol( name );
       }
@@ -136,10 +136,10 @@ private:
          return binder;
       }
    }
-   
+
    /// Current number of references to the library.
    static uint m_sRefCount;
-   
+
    /// Library handle.
    static SharedLib m_sLibrary;
 }

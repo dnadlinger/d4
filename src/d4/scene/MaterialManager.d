@@ -16,7 +16,7 @@ class MaterialManager {
 public:
    /**
     * Creates a IMaterialManager-instance for a specific renderer.
-    * 
+    *
     * Params:
     *     renderer = The target renderer.
     */
@@ -31,9 +31,9 @@ public:
 
    /**
     * Configures the target renderer to use the specified material.
-    * 
+    *
     * If the material has not been cached yet, it is added to the cache.
-    * 
+    *
     * Params:
     *     material = The material to activate.
     */
@@ -47,7 +47,7 @@ public:
    }
 
    /**
-    * The number of registered materials (to obtain statistics and for debugging). 
+    * The number of registered materials (to obtain statistics and for debugging).
     */
    uint materialCount() {
       return m_materialCount;
@@ -96,10 +96,10 @@ public:
 private:
    /**
     * Adds a material to the material cache.
-    * 
+    *
     * This is called by activateMaterial if a material has not been cached yet
     * or has to be updated.
-    * 
+    *
     * Params:
     *     material = The material to cache.
     */
@@ -109,9 +109,9 @@ private:
          m_renderer.unregisterRasterizer( m_materialRasterizers[ material ] );
          m_materialRasterizers.removeKey( material );
       }
-      
+
       IRasterizer rasterizer;
-      
+
       if ( m_forceWireframe ) {
          bool oldWireframe = material.wireframe;
          material.wireframe = true;
@@ -133,10 +133,10 @@ private:
       }
 
       m_materialRasterizers.add( material, m_renderer.registerRasterizer( rasterizer ) );
-      
+
       ++m_materialCount;
    }
-   
+
    /**
     * Clears the material rasterizer cache,
     */
@@ -147,14 +147,14 @@ private:
       m_materialRasterizers.clear();
       m_materialCount = 0;
    }
-   
+
    Renderer m_renderer;
-   
-   alias HashMap!( IMaterial, uint ) RasterizerIdMap; 
+
+   alias HashMap!( IMaterial, uint ) RasterizerIdMap;
    RasterizerIdMap m_materialRasterizers;
-   
+
    uint m_materialCount;
-   
+
    bool m_forceWireframe;
    bool m_forceFlatShading;
    bool m_skipTextures;

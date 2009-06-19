@@ -68,7 +68,7 @@ public:
       m_vertexColors = vertexColors;
    }
 
-   
+
    /**
     * Whether lighting is enable for the material.
     */
@@ -121,7 +121,7 @@ public:
             if ( m_lighting ) {
                // Simply doing the following does not work:
                // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-               // 
+               //
                // and doing this crashes gdc:
                // auto lightDirection = Vector3( 0, -1, 1 );
                // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
@@ -166,7 +166,7 @@ public:
          }
       }
    }
-   
+
    const AMBIENT_LIGHT_LEVEL = 0.1;
 
    bool m_wireframe;

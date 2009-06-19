@@ -21,26 +21,26 @@ enum BackfaceCulling {
 interface IRasterizer {
    /**
     * Renders a set of indexed triangles using the stored transformations.
-    * 
+    *
     * The results are written to the Frame-/Z-Buffer specified by
     * <code>setRenderTarget</code>.
-    * 
+    *
     * Params:
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
    void renderTriangleList( Vertex[] vertices, uint[] indices );
-   
+
    /**
     * Sets the render target to use, which is a framebuffer and its z buffer
     * companion.
-    * 
+    *
     * Params:
-    *     colorBuffer = The framebuffer to use. 
+    *     colorBuffer = The framebuffer to use.
     *     zBuffer = The z buffer to use.
     */
    void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer );
-   
+
    /**
     * The world matrix to use.
     */
@@ -52,10 +52,10 @@ interface IRasterizer {
     */
    Matrix4 viewMatrix();
    void viewMatrix( Matrix4 viewMatrix ); /// ditto
-   
+
    /**
     * The projection matrix to use.
-    */   
+    */
    Matrix4 projectionMatrix();
    void projectionMatrix( Matrix4 projectionMatrix ); /// ditto
 

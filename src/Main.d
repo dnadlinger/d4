@@ -80,22 +80,22 @@ void main( char[][] args ) {
          Runtime.collectHandler = &printClass;
       }
    }
-   
+
    // Parse command line options.
    if ( args.length < 2 ) {
       throw new Exception( "Please specify a model file at the command line." );
    }
-   
+
    app.sceneFile = args[ 1 ];
 
    if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
       app.generateSmoothNormals = true;
    }
-   
+
    if ( contains( args[ 2..$ ], "fakeColors" ) ) {
       app.fakeColors = true;
    }
-   
+
    // Start the application main loop.
    app.run();
 }
