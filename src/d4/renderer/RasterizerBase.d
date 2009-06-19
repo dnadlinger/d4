@@ -163,16 +163,19 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
    void textures( Image[] textures ) {
       m_textures = textures;
       m_textureDataPointers = [];
-      m_texWidths = [];
-      m_texHeights = [];
-      m_texXLimits = [];
-      m_texYLimits = [];
+      m_shiftedWidths = [];
+      m_shiftedHeights = [];
+      m_shiftedXLimits = [];
+      m_shiftedYLimits = [];
+      
       foreach ( i, texture; textures ) {
          m_textureDataPointers ~= texture.colorData;
          m_texWidths ~= texture.width;
          m_texHeights ~= texture.height;
-         m_texXLimits ~= texture.width - 1;
-         m_texYLimits ~= texture.height - 1;
+         m_shiftedWidths ~= texture.width << TEX_COORD_SHIFT;
+         m_shiftedHeights ~= texture.height << TEX_COORD_SHIFT;
+         m_shiftedXLimits ~= ( texture.width - 1 ) << TEX_COORD_SHIFT;
+         m_shiftedYLimits ~= ( texture.height - 1 ) << TEX_COORD_SHIFT;
       }
    }
 
@@ -200,65 +203,46 @@ protected:
 
    Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
-
-      static if ( !bilinearInterpolation ) {
-         int u;
-         int v;
-
-         static if ( tile ) {
-            // Tile.
-            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] ) % m_texWidths[ textureIndex ];
-            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] ) % m_texHeights[ textureIndex ];
-            if ( u < 0 ) {
-               u += m_texWidths[ textureIndex ];
-            }
-            if ( v < 0 ) {
-               v += m_texHeights[ textureIndex ];
-            }
-         } else {
-            // Clamp.
-            u = rndint( texCoords.x * m_texXLimits[ textureIndex ] );
-            v = rndint( texCoords.y * m_texYLimits[ textureIndex ] );
-            if ( u < 0 ) {
-               u = 0;
-            } else if ( u > m_texXLimits[ textureIndex ] ) {
-               u = m_texXLimits[ textureIndex ];
-            }
-            if ( v < 0 ) {
-               v = 0;
-            } else if ( v > m_texYLimits[ textureIndex ] ) {
-               v = m_texYLimits[ textureIndex ];
-            }
-         }
-
-         return m_textureDataPointers[ textureIndex ][ v * m_texWidths[ textureIndex ] + u ];
-      } else {
-         // Interpolation code shamelessly taken from DShade
-         // (http://h3.team0xf.com/proj/).
-
-         // TODO: Implement clamping support.
-         static assert ( tile, "Bilinear clamping not implemented yet!" );
-
-         // Shift the coordinates to the left to be able to perfom the subpixel
-         // calculations using integer arithmetic.
-         const shift = 8;
-         int widthSH = m_texWidths[ textureIndex ] << shift;
-         int heightSH = m_texHeights[ textureIndex ] << shift;
-
-         // Tile the texture coordinates.
-         int u = rndint( texCoords.x * widthSH ) % widthSH;
-         int v = rndint( texCoords.y * heightSH ) % heightSH;
+      
+      // Parts of the interpolation code shamelessly taken from DShade
+      // (http://h3.team0xf.com/proj/).
+      int u;
+      int v;
+      
+      static if ( tile ) {
+         // Tile.
+         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) % m_shiftedWidths[ textureIndex ];
+         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) % m_shiftedHeights[ textureIndex ];
          if ( u < 0 ) {
-            u += widthSH;
+            u += m_shiftedWidths[ textureIndex ];
          }
          if ( v < 0 ) {
-            v += heightSH;
+            v += m_shiftedHeights[ textureIndex ];
          }
+      } else {
+         // Clamp.
+         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] );
+         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] );
+         if ( u < 0 ) {
+            u = 0;
+         } else if ( u > m_shiftedXLimits[ textureIndex ] ) {
+            u = m_shiftedXLimits[ textureIndex ];
+         }
+         if ( v < 0 ) {
+            v = 0;
+         } else if ( v > m_shiftedYLimits[ textureIndex ] ) {
+            v = m_shiftedYLimits[ textureIndex ];
+         }
+      }
+      
+      // Remove the low extra bits.
+      int u0 = u >> TEX_COORD_SHIFT;
+      int v0 = v >> TEX_COORD_SHIFT;
 
-         // Remove the low extra bits and calculate the indices of the four
-         // surrounding pixels.
-         int u0 = u >> shift;
-         int v0 = v >> shift;
+      static if ( !bilinearInterpolation ) {
+         return m_textureDataPointers[ textureIndex ][ v0 * m_texWidths[ textureIndex ] + u0 ];
+      } else {
+         // Calculate the indices of the two neighbour pixels.
          int u1 = ( u0 + 1 ) % m_texWidths[ textureIndex ];
          int v1 = ( v0 + 1 ) % m_texHeights[ textureIndex ];
 
@@ -269,22 +253,22 @@ protected:
          Color c11 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
 
          // Use only the low, added bits to calculate the interpolation point.
-         int uoff = u & ( ( 1 << shift ) - 1 );
-         int voff = v & ( ( 1 << shift ) - 1 );
+         int uoff = u & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
+         int voff = v & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
 
          return Color(
-             (((cast(uint)c00.r * ((1 << shift) - uoff) + uoff * c10.r))
-                 * ((1 << shift) - voff)
-             + ((cast(uint)c01.r * ((1 << shift) - uoff) + uoff * c11.r))
-                 * voff) >> shift*2,
-             (((cast(uint)c00.g * ((1 << shift) - uoff) + uoff * c10.g))
-                 * ((1 << shift) - voff)
-             + ((cast(uint)c01.g * ((1 << shift) - uoff) + uoff * c11.g))
-                 * voff) >> shift*2,
-             (((cast(uint)c00.b * ((1 << shift) - uoff) + uoff * c10.b))
-                 * ((1 << shift) - voff)
-             + ((cast(uint)c01.b * ((1 << shift) - uoff) + uoff * c11.b))
-                 * voff) >> shift*2
+             (((cast(uint)c00.r * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.r))
+                 * ((1 << TEX_COORD_SHIFT) - voff)
+             + ((cast(uint)c01.r * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.r))
+                 * voff) >> TEX_COORD_SHIFT*2,
+             (((cast(uint)c00.g * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.g))
+                 * ((1 << TEX_COORD_SHIFT) - voff)
+             + ((cast(uint)c01.g * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.g))
+                 * voff) >> TEX_COORD_SHIFT*2,
+             (((cast(uint)c00.b * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.b))
+                 * ((1 << TEX_COORD_SHIFT) - voff)
+             + ((cast(uint)c01.b * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.b))
+                 * voff) >> TEX_COORD_SHIFT*2
          );
       }
    }
@@ -545,8 +529,14 @@ private:
 
    Image[] m_textures;
    Color[][] m_textureDataPointers;
+   
+   // Shift the coordinates to the left to be able to perfom the subpixel
+   // calculations using integer arithmetic.
+   const TEX_COORD_SHIFT = 8;
+   uint[] m_shiftedWidths;
+   uint[] m_shiftedHeights;   
+   uint[] m_shiftedXLimits;
+   uint[] m_shiftedYLimits;
    uint[] m_texWidths;
-   uint[] m_texHeights;
-   uint[] m_texXLimits;
-   uint[] m_texYLimits;
+   uint[] m_texHeights;   
 }
