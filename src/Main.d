@@ -70,6 +70,7 @@ void main( char[][] args ) {
       delete app;
       GC.collect();
 
+      Stdout.newline;
       Stdout.format( "{} objects collected.", collectedObjects ).newline;
 
       // Print the class name if any remaining object should be collected,
