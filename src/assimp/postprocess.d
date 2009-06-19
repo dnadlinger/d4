@@ -1,246 +1,483 @@
+/** @file aiPostProcess.h
+ *  @brief Definitions for import post processing steps
+ */
 module assimp.postprocess;
 
 extern ( C ) {
-   /** Defines the flags for all possible post processing steps. */
+   // -----------------------------------------------------------------------------------
+   /** @enum  aiPostProcessSteps
+    *  @brief Defines the flags for all possible post processing steps.
+    *
+    *  @see Importer::ReadFile
+    *  @see aiImportFile
+    *  @see aiImportFileEx
+    */
+   // -----------------------------------------------------------------------------------
    enum aiPostProcessSteps {
-      /** Calculates the tangents and bitangents for the imported meshes. Does nothing
-      * if a mesh does not have normals. You might want this post processing step to be
-      * executed if you plan to use tangent space calculations such as normal mapping
-      * applied to the meshes. There exists a configuration option,
-      * #AI_CONFIG_PP_CT_MAX_SMOOTHING_ANGLE that allows you to specify
-      * an angle maximum for the step.
-      */
-      CalcTangentSpace = 1,
-
-      /** Identifies and joins identical vertex data sets within all imported meshes.
-      * After this step is run each mesh does contain only unique vertices anymore,
-      * so a vertex is possibly used by multiple faces. You propably always want
-      * to use this post processing step.*/
-      JoinIdenticalVertices = 2,
-
-      /** Converts all the imported data to a left-handed coordinate space such as
-      * the DirectX coordinate system. By default the data is returned in a right-handed
-      * coordinate space which for example OpenGL prefers. In this space, +X points to the
-      * right, +Y points towards the viewer and and +Z points upwards. In the DirectX
-      * coordinate space +X points to the right, +Y points upwards and +Z points
-      * away from the viewer.
-      */
-      ConvertToLeftHanded = 4,
-
-      /** Triangulates all faces of all meshes. By default the imported mesh data might
-      * contain faces with more than 3 indices. For rendering a mesh you usually need
-      * all faces to be triangles. This post processing step splits up all higher faces
-      * to triangles. This step won't modify line and point primitives. If you need
-      * only triangles, do the following:<br>
-      * 1. Specify both the Triangulate and the SortByPType
-      * step. <br>
-      * 2. Ignore all point and line meshes when you process assimp's output data.
-      */
-      Triangulate = 8,
-
+      /** Calculates the tangents and bitangents for the imported meshes.
+       *
+       * Does nothing if a mesh does not have normals. You might want this post
+       * processing step to be executed if you plan to use tangent space calculations
+       * such as normal mapping  applied to the meshes. There's a config setting,
+       * <tt>#AI_CONFIG_PP_CT_MAX_SMOOTHING_ANGLE</tt>, which allows you to specify
+       * a maximum smoothing angle for the algorithm. However, usually you'll
+       * want to let the default value. Thanks.
+       */
+      CalcTangentSpace = 0x1,
+      
+      /** Identifies and joins identical vertex data sets within all
+       *  imported meshes.
+       *
+       * After this step is run each mesh does contain only unique vertices anymore,
+       * so a vertex is possibly used by multiple faces. You usually want
+       * to use this post processing step. If your application deals with
+       * indexed geometry, this step is compulsory or you'll just waste rendering
+       * time. <b>If this flag is not specified</b>, no vertices are referenced by
+       * more than one face and <b>no index buffer is required</b> for rendering.
+       */
+      JoinIdenticalVertices = 0x2,
+      
+      /** Converts all the imported data to a left-handed coordinate space.
+       *
+       * By default the data is returned in a right-handed coordinate space which
+       * for example OpenGL prefers. In this space, +X points to the right,
+       * +Z points towards the viewer and and +Y points upwards. In the DirectX
+       * coordinate space +X points to the right, +Y points upwards and +Z points
+       * away from the viewer.
+       *
+       * You'll probably want to consider this flag if you use Direct3D for
+       * rendering. The #aiProcess_ConvertToLeftHanded flag supersedes this
+       * setting and boundles all conversions typically required for D3D-based
+       * applications.
+       */
+      MakeLeftHanded = 0x4,
+      
+      /** Triangulates all faces of all meshes.
+       *
+       * By default the imported mesh data might contain faces with more than 3
+       * indices. For rendering you'll usually want all faces to be triangles.
+       * This post processing step splits up all higher faces to triangles.
+       * Line and point primitives are *not* modified!. If you want
+       * 'triangles only' with no other kinds of primitives, try the following
+       * solution:
+       * <ul>
+       * <li>Specify both #aiProcess_Triangulate and #aiProcess_SortByPType </li>
+       * </li>Ignore all point and line meshes when you process assimp's output</li>
+       * </ul>
+       */
+      Triangulate = 0x8,
+      
       /** Removes some parts of the data structure (animations, materials,
-      *  light sources, cameras, textures, vertex components).
-      *
-      *  The  components to be removed are specified in a separate
-      *  configuration option, #AI_CONFIG_PP_RVC_FLAGS. This is quite useful
-      *  if you don't need all parts of the output structure. Especially vertex
-      *  colors are rarely used today ... . Calling this step to exclude unrequired
-      *  stuff from the pipeline as early as possible results in an increased
-      *  performance and a better optimized output data structure.
-      *  This step is also useful if you want to force Assimp to recompute
-      *  normals or tangents. The corresponding steps don't recompute them if
-      *  they're already there ( loaded from the source asset). By using this
-      *  step you can make sure they are NOT there.
-      */
+       *  light sources, cameras, textures, vertex components).
+       *
+       * The  components to be removed are specified in a separate
+       * configuration option, <tt>#AI_CONFIG_PP_RVC_FLAGS</tt>. This is quite useful
+       * if you don't need all parts of the output structure. Especially vertex
+       * colors are rarely used today ... . Calling this step to remove unrequired
+       * stuff from the pipeline as early as possible results in an increased
+       * performance and a better optimized output data structure.
+       * This step is also useful if you want to force Assimp to recompute
+       * normals or tangents. The corresponding steps don't recompute them if
+       * they're already there (loaded from the source asset). By using this
+       * step you can make sure they are NOT there.
+       *
+       * This flag is a poor one, mainly because it's purpose is usually
+       * misunderstood. Consider the following case: a 3d model has been exported
+       * from a CAD app, it has per-face vertex colors. Vertex positions can't be
+       * shared, thus the #aiProcess_JoinIdenticalVertices step fails to
+       * optimize the data. Just because these nasty, little vertex colors.
+       * Most apps don't even process them, so it's all for nothing. By using
+       * this step, unneeded components are excluded as early as possible
+       * thus opening more room for internal optimzations.
+       */
       RemoveComponent = 0x10,
-
-      /** Generates normals for all faces of all meshes. The normals are shared
-      * between the three vertices of a face. This is ignored
-      * if normals are already existing. This flag may not be specified together
-      * with GenSmoothNormals
-      */
+      
+      /** Generates normals for all faces of all meshes.
+       *
+       * This is ignored if normals are already there at the time where this flag
+       * is evaluated. Model importers try to load them from the source file, so
+       * they're usually already there. Face normals are shared between all points
+       * of a single face, so a single point can have multiple normals, which in
+       * other words, enforces the library to duplicate vertices in some cases.
+       * #aiProcess_JoinIdenticalVertices is *senseless* then.
+       *
+       * This flag may not be specified together with #aiProcess_GenSmoothNormals.
+       */
       GenNormals = 0x20,
-
-      /** Generates smooth normals for all vertices in the mesh. This is ignored
-      * if normals are already existing. This flag may not be specified together
-      * with GenNormals. There exists a configuration option,
-      * #AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE that allows you to specify
-      * an angle maximum for the step.
-      */
+      
+      /** Generates smooth normals for all vertices in the mesh.
+       *
+       * This is ignored if normals are already there at the time where this flag
+       * is evaluated. Model importers try to load them from the source file, so
+       * they're usually already there.
+       *
+       * This flag may (of course) not be specified together with
+       * #aiProcess_GenNormals. There's a configuration option,
+       * <tt>#AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE</tt> which allows you to specify
+       * an angle maximum for the normal smoothing algorithm. Normals exceeding
+       * this limit are not smoothed, resulting in a a 'hard' seam between two faces.
+       * Using a decent angle here (e.g. 80°) results in very good visual
+       * appearance.
+       */
       GenSmoothNormals = 0x40,
-
-      /** Splits large meshes into submeshes
-      * This is quite useful for realtime rendering where the number of vertices
-      * is usually limited by the video driver.
-      *
-      * The split limits can be set through aiSetVertexSplitLimit() and
-      * aiSetTriangleSplitLimit(). The default values for this are defined
-      * in the internal SplitLargeMeshes.h header as AI_SLM_DEFAULT_MAX_VERTICES
-      * and AI_SLM_DEFAULT_MAX_TRIANGLES.
-      */
+      
+      /** Splits large meshes into smaller submeshes
+       *
+       * This is quite useful for realtime rendering where the number of triangles
+       * which can be maximally processed in a single draw-call is usually limited
+       * by the video driver/hardware. The maximum vertex buffer is usually limited,
+       * too. Both requirements can be met with this step: you may specify both a
+       * triangle and vertex limit for a single mesh.
+       *
+       * The split limits can (and should!) be set through the
+       * <tt>#AI_CONFIG_PP_SLM_VERTEX_LIMIT</tt> and <tt>#AI_CONFIG_PP_SLM_TRIANGLE_LIMIT</tt>
+       * settings. The default values are <tt>#AI_SLM_DEFAULT_MAX_VERTICES</tt> and
+       * <tt>#AI_SLM_DEFAULT_MAX_TRIANGLES</tt>.
+       *
+       * Note that splitting is generally a time-consuming task, but not if there's
+       * nothing to split. The use of this step is recommended for most users.
+       */
       SplitLargeMeshes = 0x80,
-
-      /** Removes the node graph and pretransforms all vertices with
-      * the local transformation matrices of their nodes. The output
-      * scene does still contain nodes, however, there is only a
-      * root node with childs, each one referencing only one mesh,
-      * each mesh referencing one material. For rendering, you can
-      * simply render all meshes in order, you don't need to pay
-      * attention to local transformations and the node hierarchy.
-      * Animations are removed during this step.
-      * This step is intended for applications that have no scenegraph.
-      * The step CAN cause some problems: if e.g. a mesh of the asset
-      * contains normals and another, using the same material index, does not,
-      * they will be brought together, but the first meshes's part of
-      * the normal list will be zeroed.
-      */
+      
+      /** Removes the node graph and pre-transforms all vertices with
+       * the local transformation matrices of their nodes.
+       * 
+       * The output scene does still contain nodes, however, there is only
+       * a root node with children, each one referencing only one mesh,
+       * each mesh referencing one material. For rendering, you can
+       * simply render all meshes in order, you don't need to pay
+       * attention to local transformations and the node hierarchy.
+       * Animations are removed during this step.
+       * 
+       * This step is intended for applications that have no scenegraph.
+       * The step CAN cause some problems: if e.g. a mesh of the asset
+       * contains normals and another, using the same material index, does
+       * not, they will be brought together, but the first meshes's part of
+       * the normal list will be zeroed.
+       */
       PreTransformVertices = 0x100,
-
+      
       /** Limits the number of bones simultaneously affecting a single vertex
-      * to a maximum value. If any vertex is affected by more than that number
-      * of bones, the least important vertex weights are removed and the remaining
-      * vertex weights are renormalized so that the weights still sum up to 1.
-      * The default bone weight limit is 4 (defined as AI_LMW_MAX_WEIGHTS in
-      * LimitBoneWeightsProcess.h), but you can use the aiSetBoneWeightLimit
-      * function to supply your own limit to the post processing step.
-      *
-      * If you intend to perform the skinning in hardware, this post processing step
-      * might be of interest for you.
-      */
+       *  to a maximum value.
+       *
+       * If any vertex is affected by more than that number of bones, the least
+       * important vertex weights are removed and the remaining vertex weights are
+       * renormalized so that the weights still sum up to 1.
+       * The default bone weight limit is 4 (defined as <tt>#AI_LMW_MAX_WEIGHTS</tt> in
+       * aiConfig.h), but you can use the <tt>#AI_CONFIG_PP_LBW_MAX_WEIGHTS</tt> setting to
+       * supply your own limit to the post processing step.
+       *
+       * If you intend to perform the skinning in hardware, this post processing
+       * step might be of interest for you.
+       */
       LimitBoneWeights = 0x200,
-
-      /** Validates the aiScene data structure before it is returned.
-      * This makes sure that all indices are valid, all animations and
-      * bones are linked correctly, all material are correct and so on ...
-      * This is primarily intended for our internal debugging stuff,
-      * however, it could be of interest for applications like editors
-      * where stability is more important than loading performance.
-      */
+      
+      /** Validates the imported scene data structure
+       * This makes sure that all indices are valid, all animations and
+       * bones are linked correctly, all material references are correct .. etc.
+       *
+       * It is recommended to capture Assimp's log output if you use this flag,
+       * so you can easily find ot what's actually wrong if a file fails the
+       * validation. The validator is quite rude and will find *all*
+       * inconsistencies in the data structure ... plugin developers are
+       * recommended to use it to debug their loaders. There are two types of
+       * validation failures:
+       * <ul>
+       * <li>Error: There's something wrong with the imported data. Further
+       *   postprocessing is not possible and the data is not usable at all.
+       *   The import fails. #Importer::GetErrorString() or #aiGetErrorString()
+       *   carry the error message around.</li>
+       * <li>Warning: There are some minor issues (e.g. 1000000 animation
+       *   keyframes with the same time), but further postprocessing and use
+       *   of the data structure is still safe. Warning details are written
+       *   to the log file, <tt>#AI_SCENE_FLAGS_VALIDATION_WARNING</tt> is set
+       *   in #aiScene::mFlags</li>
+       * </ul>
+       *
+       * This post-processing step is not time-consuming. It's use is not
+       * compulsory, but recommended.
+       */
       ValidateDataStructure = 0x400,
-
-      /** Reorders triangles for vertex cache locality and thus better performance.
-      * The step tries to improve the ACMR (average post-transform vertex cache
-      * miss ratio) for all meshes. The step runs in O(n) and is roughly
-      * basing on the algorithm described in this paper:
-      * http://www.cs.princeton.edu/gfx/pubs/Sander_2007_%3ETR/tipsy.pdf
-      */
+      
+      /** Reorders triangles for better vertex cache locality.
+       *
+       * The step tries to improve the ACMR (average post-transform vertex cache
+       * miss ratio) for all meshes. The implementation runs in O(n) and is
+       * roughly based on the 'tipsify' algorithm (see <a href="
+       * http://www.cs.princeton.edu/gfx/pubs/Sander_2007_%3ETR/tipsy.pdf">this
+       * paper</a>).
+       *
+       * If you intend to render huge models in hardware, this step might
+       * be of interest for you. The <tt>#AI_CONFIG_PP_ICL_PTCACHE_SIZE</tt>config
+       * setting can be used to fine-tune the cache optimization.
+       */
       ImproveCacheLocality = 0x800,
-
-      /** Searches for redundant materials and removes them.
-      *
-      * This is especially useful in combination with the PretransformVertices
-      * and OptimizeGraph steps. Both steps join small meshes, but they
-      * can't do that if two meshes have different materials.
-      */
+      
+      /** <hr>Searches for redundant/unreferenced materials and removes them.
+       *
+       * This is especially useful in combination with the
+       * #aiProcess_PretransformVertices and #aiProcess_OptimizeMeshes flags.
+       * Both join small meshes with equal characteristics, but they can't do
+       * their work if two meshes have different materials. Because several
+       * material settings are always lost during Assimp's import filters,
+       * (and because many exporters don't check for redundant materials), huge
+       * models often have materials which are are defined several times with
+       * exactly the same settings ..
+       *
+       * Several material settings not contributing to the final appearance of
+       * a surface are ignored in all comparisons ... the material name is
+       * one of them. So, if you're passing additional information through the
+       * content pipeline (probably using using *magic* material names), don't
+       * specify this flag. Alternatively take a look at the
+       * <tt>#AI_CONFIG_PP_RRM_EXCLUDE_LIST</tt> setting.
+       */
       RemoveRedundantMaterials = 0x1000,
-
+      
       /** This step tries to determine which meshes have normal vectors
-      * that are facing inwards. The algorithm is simple but effective:
-      * the bounding box of all vertices + their normals is compared against
-      * the volume of the bounding box of all vertices without their normals.
-      * This works well for most objects, problems might occur with planar
-      * surfaces. However, the step tries to filter such cases.
-      * The step inverts all infacing normals. Generally it is recommended
-      * to enable this step, although the result is not always correct.
-      */
+       * that are facing inwards. The algorithm is simple but effective:
+       * the bounding box of all vertices + their normals is compared against
+       * the volume of the bounding box of all vertices without their normals.
+       * This works well for most objects, problems might occur with planar
+       * surfaces. However, the step tries to filter such cases.
+       * The step inverts all in-facing normals. Generally it is recommended
+       * to enable this step, although the result is not always correct.
+       */
       FixInfacingNormals = 0x2000,
-
-      /** This step performs some optimizations on the node graph.
-      *
-      * It is incompatible to the PreTransformVertices-Step. Some configuration
-      * options exist, see aiConfig.h for more details.
-      * Generally, two actions are available:<br>
-      *   1. Remove animation nodes and data from the scene. This allows other
-      *      steps for further optimizations.<br>
-      *   2. Combine very small meshes to larger ones. Only if the meshes
-      *      are used by the same node or by nodes on the same hierarchy (with
-      *      equal local transformations). Unlike PreTransformVertices, the
-      *      OptimizeGraph-step doesn't transform vertices from one space
-      *      another (at least with the default configuration).<br>
-      *
-      *  It is recommended to have this step run with the default configuration.
-      */
-      OptimizeGraph = 0x4000,
-
+      
       /** This step splits meshes with more than one primitive type in
-      *  homogenous submeshes.
-      *
-      *  The step is executed after the triangulation step. After the step
-      *  returns, just one bit is set in aiMesh::mPrimitiveTypes. This is
-      *  especially useful for real-time rendering where point and line
-      *  primitives are often ignored or rendered separately.
-      *  You can use the AI_CONFIG_PP_SBP_REMOVE option to specify which
-      *  primitive types you need. This can be used to easily exclude
-      *  lines and points, which are rarely used, from the import.
-      */
+       *  homogeneous submeshes.
+       *
+       *  The step is executed after the triangulation step. After the step
+       *  returns, just one bit is set in aiMesh::mPrimitiveTypes. This is
+       *  especially useful for real-time rendering where point and line
+       *  primitives are often ignored or rendered separately.
+       *  You can use the <tt>#AI_CONFIG_PP_SBP_REMOVE</tt> option to specify which
+       *  primitive types you need. This can be used to easily exclude
+       *  lines and points, which are rarely used, from the import.
+       */
       SortByPType = 0x8000,
-
+      
       /** This step searches all meshes for degenerated primitives and
-      *  converts them to proper lines or points.
-      *
-      * A face is degenerated if one or more of its faces are identical.
-      */
+       *  converts them to proper lines or points.
+       *
+       * A face is 'degenerated' if one or more of its points are identical.
+       * To have the degenerated stuff not only detected and collapsed but
+       * also removed, try one of the following procedures:
+       * <br><b>1.</b> (if you support lines&points for rendering but don't
+       *    want the degenerates)</br>
+       * <ul>
+       *   <li>Specify the #aiProcess_FindDegenerates flag.
+       *   </li>
+       *   <li>Set the <tt>AI_CONFIG_PP_FD_REMOVE</tt> option to 1. This will
+       *       cause the step to remove degenerated triangles from the import
+       *       as soon as they're detected. They won't pass any further
+       *       pipeline steps.
+       *   </li>
+       * </ul>
+       * <br><b>2.</b>(if you don't support lines&points at all ...)</br>
+       * <ul>
+       *   <li>Specify the #aiProcess_FindDegenerates flag.
+       *   </li>
+       *   <li>Specify the #aiProcess_SortByPType flag. This moves line and
+       *     point primitives to separate meshes.
+       *   </li>
+       *   <li>Set the <tt>AI_CONFIG_PP_SBP_REMOVE</tt> option to
+       *       @code aiPrimitiveType_POINTS | aiPrimitiveType_LINES
+       *       @endcode to cause SortByPType to reject point
+       *       and line meshes from the scene.
+       *   </li>
+       * </ul>
+       * @note Degenerated polygons are not necessarily evil and that's why
+       * they're not removed by default. There are several file formats which
+       * don't support lines or points ... some exporters bypass the
+       * format specification and write them as degenerated triangle instead.
+       */
       FindDegenerates = 0x10000,
-
-      /** This step searches all meshes for invalid data, such as zeroed
-      *  normal vectors or invalid UV coords and removes them.
-      *
-      * This is especially useful for normals. If they are invalid, and
-      * the step recognizes this, they will be removed and can later
-      * be computed by one of the other steps.<br>
-      * The step will also remove meshes that are infinitely small.
-      */
+      
+      /** <hr>This step searches all meshes for invalid data, such as zeroed
+       *  normal vectors or invalid UV coords and removes them.
+       *
+       * This is especially useful for normals. If they are invalid, and
+       * the step recognizes this, they will be removed and can later
+       * be computed by one of the other steps.<br>
+       * The step will also remove meshes that are infinitely small.
+       */
       FindInvalidData = 0x20000,
-
+      
       /** This step converts non-UV mappings (such as spherical or
-      *  cylindrical) to proper UV mapping channels.
-      *
-      * Most applications will support UV mapping only, so you will
-      * propably want to specify this step in every case.
-      */
+       *  cylindrical apping) to proper texture coordinate channels.
+       *
+       * Most applications will support UV mapping only, so you will
+       * probably want to specify this step in every case. Note tha Assimp is not
+       * always able to match the original mapping implementation of the
+       * 3d app which produced a model perfectly. It's always better to let the
+       * father app compute the UV channels, at least 3ds max, maja, blender,
+       * lightwave, modo, ... are able to achieve this.
+       *
+       * @note If this step is not requested, you'll need to process the
+       * <tt>#AI_MATKEY_MAPPING<7tt> material property in order to display all assets
+       * properly.
+       */
       GenUVCoords = 0x40000,
-
-      /** This step pretransforms UV coordinates by the UV transformations
-      *  (such as scalings or rotations).
-      *
-      * UV transformations are specified per-texture - see the
-      * AI_MATKEY_UVTRANSFORM key for more information on this topic.
-      * This step finds all textures with transformed input UV
-      * coordinates and generates a new, transformed, UV channel for it.
-      * Most applications won't support UV transformations, so you will
-      * propably want to specify this step in every case.
+      
+      /** This step applies per-texture UV transformations and bakes
+       *  them to stand-alone vtexture coordinate channelss.
+       *
+       * UV transformations are specified per-texture - see the
+       * <tt>#AI_MATKEY_UVTRANSFORM</tt> material key for more information.
+       * This step processes all textures with
+       * transformed input UV coordinates and generates new (pretransformed) UV channel
+       * which replace the old channel. Most applications won't support UV
+       * transformations, so you will probably want to specify this step.
+       *
+       * @note UV transformations are usually implemented in realtime apps by
+       * transforming texture coordinates at vertex shader stage with a 3x3
+       * (homogenous) transformation matrix.
+       */
+      TransformUVCoords = 0x80000,
+      
+      /** This step searches for duplicate meshes and replaces duplicates
+       *  with references to the first mesh.
+       *
+       *  This step takes a while, don't use it if you have no time.
+       *  It's main purpose is to workaround the limitation that many export
+       *  file formats don't support instanced meshes, so exporters need to
+       *  duplicate meshes. This step removes the duplicates again. Please
+       *  note that Assimp does currently not support per-node material
+       *  assignment to meshes, which means that identical meshes with
+       *  differnent materials are currently *not* joined, although this is
+       *  planned for future versions.
+       */
+      FindInstances = 0x100000,
+      
+      /** A postprocessing step to reduce the number of meshes.
+       *
+       *  In fact, it will reduce the number of drawcalls.
+       *
+       *  This is a very effective optimization and is recommended to be used
+       *  together with #aiProcess_OptimizeGraph, if possible. The flag is fully
+       *  compatible with both #aiProcess_SplitLargeMeshes and #aiProcess_SortByPType.
       */
-      TransformUVCoords = 0x80000
+      OptimizeMeshes  = 0x200000,
+      
+      /** A postprocessing step to optimize the scene hierarchy.
+       *
+       *  Nodes with no animations, bones, lights or cameras assigned are
+       *  collapsed and joined.
+       *
+       *  Node names can be lost during this step. If you use special 'tag nodes'
+       *  to pass additional information through your content pipeline, use the
+       *  <tt>#AI_CONFIG_PP_OG_EXCLUDE_LIST<7tt> setting to specify a list of node
+       *  names you want to be kept. Nodes matching one of the names in this list won't
+       *  be touched or modified.
+       *
+       *  Use this flag with caution. Most simple files will be collapsed to a
+       *  single node, complex hierarchies are usually completely lost. That's not
+       *  the right choice for editor environments, but probably a very effective
+       *  optimization if you just want to get the model data, convert it to your
+       *  own format and render it as fast as possible.
+       *
+       *  This flag is designed to be used with #aiProcess_OptimizeMeshes for best
+       *  results.
+       *
+       *  @note 'crappy' scenes with thousands of extremely small meshes packed
+       *  in deeply nested nodes exist for almost all file formats.
+       *  #aiProcess_OptimizeMeshes in combination with #aiProcess_OptimizeGraph
+       *  usually fixes them all and makes them renderable.
+       */
+      OptimizeGraph  = 0x400000,
+      
+      /** This step flips all UV coordinates along the y-axis and adjusts
+       * material settings and bitangents accordingly.
+       * 
+       * Output UV coordinate system:
+       * @code
+       * 0y|0y ---------- 1x|0y
+         * |                 |
+         * |                 |
+         * |                 |
+         * 0x|1y ---------- 1x|1y
+       * @endcode
+       *
+       * You'll probably want to consider this flag if you use Direct3D for
+       * rendering. The #aiProcess_ConvertToLeftHanded flag supersedes this
+       * setting and boundles all conversions typically required for D3D-based
+       * applications.
+      */
+      FlipUVs = 0x800000,
+      
+      /** This step adjusts the output face winding order to be cw.
+       *
+       * The default face winding order is counter clockwise.
+       * Output face order:
+       * @code
+       *       x2
+       *
+       *                         x0
+       *  x1
+       * @endcode
+      */
+      FlipWindingOrder  = 0x1000000
    }
-
+   
    // Abbrevation for convenience.
    alias aiPostProcessSteps aiProcess;
 
+   // ---------------------------------------------------------------------------------------
+   /** @def aiProcess_ConvertToLeftHanded
+    *  @brief Shortcut flag for Direct3D-based applications.
+    *
+    *  Supersedes the #aiProcess_MakeLeftHanded and #aiProcess_FlipUVs and
+    *  The output data matches Direct3D's conventions: left-handed geometry, upper-left
+    *  origin for UV coordinates and finally clockwise face order, suitable for CCW culling.
+    *
+    *  @deprecated
+    */
+   const aiPostProcessSteps AI_PROCESS_CONVERT_TO_LEFT_HANDED =
+      aiProcess.MakeLeftHanded |
+      aiProcess.FlipUVs | 
+      aiProcess.FlipWindingOrder;
 
-   /** @def AI_POSTPROCESS_DEFAULT_REALTIME_FASTEST
-   *  @brief Default postprocess configuration targeted at realtime applications
-   *    which need to load models as fast as possible.
-   *
-   *  If you're using DirectX, don't forget to combine this value with
-   * the #aiProcess.ConvertToLeftHanded step.
-   */
-   const aiPostProcessSteps AI_POSTPROCESS_DEFAULT_REALTIME_FASTEST =
+
+   // ---------------------------------------------------------------------------------------
+   /** @def aiProcessPreset_TargetRealtime_Fast
+    *  @brief Default postprocess configuration optimizing the data for real-time rendering.
+    *
+    *  Applications would want to use this preset to load models on end-user PCs,
+    *  maybe for direct use in game.
+    *
+    * If you're using DirectX, don't forget to combine this value with
+    * the #aiProcess_ConvertToLeftHanded step. If you don't support UV transformations
+    * in your application apply the #aiProcess_TransformUVCoords step, too.
+    *  @note Please take the time to read the doc to the steps enabled by this preset.
+    *  Some of them offer further configurable properties, some of them might not be of
+    *  use for you so it might be better to not specify them.
+    */
+   const aiPostProcessSteps AI_PROCESS_PRESET_TARGET_REALTIME_FAST =
       aiProcess.CalcTangentSpace |
       aiProcess.GenNormals |
       aiProcess.JoinIdenticalVertices |
       aiProcess.Triangulate |
-      aiProcess.GenUVCoords;
+      aiProcess.GenUVCoords |
+      aiProcess.SortByPType;
 
-
-   /** @def AI_POSTPROCESS_DEFAULT_REALTIME
-   *   @brief Default postprocess configuration targeted at realtime applications.
-   *    Unlike AI_POSTPROCESS_DEFAULT_REALTIME_FASTEST, this configuration
-   *    performs some extra optimizations.
-   *
-   *  If you're using DirectX, don't forget to combine this value with
-   * the #aiProcess.ConvertToLeftHanded step.
-   */
-   const aiPostProcessSteps AI_POSTPROCESS_DEFAULT_REALTIME =
+    // ---------------------------------------------------------------------------------------
+    /** @def aiProcessPreset_TargetRealtime_Quality
+     *  @brief Default postprocess configuration optimizing the data for real-time rendering.
+     *
+     *  Unlike #aiProcessPreset_TargetRealtime_Fast, this configuration
+     *  performs some extra optimizations to improve rendering speed and
+     *  to minimize memory usage. It could be a good choice for a level editor
+     *  environment where import speed is not so important.
+     *
+     *  If you're using DirectX, don't forget to combine this value with
+     *  the #aiProcess_ConvertToLeftHanded step. If you don't support UV transformations
+     *  in your application apply the #aiProcess_TransformUVCoords step, too.
+     *  @note Please take the time to read the doc for the steps enabled by this preset.
+     *  Some of them offer further configurable properties, some of them might not be of
+     *  use for you so it might be better to not specify them.
+     */
+   const aiPostProcessSteps AI_PROCESS_PRESET_TARGET_REALTIME_QUALITY =
       aiProcess.CalcTangentSpace |
       aiProcess.GenSmoothNormals |
       aiProcess.JoinIdenticalVertices |
@@ -248,7 +485,30 @@ extern ( C ) {
       aiProcess.LimitBoneWeights |
       aiProcess.RemoveRedundantMaterials |
       aiProcess.SplitLargeMeshes |
-      aiProcess.OptimizeGraph |
       aiProcess.Triangulate |
-      aiProcess.GenUVCoords;
+      aiProcess.GenUVCoords |
+      aiProcess.SortByPType |
+      aiProcess.FindDegenerates |
+      aiProcess.FindInvalidData;
+
+    // ---------------------------------------------------------------------------------------
+    /** @def aiProcessPreset_TargetRealtime_MaxQuality
+     *  @brief Default postprocess configuration optimizing the data for real-time rendering.
+     *
+     *  This preset enables almost every optimization step to achieve perfectly
+     *  optimized data. It's your choice for level editor environments where import speed
+     *  doesn't care.
+     *
+     *  If you're using DirectX, don't forget to combine this value with
+     *  the #aiProcess_ConvertToLeftHanded step. If you don't support UV transformations
+     *  in your application, apply the #aiProcess_TransformUVCoords step, too.
+     *  @note Please take the time to read the doc for the steps enabled by this preset.
+     *  Some of them offer further configurable properties, some of them might not be of
+     *  use for you so it might be better to not specify them.
+     */
+   const aiPostProcessSteps AI_PROCESS_PRESET_TARGET_REALTIME_MAX_QUALITY =
+      AI_PROCESS_PRESET_TARGET_REALTIME_QUALITY |
+      aiProcess.FindInstances |
+      aiProcess.ValidateDataStructure |
+      aiProcess.OptimizeMeshes;
 }

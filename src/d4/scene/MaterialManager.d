@@ -1,5 +1,6 @@
 module d4.scene.MaterialManager;
 
+import d4.shader.LitSingleColorShader;
 import tango.io.Stdout;
 import tango.util.container.HashMap;
 import d4.renderer.IRasterizer;
@@ -7,43 +8,6 @@ import d4.renderer.SolidFlatRasterizer;
 import d4.renderer.SolidGouraudRasterizer;
 import d4.renderer.Renderer;
 import d4.scene.IMaterial;
-
-/**
- * Copy of the LitSingleColor shader to circumvert a compiler bug (same as in Renderer).
- */
-template LitSingleColorShaderCopy( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
-   import d4.scene.TexturedNormalVertex;
-
-   const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
-
-   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
-      // TODO: Allow also other vertex types with normals.
-      TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
-      assert( tnv !is null );
-
-      // Should probably use the inverse transposed matrix instead.
-      Vector3 worldNormal = worldNormalMatrix.rotateVector( tnv.normal );
-
-      float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
-
-      // ambientLevel represents the ambient light.
-      if ( lightIntensity < ambientLevel ) {
-         lightIntensity = ambientLevel;
-      }
-
-      position = worldViewProjMatrix * tnv.position;
-      variables.brightness = lightIntensity;
-   }
-
-   Color pixelShader( VertexVariables variables ) {
-      return Color( 255, 255, 255 ) * variables.brightness;
-   }
-
-   struct VertexVariables {
-      float[1] values;
-      mixin( floatVariable!( "brightness", 0 ) );
-   }
-}
 
 /**
  * Caches a rasterizer instance for each material and provides global override
@@ -62,8 +26,8 @@ public:
       m_renderer = renderer;
       m_materialCount = 0;
 
-      m_noTextureFlatRasterizer = new SolidFlatRasterizer!( LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
-      m_noTextureGouraudRasterizer = new SolidGouraudRasterizer!( LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
+      m_noTextureFlatRasterizer = new SolidFlatRasterizer!( LitSingleColorShader, 0.1, 1, -1, -1 )();
+      m_noTextureGouraudRasterizer = new SolidGouraudRasterizer!( LitSingleColorShader, 0.1, 1, -1, -1 )();
    }
 
    /**

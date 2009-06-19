@@ -19,7 +19,6 @@ template LitSingleColorShader( float ambientLevel, float lightDirX, float lightD
       TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
       assert( tnv !is null );
 
-      // Should probably use the inverse transposed matrix instead.
       Vector3 worldNormal = worldNormalMatrix.rotateVector( tnv.normal );
 
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );

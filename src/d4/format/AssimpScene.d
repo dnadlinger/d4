@@ -18,46 +18,40 @@ import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Vertex;
 import d4.scene.ColoredNormalVertex;
+import d4.scene.Scene;
 import d4.scene.TexturedNormalVertex;
-
-/**
- * The origin of the vertex normals.
- */
-enum NormalType {
-   FILE, /// Read the normals from the model file.
-   GENERATE, /// Let Assimp generate hard normals.
-   GENERATE_SMOOTH /// Let Assimp generate smooth normals.
-}
 
 /**
  * Provides functionality to load and access a scene by using the Assimp library.
  */
-class AssimpScene {
+class AssimpScene : Scene {
    /**
     * Constructs a new scene object with the contents from a scene file.
     * 
     * Params:
     *     fileName = The file to load (see Assimp docs for accepted file formats). 
-    *     normalType = The type of normals to use/generate.
+    *     normalType = If no normals are found in the model file, Assimp
+    *        generates a set of normals. This parameter specifies whether
+    *        they will be smoothed.
     *     fakeColors = If fake vertex colors should be generated.
     */
-   this( char[] fileName, NormalType normalType = NormalType.FILE, bool fakeColors = false ) {
+   this( char[] fileName, bool smoothNormals = true, bool fakeColors = false ) {
+      // Make sure that the Assimp library is loaded.
+      Assimp.load();
+
       uint importFlags =
          aiProcess.JoinIdenticalVertices
-         | aiProcess.ConvertToLeftHanded
          | aiProcess.Triangulate
-         | aiProcess.FixInfacingNormals
-         | aiProcess.ValidateDataStructure
          | aiProcess.RemoveRedundantMaterials
-         | aiProcess.ImproveCacheLocality
-//         | aiProcess.OptimizeGraph
-//         | aiProcess.GenUVCoords
+         | aiProcess.FixInfacingNormals
+         | aiProcess.FindInvalidData
+         | aiProcess.ValidateDataStructure
       ;
       
-      if ( normalType == NormalType.GENERATE ) {
-         importFlags |= aiProcess.GenNormals;
-      } else if ( normalType == NormalType.GENERATE_SMOOTH ) {
+      if ( smoothNormals ) {
          importFlags |= aiProcess.GenSmoothNormals;
+      } else {
+         importFlags |= aiProcess.GenNormals;
       }
       
       auto sceneFile = FilePath( standardizePath( fileName ) );
@@ -98,8 +92,9 @@ class AssimpScene {
          m_texturedMeshCount, m_coloredMeshCount, m_defaultColorMeshCount, m_fakeColorMeshCount ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
-      // assimp scene object anymore.
+      // Assimp scene object and the functions from the library anymore.
       aiReleaseImport( scene );
+      Assimp.unload();
    }
 
    /**
@@ -115,13 +110,13 @@ private:
       
       // Read wireframe mode.
       int useWireframe = 0;
-      aiGetMaterialIntegerArray( &material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
+      aiGetMaterialInteger( &material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
       result.wireframe = ( useWireframe == 1 );
       
-      // Read the first texture (if any).
+      // Read the first diffuse texture (if any).
       aiString targetString;
       if ( aiGetMaterialTexture( &material, aiTextureType.DIFFUSE, 0, &targetString ) == aiReturn.SUCCESS ) {
-         char[] textureFileName = importString( targetString );
+         char[] textureFileName = importString( &targetString );
 
          DevilImporter imageLoader = new DevilImporter();
          Image image;
@@ -144,7 +139,7 @@ private:
             // The texture resides in a seperate file on the hard disk.
             // Try a few different locations to be error-tolerant in the texture
             // path specifications.
-            auto textureFilePath = new FilePath( textureFileName );            
+            auto textureFilePath = new FilePath( textureFileName );
             try {
                // The texture path is probably stored relative to the model file.
                image = imageLoader.importFile( modelPath ~ textureFileName );
@@ -185,9 +180,7 @@ private:
       assert( mesh.mPrimitiveTypes == aiPrimitiveType.TRIANGLE );
 
       // The vertices have to contain normals.
-      if ( mesh.mNormals is null ) {
-         throw new Exception( "Models without vertex normals are not supported." );
-      }
+      assert( mesh.mNormals !is null );
 
       // The meshes store only incides for the global material buffer.
       assert( m_materials[ mesh.mMaterialIndex ] !is null );
@@ -199,7 +192,10 @@ private:
          result.vertices = importFakeColorVertices( mesh );
          result.material.vertexColors = true;
          result.material.diffuseTexture = null;
-      } else if ( mesh.mTextureCoords[ 0 ] !is null ) {
+      } else if ( ( mesh.mTextureCoords[ 0 ] !is null ) &&
+         ( m_materials[ mesh.mMaterialIndex ].diffuseTexture !is null ) ) {
+         // Check if there really is a texture, because some models contain
+         // unused texture coordinates.
          ++m_texturedMeshCount;
          result.vertices = importTexturedVertices( mesh );
       } else if ( mesh.mColors[ 0 ] !is null ) {
@@ -392,7 +388,7 @@ private:
       return Vector2( c.x, c.y );
    }
    
-   char[] importString( aiString s ) {
+   char[] importString( aiString* s ) {
       return s.data[ 0 .. s.length ];
    }
 
@@ -404,12 +400,4 @@ private:
    uint m_coloredMeshCount;
    uint m_fakeColorMeshCount;
    uint m_defaultColorMeshCount;
-   
-   static this() {
-      Assimp.load();
-   }
-   
-   static ~this() {
-      Assimp.unload();
-   }
 }

@@ -11,6 +11,7 @@ import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.scene.MaterialManager;
 import d4.scene.Node;
+import d4.scene.Scene;
 import d4.scene.Vertex;
 import d4.util.Key;
 import d4.util.SdlApplication;
@@ -46,22 +47,7 @@ protected:
    override void init() {
       assert( m_sceneFileName.length > 0 );
 
-      // Try to import the scene using the normals given in the file. If this fails
-      // (if there are none), generate them as specified in the params.
-      // TODO: Make AssimpScene a loader and handle this in AssimpImporter itself.
-      AssimpScene scene;
-      try {
-         scene = new AssimpScene( m_sceneFileName, NormalType.FILE, m_fakeColors );
-      } catch {
-         NormalType normals;
-         if ( m_generateSmoothNormals ) {
-            normals = NormalType.GENERATE_SMOOTH;
-         } else {
-            normals = NormalType.GENERATE;
-         }
-         scene = new AssimpScene( m_sceneFileName, normals, m_fakeColors );
-      }
-      m_rootNode = scene.rootNode;
+      m_scene = new AssimpScene( m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
 
       m_renderer = new Renderer( screen() );
       m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
@@ -92,7 +78,7 @@ protected:
       updateCamera( deltaTime );
 
       m_renderer.beginScene();
-      m_rootNode.render( m_renderer, m_materialManager );
+      m_scene.rootNode.render( m_renderer, m_materialManager );
       m_renderer.endScene();
    }
 
@@ -140,7 +126,7 @@ private:
       rotation *= yRotationMatrix( deltaTime * 0.7 );
       rotation *= xRotationMatrix( deltaTime * 1.2 );
 
-      m_rootNode.transformation = rotation * m_rootNode.transformation;
+      m_scene.rootNode.transformation = rotation * m_scene.rootNode.transformation;
    }
    
    void updateCamera( float deltaTime ) {
@@ -208,7 +194,7 @@ private:
 
    Renderer m_renderer;
    MaterialManager m_materialManager;
-   Node m_rootNode;
+   Scene m_scene;
 
    bool m_rotateWorld;
    bool m_animateBackground;

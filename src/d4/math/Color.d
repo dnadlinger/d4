@@ -58,6 +58,7 @@ struct Color {
     */
    Color opMul( float factor ) {
       Color color = void;
+      // TODO: Optimize cast?
       color.r = cast( ubyte )( r * factor );
       color.g = cast( ubyte )( g * factor );
       color.b = cast( ubyte )( b * factor );
