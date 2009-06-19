@@ -4,8 +4,7 @@ import d4.shader.LitSingleColorShader;
 import tango.io.Stdout;
 import tango.util.container.HashMap;
 import d4.renderer.IRasterizer;
-import d4.renderer.SolidFlatRasterizer;
-import d4.renderer.SolidGouraudRasterizer;
+import d4.renderer.SolidRasterizer;
 import d4.renderer.Renderer;
 import d4.scene.IMaterial;
 
@@ -26,8 +25,8 @@ public:
       m_renderer = renderer;
       m_materialCount = 0;
 
-      m_noTextureFlatRasterizer = new SolidFlatRasterizer!( LitSingleColorShader, 0.1, 1, -1, -1 )();
-      m_noTextureGouraudRasterizer = new SolidGouraudRasterizer!( LitSingleColorShader, 0.1, 1, -1, -1 )();
+      m_noTextureFlatRasterizer = new SolidRasterizer!( false, LitSingleColorShader, 0.1, 1, -1, -1 )();
+      m_noTextureGouraudRasterizer = new SolidRasterizer!( true, LitSingleColorShader, 0.1, 1, -1, -1 )();
    }
 
    /**

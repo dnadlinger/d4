@@ -9,7 +9,7 @@ import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
-import d4.renderer.SolidGouraudRasterizer;
+import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Image;
@@ -37,7 +37,7 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidGouraudRasterizer!( SingleColorShader )();
+      m_rasterizers ~= new SolidRasterizer!( false, SingleColorShader )();
       m_activeRasterizer = m_rasterizers[ 0 ];
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
