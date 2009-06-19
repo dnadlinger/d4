@@ -59,34 +59,6 @@ protected:
          VertexVariables deltaVars2 = substract( variables[ 2 ], variables[ 0 ] );
          VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
          VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
-
-         Color* colorBuffer = m_colorBuffer.pixels;
-         float* zBuffer = m_zBuffer.data;
-
-         void rasterizeScanline( uint pixelCount, uint startBufferIndex,
-            float startZ, float startW, VertexVariables startVariables ) {
-
-            Color* currentPixel = colorBuffer + startBufferIndex;
-            float* currentDepth = zBuffer + startBufferIndex;
-
-            float currentZ = startZ;
-            float currentW = startW;
-            VertexVariables currentVars = startVariables;
-
-            while ( pixelCount-- ) {
-               // Perform depth-test.
-               if ( currentZ < (*currentDepth) ) {
-                  (*currentDepth) = currentZ;
-                  (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
-               }
-
-               currentZ += dzPerDx;
-               currentW += dwPerDx;
-               currentVars = add( currentVars, dVarsPerDx );
-               ++currentPixel;
-               ++currentDepth;
-            }
-         }
       } else {
          // Reverse the w division (which was applied for perspective-correct
          // corrected interpolation) and divide the variables by three to compute
@@ -96,30 +68,42 @@ protected:
          averageVars = add( averageVars, scale( variables[ 1 ], 1f / ( 3 * positions[ 1 ].w ) ) );
          averageVars = add( averageVars, scale( variables[ 2 ], 1f / ( 3 * positions[ 2 ].w ) ) );
          Color triangleColor = pixelShader( averageVars );
+      }
 
-         Color* colorBuffer = m_colorBuffer.pixels;
-         float* zBuffer = m_zBuffer.data;
+      Color* colorBuffer = m_colorBuffer.pixels;
+      float* zBuffer = m_zBuffer.data;
 
-         void rasterizeScanline( uint pixelCount, uint startBufferIndex,
-            float startZ, float startW ) {
+      void rasterizeScanline( uint pixelCount, uint startBufferIndex,
+         float startZ, float startW, VertexVariables* startVariables ) {
 
-            Color* currentPixel = colorBuffer + startBufferIndex;
-            float* currentDepth = zBuffer + startBufferIndex;
+         Color* currentPixel = colorBuffer + startBufferIndex;
+         float* currentDepth = zBuffer + startBufferIndex;
 
-            float currentZ = startZ;
-            float currentW = startW;
+         float currentZ = startZ;
+         float currentW = startW;
 
-            while ( pixelCount-- ) {
-               // Perform depth-test.
-               if ( currentZ < (*currentDepth) ) {
-                  (*currentDepth) = currentZ;
+         static if ( Gouraud ) {
+            VertexVariables currentVars = *startVariables;
+         }
+
+         while ( pixelCount-- ) {
+            // Perform depth-test.
+            if ( currentZ < (*currentDepth) ) {
+               (*currentDepth) = currentZ;
+               static if ( Gouraud ) {
+                  (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
+               } else {
                   (*currentPixel) = triangleColor;
                }
+            }
 
-               currentZ += dzPerDx;
-               currentW += dwPerDx;
-               ++currentPixel;
-               ++currentDepth;
+            currentZ += dzPerDx;
+            currentW += dwPerDx;
+            ++currentPixel;
+            ++currentDepth;
+
+            static if ( Gouraud ) {
+               currentVars = add( currentVars, dVarsPerDx );
             }
          }
       }
@@ -164,10 +148,12 @@ protected:
       uint bottomY;
       float xDelta0;
       float xDelta1;
-      
+
       uint lineStartBufferIndex;
       uint bufferLineStride = m_colorBuffer.width;
 
+      // Code to rasterize the current triangle part. This accesses and
+      // modifies the variables defined above!
       void rasterizeCurrentPart() {
          while ( currentY < bottomY ) {
             uint intX0 = rndint( ceil( x0 ) );
@@ -184,10 +170,9 @@ protected:
                static if ( Gouraud ) {
                   VertexVariables lineStartVars = add( variables[ 0 ],
                      add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
-
-                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, &lineStartVars );
                } else {
-                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW );
+                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, null );
                }
             }
 
