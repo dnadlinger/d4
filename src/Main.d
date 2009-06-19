@@ -85,13 +85,12 @@ void main( char[][] args ) {
       Stdout( "ERROR: " )( e ).newline;
       
       // In a debug build, set off the debugger trap/signal.
-      // FIXME: Why is this not working?
-      //debug {
+      debug {
          asm {
-            // int 3 (0x33) invokes the attached debugger if any.
+            // int 3 (0xCC) invokes the attached debugger if any.
             int 3;
          }
-      //}
+      }
    } finally {
       // Count objects collected on program end.
       collectedObjects = 0;
