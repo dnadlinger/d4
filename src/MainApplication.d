@@ -47,6 +47,7 @@ protected:
    override void init() {
       assert( m_sceneFileName.length > 0 );
 
+      Stdout.newline;
       m_scene = new AssimpScene( m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
 
       m_renderer = new Renderer( screen() );

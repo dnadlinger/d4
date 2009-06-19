@@ -103,12 +103,16 @@ void main( char[][] args ) {
       delete app;
       GC.collect();
 
+      Stdout.newline;
       Stdout.format( "{} objects collected.", collectedObjects ).newline;
 
-      // Print the class name if any remaining object should be collected,
-      // because this should not happen.
-      // Runtime.collectHandler = &printClass;
-      
+      debug {
+         // Print the class name if any objects are garbage collected after
+         // this point in debug builds, which could be a sign for some unwanted
+         // references.
+         Runtime.collectHandler = &printClass;
+      }
+
       // On Windows, wait for user pressing <Enter> before exiting.
       version ( Windows ) {
          Stdout( "Press <Enter> to exit." ).newline;

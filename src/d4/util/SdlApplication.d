@@ -15,8 +15,9 @@ import d4.util.Key;
 abstract class SdlApplication : Application {
 public:
    this() {
-      Stdout( "Loading SDL library..." ).newline;
+      Stdout( "Loading SDL library... " );
       DerelictSDL.load();
+      Stdout( "done." ).newline;
 
       initVideo();
 
@@ -63,7 +64,7 @@ protected:
 
 private:
    void initVideo() {
-      Stdout( "Initializing SDL video subsystem." ).newline;
+      Stdout( "Initializing SDL video subsystem... " );
 
       // TODO: Make configurable.
       const uint screenWidth = 800;
@@ -99,10 +100,10 @@ private:
       }
 
       m_screen = new SdlSurface( surface );
+      Stdout( "done." ).newline;
    }
 
    void destroyVideo() {
-      Stdout( "Shutting down SDL video subsystem." ).newline;
       SDL_QuitSubSystem( SDL_INIT_VIDEO );
    }
 

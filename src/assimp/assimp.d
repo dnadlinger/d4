@@ -48,6 +48,7 @@ public:
     */
    static void load() {
       if ( m_sRefCount == 0 ) {
+         Stdout( "Loading Assimp library... " );
          version ( Posix ) {
             m_sLibrary = SharedLib.load( "libassimp.so" );
          }
@@ -86,6 +87,8 @@ public:
          bind( aiGetVersionRevision )( "aiGetVersionRevision" );
          bind( aiGetCompileFlags )( "aiGetCompileFlags" );
          
+         Stdout( "done." ).newline;
+
          // TODO: Replace this with major/minor version check once Assimp's
          // API stable enough.
          if ( aiGetVersionRevision() != ASSIMP_BINDINGS_REVISION ) {
