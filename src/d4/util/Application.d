@@ -6,40 +6,43 @@ import d4.util.Key;
 
 /**
  * Provides basic functionality for all kinds of 3d applications
- * (event loop, key handling, ...). 
+ * (event loop, key handling, ...).
  */
 abstract class Application {
 public:
    /**
     * Executes the application main (event) loop.
-    * 
+    *
     * This function returns when the application has been closed.
     */
    final void run() {
       m_appFinished = false;
-      
+
       init();
 
       m_totalTicksPassed = 0;
       m_fpsSamplingDuration = 0;
       m_framesInSample = 0;
-      
+
+      Stdout.newline;
+      Stdout( "Entering main loop." ).newline;
+
       // The tick count when the last frame started to measure the elapsed time.
       uint lastStartTicks = currentTicks();
-      
-      // The duration of the last frame to detect "slow" frames. Initialized
-      // with 30 in lack of a better value (there have been no previous frames).
-      uint lastDeltaTicks = 30;
+
+      // The duration of the last frame to detect "slow" frames. Initializing
+      // with a second lacking a better value (there have been no frames yet).
+      uint lastDeltaTicks = 1000;
 
       while ( !m_appFinished ) {
          // Calculate the time elapsed since the last frame start.
          uint frameStartTicks = currentTicks();
-         uint deltaTicks = ( frameStartTicks - lastStartTicks );
+         uint deltaTicks = frameStartTicks - lastStartTicks;
          lastStartTicks = frameStartTicks;
 
          // Keep track of the total time the app is running.
          m_totalTicksPassed += deltaTicks;
-         
+
          // Detect slow frames – frames that have took siginficantely longer
          // than the previous one. Could be a hint to certain problems like
          // unwanted garbage collector activity.
@@ -75,52 +78,56 @@ public:
 
 protected:
    /*
-    *  
+    * Functions to overwrite in subclasses with the concrete implementation.
     */
-   
+
    /**
     * Initializes the application.
     */
    abstract void init();
-   
+
    /**
     * Ticks the world and renders the scene.
-    * 
+    *
     * Params:
     *     deltaTime = The time which elapsed since the last frame.
     */
    abstract void render( float deltaTime );
-   
+
    /**
     * Shuts the application down.
     */
    abstract void shutdown();
 
-   
+
    /**
     * Returns: The surface whose contents are displayed on the screen.
     */
    abstract Surface screen();
-   
+
    /**
-    * Returns: The current time in milliseconds (only use it for relative 
+    * Returns: The current time in milliseconds (only use it for relative
     * calculations).
     */
    abstract uint currentTicks();
-   
+
    /**
     * Processes all events in some external event queue (OS, ...).
     */
    abstract void processEvents();
 
-   
+
    /**
     * Causes the application to exit after the current frame is finished.
     */
    final void exit() {
       m_appFinished = true;
    }
-   
+
+
+   /*
+    * Internal functionality provided to subclasses.
+    */
 
    /**
     * Returns: The total amount of time the event loop was running (in milliseconds).
@@ -138,7 +145,7 @@ protected:
 
    /**
     * Tests whether a key is currently pressed.
-    * 
+    *
     * Params:
     *     key = The questionable key.
     * Returns: true if the key is pressed, false if it isn't.

@@ -39,6 +39,8 @@ class AssimpScene : Scene {
       // Make sure that the Assimp library is loaded.
       Assimp.load();
 
+      Stdout( "Loading scene file: ")( fileName )( "... " );
+
       uint importFlags =
          aiProcess.JoinIdenticalVertices
          | aiProcess.Triangulate
@@ -59,11 +61,11 @@ class AssimpScene : Scene {
       aiScene* scene = aiImportFile( toStringz( sceneFile.toString() ), importFlags );
 
       if ( scene is null ) {
-         throw new Exception( "Failed to load scene from file (" ~ fileName ~ "): " ~ fromStringz( aiGetErrorString() ) );
+         throw new Exception( "Failed to load scene from file: " ~ fromStringz( aiGetErrorString() ) );
       }
 
       if ( scene.mRootNode is null ) {
-         throw new Exception( "Model file contains no root node (" ~ fileName ~ ")." );
+         throw new Exception( "Model file contains no root node." );
       }
       
       char[] scenePath = sceneFile.path();
@@ -84,6 +86,7 @@ class AssimpScene : Scene {
       }
 
       // Print some statistics.
+      Stdout( "done." ).newline;
       Stdout.format( "Imported {} triangles in {} meshes, with a total of {} materials.",
          triangleCount, m_meshes.length, m_materials.length ).newline;
       Stdout.format( "{} of the meshes had textures applied, "

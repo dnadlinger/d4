@@ -80,7 +80,7 @@ void main( char[][] args ) {
    
    // Parse command line options.
    if ( args.length < 2 ) {
-      throw new Exception( "Please specify a model file at the command line" );
+      throw new Exception( "Please specify a model file at the command line." );
    }
    
    app.sceneFile = args[ 1 ];
