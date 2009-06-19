@@ -15,7 +15,8 @@ import d4.renderer.RasterizerBase;
  * Partly inspired by the excellent Muli3D software rasterizer
  * (http://muli3d.sourceforge.net).
  */
-final class SolidRasterizer( bool Gouraud, alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
+final class SolidRasterizer( bool Gouraud, alias Shader, ShaderParams... ) :
+   RasterizerBase!( Gouraud, Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       // All coordinates have to be clipped to screen space.
@@ -63,11 +64,10 @@ protected:
          // Reverse the w division (which was applied for perspective-correct
          // corrected interpolation) and divide the variables by three to compute
          // the arithmetic mean.
-         // TODO: Add parameter to RasterizerBase to switch off w division.
-         VertexVariables averageVars = scale( variables[ 0 ], 1f / ( 3 * positions[ 0 ].w ) );
-         averageVars = add( averageVars, scale( variables[ 1 ], 1f / ( 3 * positions[ 1 ].w ) ) );
-         averageVars = add( averageVars, scale( variables[ 2 ], 1f / ( 3 * positions[ 2 ].w ) ) );
-         Color triangleColor = pixelShader( averageVars );
+         Color triangleColor = pixelShader( scale(
+            add( add( variables[ 0 ], variables[ 1 ] ), variables[ 2 ] ),
+            1f/3f
+         ) );
       }
 
       Color* colorBuffer = m_colorBuffer.pixels;

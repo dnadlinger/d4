@@ -11,7 +11,8 @@ import d4.renderer.RasterizerBase;
  *
  * This rasterizer does not use or respect the z buffer!
  */
-final class WireframeRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
+final class WireframeRasterizer( alias Shader, ShaderParams... ) :
+   RasterizerBase!( false, Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
       // Use either one to get the color, the variables are not interpolated anyway. 

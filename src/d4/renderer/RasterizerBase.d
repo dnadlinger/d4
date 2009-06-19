@@ -24,8 +24,7 @@ import d4.shader.VertexVariableUtils;
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
  * every thing else is handled by this class.
  */
-abstract class RasterizerBase( alias Shader, ShaderParams... ) : IRasterizer {
-// abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
    /**
     * Initializes the render states and transformation matrices
     * with sane default values.
@@ -433,11 +432,13 @@ private:
          vertex.pos.y *= invW;
          vertex.pos.z *= invW;
          
-         // Additionally, divide all vertex variables by w so that we can linearely
-         // interpolate between them in screen space. Save invW to the w coordinate
-         // so that we can reconstruct the original values later.
-         vertex.vars = scale( vertex.vars, invW );
-         vertex.pos.w = invW;
+         static if ( PrepareForPerspectiveCorrection ) {
+            // Additionally, divide all vertex variables by w so that we can linearely
+            // interpolate between them in screen space. Save invW to the w coordinate
+            // so that we can reconstruct the original values later.
+            vertex.vars = scale( vertex.vars, invW );
+            vertex.pos.w = invW;
+         }
          
          // Transform the position into viewport coordinates. We have to invert the
          // y-coordinate because the y-axis is pointing in the other direction in 
