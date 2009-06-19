@@ -158,12 +158,51 @@ protected:
 
       // Rasterize the triangle.
       // For this, the triangle is divided in the upper and the lower part.
-      // First, draw the upper part.
-      float x0 = p0.x;
-      float x1 = p0.x;
-
+      float x0;
+      float x1;
+      uint currentY;
+      uint bottomY;
       float xDelta0;
       float xDelta1;
+      
+      uint lineStartBufferIndex;
+      uint bufferLineStride = m_colorBuffer.width;
+
+      void rasterizeCurrentPart() {
+         while ( currentY < bottomY ) {
+            uint intX0 = rndint( ceil( x0 ) );
+            uint intX1 = rndint( ceil( x1 ) );
+
+            if ( intX0 < intX1 ) {
+               // We used vertex 0 as base for the gradient calculations.
+               float relativeX = cast( float ) intX0 - positions[ 0 ].x;
+               float relativeY = cast( float ) currentY - positions[ 0 ].y;
+
+               float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
+               float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
+
+               static if ( Gouraud ) {
+                  VertexVariables lineStartVars = add( variables[ 0 ],
+                     add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
+
+                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
+               } else {
+                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW );
+               }
+            }
+
+            ++currentY;
+            x0 += xDelta0;
+            x1 += xDelta1;
+            lineStartBufferIndex += bufferLineStride;
+         }
+      }
+
+      // First, draw the upper part.
+      x0 = p0.x;
+      x1 = p0.x;
+      currentY = rndint( ceil( p0.y ) );
+      bottomY = rndint( ceil( p1.y ) );
       if ( xStep0 > xStep1 ) {
          xDelta0 = xStep1;
          xDelta1 = xStep0;
@@ -172,42 +211,12 @@ protected:
          xDelta1 = xStep1;
       }
 
-      uint currentY = rndint( ceil( p0.y ) );
-      uint bottomY = rndint( ceil( p1.y ) );
-
       float yPreStep = cast( float ) currentY - p0.y;
       x0 += xDelta0 * yPreStep;
       x1 += xDelta1 * yPreStep;
 
-      uint bufferLineStride = m_colorBuffer.width;
-      uint lineStartBufferIndex = currentY * bufferLineStride;
-      while ( currentY < bottomY ) {
-         uint intX0 = rndint( ceil( x0 ) );
-         uint intX1 = rndint( ceil( x1 ) );
-
-         if ( intX0 < intX1 ) {
-            // We used vertex 0 as base for the gradient calculations.
-            float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-            float relativeY = cast( float ) currentY - positions[ 0 ].y;
-
-            float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
-            float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-
-            static if ( Gouraud ) {
-               VertexVariables lineStartVars = add( variables[ 0 ],
-                  add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
-
-               rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
-            } else {
-               rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW );
-            }
-         }
-
-         ++currentY;
-         x0 += xDelta0;
-         x1 += xDelta1;
-         lineStartBufferIndex += bufferLineStride;
-      }
+      lineStartBufferIndex = currentY * bufferLineStride;
+      rasterizeCurrentPart();
 
       // Now draw the lower part (currentY is now the previous bottomY).
       bottomY = rndint( ceil( p2.y ) );
@@ -223,32 +232,6 @@ protected:
          x0 = p1.x + xDelta0 * yPreStep;
       }
 
-      while ( currentY < bottomY ) {
-         uint intX0 = rndint( ceil( x0 ) );
-         uint intX1 = rndint( ceil( x1 ) );
-
-         if ( intX0 < intX1 ) {
-            // We used vertex 0 as base for the gradient calculations.
-            float relativeX = cast( float ) intX0 - positions[ 0 ].x;
-            float relativeY = cast( float ) currentY - positions[ 0 ].y;
-
-            float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
-            float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
-
-            static if ( Gouraud ) {
-               VertexVariables lineStartVars = add( variables[ 0 ],
-                  add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
-
-               rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, lineStartVars );
-            } else {
-               rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW );
-            }
-         }
-
-         ++currentY;
-         x0 += xDelta0;
-         x1 += xDelta1;
-         lineStartBufferIndex += bufferLineStride;
-      }
+      rasterizeCurrentPart();
    }
 }
