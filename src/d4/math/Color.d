@@ -37,9 +37,9 @@ struct Color {
    /**
     * Constructs a Color instance directly from the color value
     * (often referred to as "hex-code").
-    * 
+    *
     * Params:
-    *     value = The color value. 
+    *     value = The color value.
     * Returns: The new Color instance.
     */
    static Color opCall( uint value ) {
@@ -47,13 +47,13 @@ struct Color {
       color.value = value;
       return color;
    }
-   
+
    /**
     * Multiplies a color with a scalar.
     * Note: the values are not automatically clamped!
-    * 
+    *
     * Params:
-    *     factor = The factor to multiply the color with. 
+    *     factor = The factor to multiply the color with.
     * Returns: A new Color instance containing the result..
     */
    Color opMul( float factor ) {

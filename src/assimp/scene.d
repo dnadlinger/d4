@@ -29,7 +29,7 @@ extern ( C ) {
        *
        * Cameras and lights are assigned to a specific node name - if there
        * are multiple nodes with this name, they're assigned to each of them.
-       * 
+       *
        * There are no limitations regarding the characters contained in
        * this text. You should be able to handle stuff like whitespace, tabs,
        * linefeeds, quotation marks, ampersands, ... .
@@ -90,7 +90,7 @@ extern ( C ) {
       * no vertex is ever referenced by more than one face.
       */
       AI_SCENE_FLAGS_NON_VERBOSE_FORMAT = 0x8,
-      
+
       /** @def AI_SCENE_FLAGS_TERRAIN
        * Denotes pure height-map terrain data. Pure terrains usually consist of quads,
        * sometimes triangles, in a regular grid. The x,y coordinates of all vertex
@@ -188,7 +188,7 @@ extern ( C ) {
 
 
       /** The number of light sources in the scene.
-      *  
+      *
       * Light sources are fully optional, in most cases this attribute
       * will be 0.
       */
@@ -203,7 +203,7 @@ extern ( C ) {
 
 
       /** The number of cameras in the scene.
-       *  
+       *
        * Cameras are fully optional, in most cases this attribute
        * will be 0.
        */

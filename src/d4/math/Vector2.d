@@ -6,9 +6,9 @@ module d4.math.Vector2;
 struct Vector2 {
    /**
     * Constructs a new vector.
-    * 
+    *
     * Params:
-    *     newX = The x component of the vector. 
+    *     newX = The x component of the vector.
     *     newY = The y component of the vector.
     * Returns: The new Vector2.
     */
@@ -22,7 +22,7 @@ struct Vector2 {
    /**
     * Substracts another vector from this vector and returns the difference
     * as a new vector.
-    * 
+    *
     * Params:
     *     rhs = The right hand side vector.
     * Returns: The result (difference) vector.
@@ -37,9 +37,9 @@ struct Vector2 {
    /**
     * Scales the vector (both components) and returns the result
     * in a new vector.
-    * 
+    *
     * Params:
-    *     factor = The scaling factor. 
+    *     factor = The scaling factor.
     * Returns: The scaled vector.
     */
    Vector2 opMul( float factor ) {
@@ -51,9 +51,9 @@ struct Vector2 {
 
    /**
     * Scales the vector (both components) and saves the result to this object.
-    * 
+    *
     * Params:
-    *     factor = The scaling factor. 
+    *     factor = The scaling factor.
     */
    void opMulAssign( float factor ) {
       x *= factor;

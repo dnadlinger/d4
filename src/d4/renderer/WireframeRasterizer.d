@@ -11,17 +11,18 @@ import d4.renderer.RasterizerBase;
  *
  * This rasterizer does not use or respect the z buffer!
  */
-final class WireframeRasterizer( alias Shader, ShaderParams... ) : RasterizerBase!( Shader, ShaderParams ) {
+final class WireframeRasterizer( alias Shader, ShaderParams... ) :
+   RasterizerBase!( false, Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
-      // Use either one to get the color, the variables are not interpolated anyway. 
+      // Use either one to get the color, the variables are not interpolated anyway.
       Color color = pixelShader( variables[ 0 ] );
-      
+
       drawLine( positions[ 0 ], positions[ 1 ], color );
       drawLine( positions[ 1 ], positions[ 2 ], color );
       drawLine( positions[ 2 ], positions[ 0 ], color );
    }
-   
+
 private:
    /**
     * Helper function to draw a line on the screen using the

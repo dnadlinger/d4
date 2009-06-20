@@ -11,7 +11,7 @@ import d4.math.Vector4;
 
 /**
  * Constructs a scaling matrix from the three axis scaling factors (100% = 1).
- * 
+ *
  * Params:
  *     factorX = The scaling factor along the x axis.
  *     factorY = The scaling factor along the y axis.
@@ -31,9 +31,9 @@ static Matrix4 scalingMatrix( float factorX = 1.f, float factorY = 1.f, float fa
 /**
  * Constructs a scaling matrix from the three axis scaling factors stored in
  * a Vector3 (100% = 1).
- * 
+ *
  * Params:
- *     vector = The scaling factors. 
+ *     vector = The scaling factors.
  * Returns: The scaling matrix.
  */
 static Matrix4 scalingMatrix( Vector3 vector ) {
@@ -42,7 +42,7 @@ static Matrix4 scalingMatrix( Vector3 vector ) {
 
 /**
  * Constructs a matrix which represents a rotation aroud the x axis.
- * 
+ *
  * Params:
  *     angleRadians = The angle to rotate about (in radians).
  * Returns: The rotation matrix.
@@ -64,7 +64,7 @@ static Matrix4 xRotationMatrix( float angleRadians ) {
 
 /**
  * Constructs a matrix which represents a rotation aroud the y axis.
- * 
+ *
  * Params:
  *     angleRadians = The angle to rotate about (in radians).
  * Returns: The rotation matrix.
@@ -86,7 +86,7 @@ static Matrix4 yRotationMatrix( float angleRadians ) {
 
 /**
  * Constructs a matrix which represents a rotation aroud the z axis.
- * 
+ *
  * Params:
  *     angleRadians = The angle to rotate about (in radians).
  * Returns: The rotation matrix.
@@ -108,9 +108,9 @@ static Matrix4 zRotationMatrix( float angleRadians ) {
 
 /**
  * Constructs a rotation quaternion from the rotation axis and the rotation angle.
- * 
+ *
  * Params:
- *     angle = The angle to rotate about (in radians). 
+ *     angle = The angle to rotate about (in radians).
  *     axis = The axis to rotate around.
  * Returns: The rotation quaternion.
  */
@@ -130,7 +130,7 @@ static Quaternion rotationQuaternion( float angle, Vector3 axis ) {
 
 /**
  * Constructs a rotation matrix from the given rotation quaternion.
- * 
+ *
  * Params:
  *     q = The rotation quaternion.
  * Returns: A matrix representing the same rotation as the quaternion.
@@ -171,7 +171,7 @@ static Matrix4 rotationMatrix( Quaternion q ) {
 
 /**
  * Constructs a translation matrix with the amount given component-wise.
- * 
+ *
  * Params:
  *     deltaX = The distance to move along the x axis.
  *     deltaY = The distance to move along the y axis.
@@ -190,9 +190,9 @@ static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f, float 
 
 /**
  * Constructs a translation matrix with the amount given as a vector.
- * 
+ *
  * Params:
- *     vector = The distance to move. 
+ *     vector = The distance to move.
  * Returns: The translation matrix.
  */
 static Matrix4 translationMatrix( Vector3 vector ) {
@@ -201,9 +201,9 @@ static Matrix4 translationMatrix( Vector3 vector ) {
 
 /**
  * Constructs a view matrix from the camera position and direction.
- * 
+ *
  * Params:
- *     position = The position of the camera (usually in world coordinates. 
+ *     position = The position of the camera (usually in world coordinates.
  *     direction = The direction the camera is facing.
  *     up = The camera up vector.
  * Returns: The view matrix.
@@ -235,11 +235,11 @@ static Matrix4 cameraMatrix( Vector3 position, Vector3 direction, Vector3 up ) {
  * Constructs a view matrix from the camera position and a target.
  * The world up vector is used to derive the camera up vector and must not be
  * too close to the direction vector.
- * 
+ *
  * Params:
  *     position = The camera position.
  *     target = The point the camera is looking at.
- *     worldUp = The world up vector (usually [0,1,0]).  
+ *     worldUp = The world up vector (usually [0,1,0]).
  * Returns: The view matrix.
  */
 static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp ) {
@@ -247,11 +247,11 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
    direction.normalize();
 
    Vector3 cameraUp = worldUp - ( direction.dot( worldUp ) * direction );
-   
+
    if ( cameraUp.sqrLength() < 1e-6f ) {
       throw new Exception( "Unsuitable world up vector (looking straight up or down?).");
    }
-   
+
    cameraUp.normalize();
 
    return cameraMatrix( position, direction, cameraUp );
@@ -259,7 +259,7 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
 
 /**
  * Constructs a perspective projection matrix from the projection parameters.
- * 
+ *
  * Params:
  *     fovRadians = The vertical view angle.
  *     aspectRatio = The aspect ratio of the viewing window (i.e. the output device).

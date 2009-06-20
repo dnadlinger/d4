@@ -29,9 +29,9 @@ struct Vector4 {
    /**
     * Scales the vector (all four components) and returns the result
     * in a new vector.
-    * 
+    *
     * Params:
-    *     factor = The scaling factor. 
+    *     factor = The scaling factor.
     * Returns: The scaled vector.
     */
    Vector4 opMul( float factor ) {
@@ -63,9 +63,9 @@ struct Vector4 {
 
 /**
  * Linearly interpolates between the two given vectors [0..1].
- * 
+ *
  * Params:
- *     first = The first vector. 
+ *     first = The first vector.
  *     second = The second vector.
  *     position = The position "index" (from 0 to 1).
  * Returns: The interpolated result vector.

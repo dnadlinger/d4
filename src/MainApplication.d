@@ -34,11 +34,11 @@ public:
    void sceneFile( char[] fileName ) {
       m_sceneFileName = fileName;
    }
-   
+
    void fakeColors( bool fakeColors ) {
       m_fakeColors = fakeColors;
    }
-   
+
    void generateSmoothNormals( bool smooth ) {
       m_generateSmoothNormals = smooth;
    }
@@ -129,7 +129,7 @@ private:
 
       m_scene.rootNode.transformation = rotation * m_scene.rootNode.transformation;
    }
-   
+
    void updateCamera( float deltaTime ) {
       // Compute camera movement from keyboard input.
       float movementSpeed = 6f;
@@ -200,7 +200,7 @@ private:
    bool m_rotateWorld;
    bool m_animateBackground;
    float m_backgroundTime;
-   
+
    Vector3 m_cameraPosition;
    Quaternion m_cameraRotation;
 

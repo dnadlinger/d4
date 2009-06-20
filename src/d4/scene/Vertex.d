@@ -8,7 +8,7 @@ import d4.math.Vector3;
 class Vertex {
    /**
     * Constructs a new vertex instance.
-    * 
+    *
     * Params:
     *     position = The vertex position.
     */
@@ -16,7 +16,7 @@ class Vertex {
       m_position = position;
    }
 
-   /** 
+   /**
     * The vertex position.
     */
    Vector3 position() {

@@ -30,7 +30,7 @@ public:
 
    /**
     * Loads an image from a file.
-    * 
+    *
     * Params:
     *     fileName = The name of the image file.
     * Returns: The loaded image.
@@ -47,7 +47,7 @@ public:
 
    /**
     * Imports (decodes) an image already stored rawly in memory.
-    * 
+    *
     * Params:
     *     rawData = The raw image data.
     * Returns: The imported image.
