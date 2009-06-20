@@ -20,13 +20,13 @@ import MainApplication;
  */
 void assertHandler( char[] file, size_t line, char[] assertionMessage = null ) {
    char[] message = "Assertion false in " ~ file ~ ", line " ~ toString( line );
-   
+
    if ( assertionMessage !is null ) {
       message ~= ": " ~ assertionMessage;
    } else {
       message ~= "!";
    }
-   
+
    throw new Exception( message );
 }
 
@@ -63,27 +63,27 @@ void main( char[][] args ) {
    MainApplication app;
    try {
       app = new MainApplication();
-      
+
       // Parse command line options.
       if ( args.length < 2 ) {
          throw new Exception( "Please specify a model file at the command line" );
       }
-      
+
       app.sceneFile = args[ 1 ];
-   
+
       if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
          app.generateSmoothNormals = true;
       }
-      
+
       if ( contains( args[ 2..$ ], "fakeColors" ) ) {
          app.fakeColors = true;
       }
-      
+
       // Start the application main loop.
       app.run();
    } catch ( Exception e ) {
       Stdout( "ERROR: " )( e ).newline;
-      
+
       // In a debug build, set off the debugger trap/signal.
       debug {
          asm {
