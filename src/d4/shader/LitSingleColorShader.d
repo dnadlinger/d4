@@ -10,16 +10,15 @@ module d4.shader.LitSingleColorShader;
  * See SingleColorShader.
  */
 template LitSingleColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
-   import d4.scene.TexturedNormalVertex;
+   import d4.scene.NormalVertex;
 
    const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
 
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
-      // TODO: Allow also other vertex types with normals.
-      TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
-      assert( tnv !is null );
+      NormalVertex nv = cast( NormalVertex ) vertex;
+      assert( nv !is null );
 
-      Vector3 worldNormal = worldNormalMatrix.rotateVector( tnv.normal );
+      Vector3 worldNormal = worldNormalMatrix.rotateVector( nv.normal );
 
       float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
 
@@ -28,7 +27,7 @@ template LitSingleColorShader( float ambientLevel, float lightDirX, float lightD
          lightIntensity = ambientLevel;
       }
 
-      position = worldViewProjMatrix * tnv.position;
+      position = worldViewProjMatrix * nv.position;
       variables.brightness = lightIntensity;
    }
 
