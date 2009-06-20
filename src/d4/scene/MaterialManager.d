@@ -3,8 +3,7 @@ module d4.scene.MaterialManager;
 import tango.io.Stdout;
 import tango.util.container.HashMap;
 import d4.renderer.IRasterizer;
-import d4.renderer.SolidFlatRasterizer;
-import d4.renderer.SolidGouraudRasterizer;
+import d4.renderer.SolidRasterizer;
 import d4.renderer.Renderer;
 import d4.scene.IMaterial;
 
@@ -53,7 +52,7 @@ class MaterialManager {
 public:
    /**
     * Creates a IMaterialManager-instance for a specific renderer.
-    * 
+    *
     * Params:
     *     renderer = The target renderer.
     */
@@ -62,15 +61,15 @@ public:
       m_renderer = renderer;
       m_materialCount = 0;
 
-      m_noTextureFlatRasterizer = new SolidFlatRasterizer!( LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
-      m_noTextureGouraudRasterizer = new SolidGouraudRasterizer!( LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
+      m_noTextureFlatRasterizer = new SolidRasterizer!( false, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
+      m_noTextureGouraudRasterizer = new SolidRasterizer!( true, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
    }
 
    /**
     * Configures the target renderer to use the specified material.
-    * 
+    *
     * If the material has not been cached yet, it is added to the cache.
-    * 
+    *
     * Params:
     *     material = The material to activate.
     */
@@ -84,7 +83,7 @@ public:
    }
 
    /**
-    * The number of registered materials (to obtain statistics and for debugging). 
+    * The number of registered materials (to obtain statistics and for debugging).
     */
    uint materialCount() {
       return m_materialCount;
@@ -133,10 +132,10 @@ public:
 private:
    /**
     * Adds a material to the material cache.
-    * 
+    *
     * This is called by activateMaterial if a material has not been cached yet
     * or has to be updated.
-    * 
+    *
     * Params:
     *     material = The material to cache.
     */
@@ -146,9 +145,9 @@ private:
          m_renderer.unregisterRasterizer( m_materialRasterizers[ material ] );
          m_materialRasterizers.removeKey( material );
       }
-      
+
       IRasterizer rasterizer;
-      
+
       if ( m_forceWireframe ) {
          bool oldWireframe = material.wireframe;
          material.wireframe = true;
@@ -170,10 +169,10 @@ private:
       }
 
       m_materialRasterizers.add( material, m_renderer.registerRasterizer( rasterizer ) );
-      
+
       ++m_materialCount;
    }
-   
+
    /**
     * Clears the material rasterizer cache,
     */
@@ -184,14 +183,14 @@ private:
       m_materialRasterizers.clear();
       m_materialCount = 0;
    }
-   
+
    Renderer m_renderer;
-   
-   alias HashMap!( IMaterial, uint ) RasterizerIdMap; 
+
+   alias HashMap!( IMaterial, uint ) RasterizerIdMap;
    RasterizerIdMap m_materialRasterizers;
-   
+
    uint m_materialCount;
-   
+
    bool m_forceWireframe;
    bool m_forceFlatShading;
    bool m_skipTextures;

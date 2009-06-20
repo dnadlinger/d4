@@ -3,8 +3,7 @@ module d4.scene.Material;
 import d4.math.Color;
 import d4.math.Vector3;
 import d4.renderer.IRasterizer;
-import d4.renderer.SolidFlatRasterizer;
-import d4.renderer.SolidGouraudRasterizer;
+import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.scene.Image;
 import d4.scene.IMaterial;
@@ -69,7 +68,7 @@ public:
       m_vertexColors = vertexColors;
    }
 
-   
+
    /**
     * Whether lighting is enable for the material.
     */
@@ -122,52 +121,52 @@ public:
             if ( m_lighting ) {
                // Simply doing the following does not work:
                // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-               // 
+               //
                // and doing this crashes gdc:
                // auto lightDirection = Vector3( 0, -1, 1 );
                // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-               return new SolidGouraudRasterizer!( LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( true, LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
-               return new SolidGouraudRasterizer!( VertexColorShader )();
+               return new SolidRasterizer!( true, VertexColorShader )();
             }
          } else if ( m_diffuseTexture !is null ) {
             if ( m_lighting ) {
-               return new SolidGouraudRasterizer!( LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( true, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
-               return new SolidGouraudRasterizer!( TextureShader )();
+               return new SolidRasterizer!( true, TextureShader )();
             }
          } else {
             if ( m_lighting ) {
-               return new SolidGouraudRasterizer!( LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( true, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
                // See above.
-               // return new SolidGouraudRasterizer!( SingleColorShader, Color() )();
-               return new SolidGouraudRasterizer!( SingleColorShader )();
+               // return new SolidRasterizer!( true, SingleColorShader, Color() )();
+               return new SolidRasterizer!( true, SingleColorShader )();
             }
          }
       } else {
          if ( m_vertexColors ) {
             if ( m_lighting ) {
-               return new SolidFlatRasterizer!( LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( false, LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
-               return new SolidFlatRasterizer!( VertexColorShader )();
+               return new SolidRasterizer!( false, VertexColorShader )();
             }
          } else if ( m_diffuseTexture !is null ) {
             if ( m_lighting ) {
-               return new SolidFlatRasterizer!( LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( false, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
-               return new SolidFlatRasterizer!( TextureShader )();
+               return new SolidRasterizer!( false, TextureShader )();
             }
          } else {
             if ( m_lighting ) {
-               return new SolidFlatRasterizer!( LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               return new SolidRasterizer!( false, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
-               return new SolidFlatRasterizer!( SingleColorShader )();
+               return new SolidRasterizer!( false, SingleColorShader )();
             }
          }
       }
    }
-   
+
    const AMBIENT_LIGHT_LEVEL = 0.1;
 
    bool m_wireframe;

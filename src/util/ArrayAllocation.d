@@ -21,7 +21,7 @@ void allocate( Type )( inout Type array, uint numItems ) {
  */
 void reallocate( Type )( inout Type array, uint numItems ) {
     alias typeof( Type[ 0 ] ) ItemType;
-    
+
     uint oldLength = array.length;
     uint numBytes = numItems * ItemType.sizeof;
     array = ( cast( ItemType* ) GC.realloc( array.ptr, numBytes ) )[ 0 .. numItems ];

@@ -14,7 +14,7 @@ public:
    Color color() {
       return m_color;
    }
-   
+
    /// ditto
    void color( Color color ) {
       m_color = color;

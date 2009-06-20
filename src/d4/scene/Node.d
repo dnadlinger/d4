@@ -8,7 +8,7 @@ import d4.scene.Mesh;
 
 /**
  * A node in the tree-like scenegraph.
- * 
+ *
  * It can contain any number of child nodes and meshes and stores a local
  * transformation matrix.
  */
@@ -26,7 +26,7 @@ public:
    /**
     * Adds a child node to the tree. If the node already has another parent
     * node, it is removed from the tree first.
-    * 
+    *
     * Params:
     *     childNode = The child node to add.
     */
@@ -42,7 +42,7 @@ public:
    /**
     * Removes a child node from the tree. This works only with direct children,
     * not with child nodes which are attached somewhere deep down the hierachy.
-    * 
+    *
     * Params:
     *     childNode = The child node to remove from the tree.
     */
@@ -62,7 +62,7 @@ public:
 
    /**
     * Adds a child mesh to the node.
-    * 
+    *
     * Params:
     *     mesh = The mesh to add.
     */
@@ -72,7 +72,7 @@ public:
 
    /**
     * Renders the local meshes and all child nodes using the specified renderer.
-    * 
+    *
     * Params:
     *     renderer = The renderer to use.
     *     manager = The material manager to use for rendering.

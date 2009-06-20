@@ -9,40 +9,40 @@ import util.ArrayAllocation;
 class ZBuffer {
    /**
     * Constructs a new z buffer with the specified resolution.
-    *  
+    *
     * Params:
-    *     width = The buffer width. 
+    *     width = The buffer width.
     *     height = The buffer height.
     */
    this( uint width, uint height ) {
       m_width = width;
       m_height = height;
-      
+
       allocate( m_buffer, width * height );
       clear();
    }
-   
+
    /**
     * Test a z value against the currently stored one. If the new value is
     * closer, the buffer is updated accordingly.
-    *  
+    *
     * Params:
-    *     x = The x-coordinate of the value to look up. 
+    *     x = The x-coordinate of the value to look up.
     *     y = The y-coordinate of the value to look up.
-    *     z = The z value. 
+    *     z = The z value.
     * Returns: If the pixel should be drawn.
     */
    bool testAndUpdate( uint x, uint y, float z ) {
       assert( x < width );
       assert( y < height );
-      
+
       if ( z < m_buffer[ y * width + x ] ) {
          m_buffer[ y * width + x ] = z;
          return true;
       }
       return false;
    }
-   
+
    /**
     * Clears the buffer (resets all values to 1).
     */

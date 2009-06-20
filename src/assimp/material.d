@@ -223,7 +223,7 @@ extern ( C ) {
     *  not distinguish between "specular" and "diffuse" shaders (thus the
     *  specular term for diffuse shading models like Oren-Nayar remains
     *  undefined).
-    *  
+    *
     *  Again, this value is just a hint. Assimp tries to select the shader whose
     *  most common implementation matches the original rendering results of the
     *  3D modeller which wrote a particular model as closely as possible.
@@ -351,7 +351,7 @@ extern ( C ) {
        */
       Additive = 0x1
    };
-   
+
    // ---------------------------------------------------------------------------
    /** Defines how an UV channel is transformed.
    *
@@ -380,7 +380,7 @@ extern ( C ) {
        */
       float mRotation;
    }
-   
+
    // ---------------------------------------------------------------------------
    /** @brief A very primitive RTTI system to store the data type of a
     *         material property.
@@ -510,7 +510,7 @@ extern ( C ) {
    char* AI_MATKEY_COLOR_TRANSPARENT = "$clr.transparent";
    char* AI_MATKEY_COLOR_REFLECTIVE = "$clr.reflective";
    char* AI_MATKEY_GLOBAL_BACKGROUND_IMAGE = "?bg.global";
-   
+
    // Pure key names for all texture-related properties
    char* _AI_MATKEY_TEXTURE_BASE = "$tex.file";
    char* _AI_MATKEY_UVWSRC_BASE = "$tex.uvwsrc";

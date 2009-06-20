@@ -11,12 +11,12 @@ extern ( C ) {
    uint ASSIMP_CFLAGS_STLPORT = 0x2;
    //! Assimp was compiled as a debug build
    uint ASSIMP_CFLAGS_DEBUG = 0x4;
-   
+
    //! Assimp was compiled with ASSIMP_BUILD_BOOST_WORKAROUND defined
    uint ASSIMP_CFLAGS_NOBOOST = 0x8;
    //! Assimp was compiled with ASSIMP_BUILD_SINGLETHREADED defined
    uint ASSIMP_CFLAGS_SINGLETHREADED = 0x10;
-   
+
    // ---------------------------------------------------------------------------
    // Functions have been moved into assimp.api.
 }

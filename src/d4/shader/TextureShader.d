@@ -1,6 +1,6 @@
 /**
  * A shader which applies a single diffuse texture.
- * 
+ *
  * Vertex type: TexturedNormalVertex.
  */
 module d4.shader.TextureShader;

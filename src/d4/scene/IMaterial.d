@@ -18,7 +18,7 @@ interface IMaterial {
     */
    bool wireframe();
    // TODO: Use general fallback material in MaterialManager instead?
-   
+
    /// ditto
    void wireframe( bool useWireframe );
 
@@ -27,7 +27,7 @@ interface IMaterial {
     * vertex variables.
     */
    bool gouraudShading();
-   
+
    /// ditto
    void gouraudShading( bool interpolate );
 
