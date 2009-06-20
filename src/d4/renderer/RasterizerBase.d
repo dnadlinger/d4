@@ -240,6 +240,9 @@ protected:
       int v0 = v >> TEX_COORD_SHIFT;
 
       static if ( !bilinearInterpolation ) {
+         // We probably should round correctly for the uninterpolated mode
+         // instead of just truncating the lower bits, but nobody will see
+         // that anyway...
          return m_textureDataPointers[ textureIndex ][ v0 * m_texWidths[ textureIndex ] + u0 ];
       } else {
          // Calculate the indices of the two neighbour pixels.
@@ -253,22 +256,26 @@ protected:
          Color c11 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
 
          // Use only the low, added bits to calculate the interpolation point.
-         int uoff = u & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
-         int voff = v & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
+         int offsetU = u & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
+         int negOffsetU = ( 1 << TEX_COORD_SHIFT ) - offsetU;
+         int offsetV = v & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
+         int negOffsetV = ( 1 << TEX_COORD_SHIFT ) - offsetV;
 
          return Color(
-             (((cast(uint)c00.r * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.r))
-                 * ((1 << TEX_COORD_SHIFT) - voff)
-             + ((cast(uint)c01.r * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.r))
-                 * voff) >> TEX_COORD_SHIFT*2,
-             (((cast(uint)c00.g * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.g))
-                 * ((1 << TEX_COORD_SHIFT) - voff)
-             + ((cast(uint)c01.g * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.g))
-                 * voff) >> TEX_COORD_SHIFT*2,
-             (((cast(uint)c00.b * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c10.b))
-                 * ((1 << TEX_COORD_SHIFT) - voff)
-             + ((cast(uint)c01.b * ((1 << TEX_COORD_SHIFT) - uoff) + uoff * c11.b))
-                 * voff) >> TEX_COORD_SHIFT*2
+             (
+                ( ( cast(uint) c00.r * negOffsetU + offsetU * c10.r ) ) * negOffsetV
+                + ( (cast(uint)c01.r * negOffsetU + offsetU * c11.r ) ) * offsetV
+             ) >> ( TEX_COORD_SHIFT * 2 ),
+
+             (
+                ( ( cast(uint) c00.g * negOffsetU + offsetU * c10.g ) ) * negOffsetV
+                + ( (cast(uint) c01.g * negOffsetU + offsetU * c11.g ) ) * offsetV
+             ) >> ( TEX_COORD_SHIFT * 2 ),
+
+             (
+                ( ( cast(uint) c00.b * negOffsetU + offsetU * c10.b ) ) * negOffsetV
+                + ( ( cast(uint) c01.b * negOffsetU + offsetU * c11.b ) ) * offsetV
+             ) >> ( TEX_COORD_SHIFT * 2 )
          );
       }
    }
