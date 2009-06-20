@@ -1,25 +1,24 @@
 module d4.scene.ColoredNormalVertex;
 
-import d4.math.Vector3;
-import d4.scene.ColoredVertex;
+import d4.math.Color;
+import d4.scene.NormalVertex;
 
 /**
  * A vertex consisting of a position vector, a vertex color and a normal vector.
  */
-class ColoredNormalVertex : ColoredVertex {
+class ColoredNormalVertex : NormalVertex {
 public:
    /**
-    * The vertex normal vector.
+    * The vertex color.
     */
-   Vector3 normal() {
-      return m_normal;
+   Color color() {
+      return m_color;
    }
 
    /// ditto
-   void normal( Vector3 normal ) {
-      m_normal = normal;
+   void color( Color color ) {
+      m_color = color;
    }
-
 private:
-   Vector3 m_normal;
+   Color m_color;
 }
