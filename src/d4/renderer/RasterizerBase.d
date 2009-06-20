@@ -25,6 +25,27 @@ import d4.shader.VertexVariableUtils;
  * every thing else is handled by this class.
  */
 abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+protected:
+   /**
+    * Imports the shader template passed to the class template into the class
+    * scope.
+    *
+    * The shader has to provide:
+    *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
+    *  - Color pixelShader( VertexVariables variables );
+    *  - struct VertexVariables{}: presenting an array of float values[] which
+    *    are per-vertex paramters which are interpolated and passed to the
+    *    pixel shader.
+    *
+    * It may provide:
+    *  - struct ShaderConstants{}: the instance accesible via shaderConstants()
+    *    can be used to pass values which need to be modified at runtime to the
+    *    shader.
+    */
+   mixin Shader!( ShaderParams );
+   static if ( !is ( typeof( ShaderConstants ) ) ) { struct ShaderConstants{} }
+
+public:
    /**
     * Initializes the render states and transformation matrices
     * with sane default values.
@@ -179,20 +200,14 @@ abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shade
       }
    }
 
-protected:
-   /**
-    * Imports the shader template passed to the class template into the class
-    * scope.
-    *
-    * The shader has to provide:
-    *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
-    *  - Color pixelShader( VertexVariables variables );
-    *  - struct VertexVariables presenting an array of float values[].
-    */
-   mixin Shader!( ShaderParams );
+   ShaderConstants* shaderConstants() {
+      return &m_shaderConstants;
+   }
 
-   // ----
-   // Shader interface
+protected:
+   /*
+    * Shader interface.
+    */
    Matrix4 worldNormalMatrix() {
       return m_worldNormalMatrix;
    }
@@ -279,8 +294,11 @@ protected:
          );
       }
    }
-   // ----
 
+
+   /*
+    * Helper functions for handling VertexVariables.
+    */
    VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
@@ -524,6 +542,8 @@ private:
 
       return newCount;
    }
+
+   ShaderConstants m_shaderConstants;
 
    Matrix4 m_worldMatrix;
    Matrix4 m_worldNormalMatrix;

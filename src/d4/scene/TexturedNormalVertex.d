@@ -1,8 +1,7 @@
 module d4.scene.TexturedNormalVertex;
 
 import d4.math.Vector2;
-import d4.math.Vector3;
-import d4.scene.Vertex;
+import d4.scene.NormalVertex;
 
 /**
  * A vertex consisting of a position vector, a normal vector, and a pair of
@@ -10,20 +9,8 @@ import d4.scene.Vertex;
  *
  * This is the standard for lit, textured models.
  */
-class TexturedNormalVertex : Vertex {
+class TexturedNormalVertex : NormalVertex {
 public:
-   /**
-    * The vertex normal vector.
-    */
-   Vector3 normal() {
-      return m_normal;
-   }
-
-   /// ditto
-   void normal( Vector3 normal ) {
-      m_normal = normal;
-   }
-
    /**
     * The vertex texture coordinates.
     */
@@ -37,6 +24,5 @@ public:
    }
 
 private:
-   Vector3 m_normal;
    Vector2 m_texCoords;
 }
