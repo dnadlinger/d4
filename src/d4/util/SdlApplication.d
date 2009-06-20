@@ -13,8 +13,8 @@ import d4.util.Key;
  * Implements the parts of Application for which SDL can be used.
  */
 abstract class SdlApplication : Application {
-public:
-   this() {
+protected:
+   abstract override void init() {
       Stdout( "Loading SDL library... " );
       DerelictSDL.load();
       Stdout( "done." ).newline;
@@ -24,13 +24,12 @@ public:
       SDL_WM_SetCaption( toStringz( "d4" ), null );
    }
 
-   ~this() {
+   abstract override void shutdown() {
       destroyVideo();
       SDL_Quit();
       DerelictSDL.unload();
    }
 
-protected:
    final override uint currentTicks() {
       return SDL_GetTicks();
    }

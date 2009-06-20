@@ -1,5 +1,16 @@
-module MainApplication;
+/**
+ * Simple model viewer.
+ *
+ * Expects at least one parameter, the model file to display.
+ *
+ * Additional parameters:
+ *   - smoothNormals: If there are no normals present in the model file,
+ *     smoothed ones are generated (hard faces otherwise).
+ *   - fakeColors: Assings a random color to each vertex.
+ */
+module Viewer;
 
+import tango.core.Array;
 import tango.io.Stdout;
 import tango.math.Math : sin, PI;
 import d4.format.AssimpScene;
@@ -29,22 +40,28 @@ enum ShadingMode {
  * The main application class.
  * Manages the scene, reacts to user input, etc.
  */
-class MainApplication : SdlApplication {
+class Viewer : SdlApplication {
 public:
-   void sceneFile( char[] fileName ) {
-      m_sceneFileName = fileName;
-   }
+   this( char[][] args ) {
+      // Parse command line options.
+      if ( args.length < 2 ) {
+         throw new Exception( "Please specify a model file at the command line." );
+      }
 
-   void fakeColors( bool fakeColors ) {
-      m_fakeColors = fakeColors;
-   }
+      m_sceneFileName = args[ 1 ];
 
-   void generateSmoothNormals( bool smooth ) {
-      m_generateSmoothNormals = smooth;
-   }
+      if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
+         m_generateSmoothNormals = true;
+      }
 
+      if ( contains( args[ 2..$ ], "fakeColors" ) ) {
+         m_fakeColors = true;
+      }
+   }
 protected:
    override void init() {
+      super.init();
+
       assert( m_sceneFileName.length > 0 );
 
       Stdout.newline;
@@ -84,6 +101,7 @@ protected:
    }
 
    override void shutdown() {
+      super.shutdown();
    }
 
    override void handleKeyUp( Key key ) {
@@ -205,4 +223,11 @@ private:
    Quaternion m_cameraRotation;
 
    ShadingMode m_shadingMode;
+}
+
+import util.EntryPoint;
+debug {
+   mixin EntryPoint!( Viewer, true );
+} else {
+   mixin EntryPoint!( Viewer );
 }
