@@ -24,7 +24,7 @@ import d4.shader.VertexVariableUtils;
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
  * every thing else is handled by this class.
  */
-abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
 protected:
    /**
     * Imports the shader template passed to the class template into the class
