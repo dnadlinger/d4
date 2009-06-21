@@ -1,6 +1,7 @@
 module SpinningLights;
 
 import d4.format.AssimpScene;
+import d4.math.Color;
 import d4.math.Texture;
 import d4.math.Transformations;
 import d4.math.Vector3;
@@ -20,10 +21,8 @@ template Shader() {
    import d4.scene.NormalVertex;
 
    const AMBIENT_INTENSITY = 0f;
-//   const DIFFUSE_COLOR_0 = Color( 0, 127, 255 );
-//   const DIFFUSE_COLOR_1 = Color( 255, 128, 0 );
    const DECAY_0 = 0.05f;
-   const DECAY_1 = 0.1f;
+   const DECAY_1 = 0.05f;
 
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       NormalVertex nv = cast( NormalVertex ) vertex;
@@ -36,11 +35,11 @@ template Shader() {
 
    Color pixelShader( VertexVariables variables ) {
       Vector3 normal = variables.normal.normalized();
-      
+
       Vector3 toLight0 = shaderConstants.light0LocalPosition - variables.localPosition;
       float decayFactor0 = 1f / ( 1 + toLight0.sqrLength() * DECAY_0 );
       toLight0.normalize();
-      
+
       Vector3 toLight1 = shaderConstants.light1LocalPosition - variables.localPosition;
       float decayFactor1 = 1f / ( 1 + toLight1.sqrLength() * DECAY_1 );
       toLight1.normalize();
@@ -51,12 +50,12 @@ template Shader() {
 
       float diffuseFactor0 = toLight0.dot( normal );
       if ( diffuseFactor0 > 0 ) {
-         result += Color( 0, 127, 255 ) * diffuseFactor0 * decayFactor0;
+         result += shaderConstants.light0Color * diffuseFactor0 * decayFactor0;
       }
 
       float diffuseFactor1 = toLight1.dot( normal );
       if ( diffuseFactor1 > 0 ) {
-         result += Color( 255, 128, 0 ) * diffuseFactor1 * decayFactor1;
+         result += shaderConstants.light1Color * diffuseFactor1 * decayFactor1;
       }
 
       return result;
@@ -64,7 +63,10 @@ template Shader() {
 
    struct ShaderConstants {
       Vector3 light0LocalPosition;
+      Color light0Color;
+
       Vector3 light1LocalPosition;
+      Color light1Color;
    }
 
    struct VertexVariables {
@@ -79,17 +81,19 @@ class Material : IMaterial {
       m_light0Position = Vector3( -3f, 2.5f, 3f );
       m_light1Position = Vector3( 4f, 4f, 2f );
    }
-   
+
    void updatePositions( float deltaTime ) {
       m_light0Position = rotationMatrix( rotationQuaternion(
          -deltaTime/2, Vector3( 0, 1, 0 ) ) ).transformLinear( m_light0Position );
       m_light1Position = rotationMatrix( rotationQuaternion(
          deltaTime, Vector3( 0, 1, 0 ) ) ).transformLinear( m_light1Position );
    }
-   
+
    IRasterizer getRasterizer() {
       if ( m_rasterizer is null ) {
          m_rasterizer = new Rasterizer();
+         m_rasterizer.shaderConstants.light0Color = Color( 0, 127, 255 );
+         m_rasterizer.shaderConstants.light1Color = Color( 255, 128, 0 );
       }
 
       return m_rasterizer;
@@ -109,7 +113,7 @@ class Material : IMaterial {
 private:
    Vector3 m_light0Position;
    Vector3 m_light1Position;
-   
+
    alias SolidRasterizer!( true, Shader ) Rasterizer;
    Rasterizer m_rasterizer;
 }
@@ -142,7 +146,7 @@ protected:
 
    override void render( float deltaTime ) {
       super.render( deltaTime );
-      
+
       m_material.updatePositions( deltaTime );
 
       renderer().beginScene();
