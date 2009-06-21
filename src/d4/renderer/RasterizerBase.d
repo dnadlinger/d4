@@ -7,13 +7,13 @@ import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
+import d4.math.Texture;
 import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
-import d4.scene.Image;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
 
@@ -43,7 +43,7 @@ protected:
     *    shader.
     */
    mixin Shader!( ShaderParams );
-   static if ( !is ( typeof( ShaderConstants ) ) ) { struct ShaderConstants{} }
+   static if ( !is ( ShaderConstants ) ) { struct ShaderConstants{} }
 
 public:
    /**
@@ -176,12 +176,12 @@ public:
    /**
     * The textures to use.
     */
-   Image[] textures() {
+   Texture[] textures() {
       return m_textures;
    }
 
    /// ditto
-   void textures( Image[] textures ) {
+   void textures( Texture[] textures ) {
       m_textures = textures;
       m_textureDataPointers = [];
       m_shiftedWidths = [];
@@ -554,7 +554,7 @@ private:
 
    BackfaceCulling m_backfaceCulling;
 
-   Image[] m_textures;
+   Texture[] m_textures;
    Color[][] m_textureDataPointers;
 
    // Shift the coordinates to the left to be able to perfom the subpixel

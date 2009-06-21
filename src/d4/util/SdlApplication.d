@@ -15,6 +15,8 @@ import d4.util.Key;
 abstract class SdlApplication : Application {
 protected:
    abstract override void init() {
+      super.init();
+
       Stdout( "Loading SDL library... " );
       DerelictSDL.load();
       Stdout( "done." ).newline;
@@ -25,6 +27,8 @@ protected:
    }
 
    abstract override void shutdown() {
+      super.shutdown();
+
       destroyVideo();
       SDL_Quit();
       DerelictSDL.unload();

@@ -83,21 +83,27 @@ protected:
 
    /**
     * Initializes the application.
+    *
+    * Call the base class implementation in overwritten implementations.
     */
-   abstract void init();
+   abstract void init() {};
 
    /**
     * Ticks the world and renders the scene.
     *
+    * Call the base class implementation in overwritten implementations.
+    *
     * Params:
     *     deltaTime = The time which elapsed since the last frame.
     */
-   abstract void render( float deltaTime );
+   abstract void render( float deltaTime ) {};
 
    /**
     * Shuts the application down.
+    *
+    * Call the base class implementation in overwritten implementations.
     */
-   abstract void shutdown();
+   abstract void shutdown() {};
 
 
    /**

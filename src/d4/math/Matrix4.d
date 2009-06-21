@@ -191,6 +191,23 @@ struct Matrix4 {
    }
 
    /**
+    * Transforms a three-dimensional vector (w is implicitly set 1) and drops
+    * the forth (w) coordinate.
+    *
+    * Params:
+    *     rhs = The vector to transform.
+    * Returns: The resulting three-dimensional vector.
+    */
+   Vector3 transformLinear( Vector3 rhs ) {
+      // Implicitely setting w = 1 here.
+      return Vector3(
+         m11 * rhs.x + m12 * rhs.y + m13 * rhs.z + m14,
+         m21 * rhs.x + m22 * rhs.y + m23 * rhs.z + m24,
+         m31 * rhs.x + m32 * rhs.y + m33 * rhs.z + m34
+      );
+   }
+
+   /**
     * Transforms a vector, using only the rotational (top-left 3x3) part of the matrix.
     * The w component of the vector is not modified.
     *
