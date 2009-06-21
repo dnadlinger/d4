@@ -91,7 +91,7 @@ protected:
             if ( currentZ < (*currentDepth) ) {
                (*currentDepth) = currentZ;
                static if ( Gouraud ) {
-                  (*currentPixel) = pixelShader( scale( currentVars, ( 1 / currentW ) ) );
+                  (*currentPixel) = pixelShader( scale( currentVars, ( 1f / currentW ) ) );
                } else {
                   (*currentPixel) = triangleColor;
                }
