@@ -120,6 +120,8 @@ protected:
       foreach ( mesh; allMeshes ) {
          mesh.material = material;
       }
+
+      cameraPosition = Vector3( 0, 3, 5 );
    }
 
    override void render( float deltaTime ) {
