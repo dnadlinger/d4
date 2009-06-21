@@ -49,12 +49,23 @@ struct Color {
    }
 
    /**
+    * Adds another Color to this instance.
+    * Note: the values are not automatically clamped!
+    *
+    * Params:
+    *     other = The color to add.
+    */
+   void opAddAssign( Color other ) {
+      value += other.value;
+   }
+
+   /**
     * Multiplies a color with a scalar.
     * Note: the values are not automatically clamped!
     *
     * Params:
     *     factor = The factor to multiply the color with.
-    * Returns: A new Color instance containing the result..
+    * Returns: A new Color instance containing the result.
     */
    Color opMul( float factor ) {
       Color color = void;

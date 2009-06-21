@@ -14,7 +14,7 @@ import util.EntryPoint;
 import FreeCameraApplication;
 import RoomScene;
 
-template PerPixelPointShader( bool Specular ) {
+template Shader( bool Specular ) {
    import tango.math.Math : pow;
    import d4.scene.NormalVertex;
 
@@ -73,7 +73,7 @@ template PerPixelPointShader( bool Specular ) {
    }
 }
 
-class PerPixelMaterial : IMaterial {
+class Material : IMaterial {
    IRasterizer getRasterizer() {
       if ( m_rasterizer is null ) {
          m_rasterizer = new Rasterizer();
@@ -94,12 +94,12 @@ class PerPixelMaterial : IMaterial {
    }
 
 private:
-   alias SolidRasterizer!( true, PerPixelPointShader, false ) Rasterizer;
+   alias SolidRasterizer!( true, Shader, false ) Rasterizer;
    Rasterizer m_rasterizer;
 }
 
 
-class DynamicLights : FreeCameraApplication {
+class DynamicLighting : FreeCameraApplication {
    this( char[][] args ) {
       // Parse command line options.
       if ( args.length < 2 ) {
@@ -115,7 +115,7 @@ protected:
       super.init();
 
       // TODO: Add global material override function to material manager instead?
-      auto material = new PerPixelMaterial();
+      auto material = new Material();
       auto allMeshes = m_scene.rootNode.flatten();
       foreach ( mesh; allMeshes ) {
          mesh.material = material;
@@ -141,4 +141,4 @@ private:
    Scene m_scene;
 }
 
-mixin EntryPoint!( DynamicLights );
+mixin EntryPoint!( DynamicLighting );
