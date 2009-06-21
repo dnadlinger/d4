@@ -1,8 +1,7 @@
 module d4.scene.Mesh;
 
+import d4.renderer.IMaterial;
 import d4.renderer.Renderer;
-import d4.scene.Material;
-import d4.scene.MaterialManager;
 import d4.scene.Vertex;
 
 /**
@@ -18,8 +17,8 @@ public:
     *     renderer = The renderer to use.
     *     manager = The material manager connected with the renderer.
     */
-   void render( Renderer renderer, MaterialManager manager ) {
-      manager.activateMaterial( material );
+   void render( Renderer renderer ) {
+      renderer.activateMaterial( material );
       renderer.renderTriangleList( vertices, indices );
    }
 
@@ -39,5 +38,5 @@ public:
    /**
     * The material to use for the mesh.
     */
-   Material material;
+   IMaterial material;
 }

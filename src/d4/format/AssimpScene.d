@@ -10,10 +10,10 @@ import assimp.assimp;
 import d4.format.DevilImporter;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.Texture;
 import d4.math.Vector2;
 import d4.math.Vector3;
-import d4.scene.Image;
-import d4.scene.Material;
+import d4.scene.BasicMaterial;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Vertex;
@@ -35,7 +35,7 @@ class AssimpScene : Scene {
     *        they will be smoothed.
     *     fakeColors = If fake vertex colors should be generated.
     */
-   this( char[] fileName, bool smoothNormals = true, bool fakeColors = false ) {
+   this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
       // Make sure that the Assimp library is loaded.
       Assimp.load();
 
@@ -45,7 +45,6 @@ class AssimpScene : Scene {
          aiProcess.JoinIdenticalVertices
          | aiProcess.Triangulate
          | aiProcess.RemoveRedundantMaterials
-         | aiProcess.FixInfacingNormals
          | aiProcess.FindInvalidData
          | aiProcess.ValidateDataStructure
       ;
@@ -108,8 +107,8 @@ class AssimpScene : Scene {
    }
 
 private:
-   Material importMaterial( aiMaterial material, aiScene scene, char[] modelPath ) {
-      Material result = new Material();
+   BasicMaterial importMaterial( aiMaterial material, aiScene scene, char[] modelPath ) {
+      BasicMaterial result = new BasicMaterial();
 
       // Read wireframe mode.
       int useWireframe = 0;
@@ -122,7 +121,7 @@ private:
          char[] textureFileName = importString( &targetString );
 
          DevilImporter imageLoader = new DevilImporter();
-         Image image;
+         Texture image;
 
          if ( textureFileName[ 0 ] == '*' ) {
             // The texture is embedded into the file.
@@ -132,8 +131,8 @@ private:
             uint height = texture.mHeight;
 
             if ( height > 0 ) {
-               // If it is uncompressed, just copy the data over to an Image.
-               image = new Image( width, height, ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
+               // If it is uncompressed, just copy the data over to a Texture.
+               image = new Texture( width, height, ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
             } else {
                // The image is compressed.
                image = imageLoader.importData( ( cast( void* )texture.pcData )[ 0 .. width ] );
@@ -193,8 +192,10 @@ private:
       if ( fakeColors ) {
          ++m_fakeColorMeshCount;
          result.vertices = importFakeColorVertices( mesh );
-         result.material.vertexColors = true;
-         result.material.diffuseTexture = null;
+
+         // TODO: Check if we could unintentionally overwrite something here.
+         m_materials[ mesh.mMaterialIndex ].vertexColors = true;
+         m_materials[ mesh.mMaterialIndex ].diffuseTexture = null;
       } else if ( ( mesh.mTextureCoords[ 0 ] !is null ) &&
          ( m_materials[ mesh.mMaterialIndex ].diffuseTexture !is null ) ) {
          // Check if there really is a texture, because some models contain
@@ -396,7 +397,7 @@ private:
    }
 
    Mesh[] m_meshes;
-   Material[] m_materials;
+   BasicMaterial[] m_materials;
    Node m_rootNode;
 
    uint m_texturedMeshCount;

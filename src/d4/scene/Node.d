@@ -3,7 +3,6 @@ module d4.scene.Node;
 import tango.io.Stdout;
 import d4.math.Matrix4;
 import d4.renderer.Renderer;
-import d4.scene.MaterialManager;
 import d4.scene.Mesh;
 
 /**
@@ -77,17 +76,29 @@ public:
     *     renderer = The renderer to use.
     *     manager = The material manager to use for rendering.
     */
-   void render( Renderer renderer, MaterialManager manager ) {
+   void render( Renderer renderer ) {
       renderer.worldMatrix = worldMatrix();
       foreach ( mesh; m_meshes ) {
-         mesh.render( renderer, manager );
+         mesh.render( renderer );
       }
 
       // Render all child nodes. This enables us to render the whole scene by
       // just calling #render() on the root node.
       foreach ( node; m_children ) {
-         node.render( renderer, manager );
+         node.render( renderer );
       }
+   }
+
+   /**
+    * Returns: Flat array containing all child meshes.
+    */
+   Mesh[] flatten() {
+      Mesh[] result;
+      result ~= m_meshes;
+      foreach ( node; m_children ) {
+         result ~= node.flatten();
+      }
+      return result;
    }
 
    /**

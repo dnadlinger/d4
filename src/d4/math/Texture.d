@@ -1,6 +1,5 @@
-module d4.scene.Image;
+module d4.math.Texture;
 
-import tango.io.Stdout;
 import tango.math.Math : rndint;
 import d4.math.Color;
 
@@ -9,7 +8,7 @@ import d4.math.Color;
  *
  * The pixel data is stored in Color objects.
  */
-class Image {
+class Texture {
    /**
     * Constructs a new Image object.
     *

@@ -4,7 +4,7 @@ import tango.io.Stdout;
 import tango.stdc.stringz : toStringz;
 import derelict.devil.il;
 import d4.math.Color;
-import d4.scene.Image;
+import d4.math.Texture;
 
 /**
  * Importer for loading images via the DevIL image library.
@@ -35,7 +35,7 @@ public:
     *     fileName = The name of the image file.
     * Returns: The loaded image.
     */
-   Image importFile( char[] fileName ) {
+   Texture importFile( char[] fileName ) {
       ILuint imageId = createDevilImage();
 
       if ( !ilLoadImage( toStringz( fileName ) ) ) {
@@ -52,7 +52,7 @@ public:
     *     rawData = The raw image data.
     * Returns: The imported image.
     */
-   Image importData( void[] rawData ) {
+   Texture importData( void[] rawData ) {
       ILuint imageId = createDevilImage();
 
       if ( !ilLoadL( IL_TYPE_UNKNOWN, &rawData[0], rawData.length ) ) {
@@ -70,7 +70,7 @@ private:
       return imageId;
    }
 
-   Image importImage( ILuint imageId ) {
+   Texture importImage( ILuint imageId ) {
       uint width = ilGetInteger( IL_IMAGE_WIDTH );
       uint height = ilGetInteger( IL_IMAGE_HEIGHT );
 
@@ -78,7 +78,7 @@ private:
 
       ilCopyPixels( 0, 0, 0, width, height, 1, IL_BGRA, IL_UNSIGNED_BYTE, &data[ 0 ] );
 
-      Image resultImage = new Image( width, height, data );
+      Texture resultImage = new Texture( width, height, data );
 
       ilBindImage( 0 );
       ilDeleteImages( 1, &imageId );

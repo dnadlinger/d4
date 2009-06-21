@@ -1,12 +1,13 @@
-module d4.scene.Material;
+module d4.scene.BasicMaterial;
 
 import d4.math.Color;
+import d4.math.Texture;
 import d4.math.Vector3;
+import d4.renderer.IMaterial;
 import d4.renderer.IRasterizer;
+import d4.renderer.Renderer;
 import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
-import d4.scene.Image;
-import d4.scene.IMaterial;
 import d4.shader.LitVertexColorShader;
 import d4.shader.LitSingleColorShader;
 import d4.shader.LitTextureShader;
@@ -17,7 +18,7 @@ import d4.shader.VertexColorShader;
 /**
  * A simple, straightforward IMaterial implementation.
  */
-class Material : IMaterial {
+class BasicMaterial : IMaterial {
 public:
    /**
     * Constructs a new material with the default settings.
@@ -84,32 +85,24 @@ public:
    /**
     * The diffuse texture for the material (null if none).
     */
-   Image diffuseTexture() {
+   Texture diffuseTexture() {
       return m_diffuseTexture;
    }
 
    /// ditto
-   void diffuseTexture( Image texture ) {
+   void diffuseTexture( Texture texture ) {
       m_diffuseTexture = texture;
    }
 
-   /**
-    * The textures the material is using (just the diffuse texture if any, null
-    * otherwise).
-    */
-   Image[] textures() {
-      if ( m_diffuseTexture !is null ) {
-         return [ m_diffuseTexture ];
-      } else {
-         return null;
-      }
+   bool usesTextures() {
+      return ( m_diffuseTexture !is null );
    }
 
-   /**
-    * Whether the material uses gouraud shading to interpolate between the
-    * vertex variables.
-    */
-   IRasterizer createRasterizer() {
+  /**
+   * Returns a reference to an IRasterizer which is configured
+   * to draw the material.
+   */
+   IRasterizer getRasterizer() {
       if ( m_wireframe ) {
          // This causes dmd to segfault:
          // return new WireframeRasterizer!( SingleColorShader, Color() )();
@@ -131,9 +124,13 @@ public:
             }
          } else if ( m_diffuseTexture !is null ) {
             if ( m_lighting ) {
-               return new SolidRasterizer!( true, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               auto rasterizer = new SolidRasterizer!( true, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               rasterizer.textures = [ m_diffuseTexture ];
+               return rasterizer;
             } else {
-               return new SolidRasterizer!( true, TextureShader )();
+               auto rasterizer = new SolidRasterizer!( true, TextureShader )();
+               rasterizer.textures = [ m_diffuseTexture ];
+               return rasterizer;
             }
          } else {
             if ( m_lighting ) {
@@ -153,9 +150,13 @@ public:
             }
          } else if ( m_diffuseTexture !is null ) {
             if ( m_lighting ) {
-               return new SolidRasterizer!( false, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               auto rasterizer = new SolidRasterizer!( false, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
+               rasterizer.textures = [ m_diffuseTexture ];
+               return rasterizer;
             } else {
-               return new SolidRasterizer!( false, TextureShader )();
+               auto rasterizer = new SolidRasterizer!( false, TextureShader )();
+               rasterizer.textures = [ m_diffuseTexture ];
+               return rasterizer;
             }
          } else {
             if ( m_lighting ) {
@@ -167,11 +168,15 @@ public:
       }
    }
 
+   void prepareForRendering( Renderer renderer ) {
+      // Nothing to do here – we only need our rasterizer activated.
+   }
+
    const AMBIENT_LIGHT_LEVEL = 0.1;
 
    bool m_wireframe;
    bool m_gouraudShading;
    bool m_vertexColors;
    bool m_lighting;
-   Image m_diffuseTexture;
+   Texture m_diffuseTexture;
 }

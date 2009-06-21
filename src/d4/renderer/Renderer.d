@@ -1,18 +1,22 @@
 module d4.renderer.Renderer;
 
 import tango.math.Math : PI;
+import tango.util.container.HashMap;
 import d4.math.Color;
 import d4.math.Matrix4;
+import d4.math.Texture;
 import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
+import d4.renderer.IMaterial;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
-import d4.scene.Image;
 import d4.scene.Vertex;
+import d4.shader.LitSingleColorShader;
+import d4.shader.SingleColorShader;
 
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
 
@@ -20,7 +24,7 @@ alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
  * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
  * optimization modules. This is the same as SingleColorShader.
  */
-template DefaultShader() {
+template SingleColorShaderCopy() {
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       position = worldViewProjMatrix * vertex.position;
    }
@@ -33,6 +37,43 @@ template DefaultShader() {
       float[0] values;
    }
 }
+
+/**
+ * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
+ * optimization modules. This is the same as LitSingleColorShader.
+ */
+template LitSingleColorShaderCopy( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+   import d4.scene.NormalVertex;
+
+   const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
+
+   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+      NormalVertex nv = cast( NormalVertex ) vertex;
+      assert( nv !is null );
+
+      Vector3 worldNormal = worldNormalMatrix.rotateVector( nv.normal );
+
+      float lightIntensity = -LIGHT_DIRECTION.dot( worldNormal.normalized() );
+
+      // ambientLevel represents the ambient light.
+      if ( lightIntensity < ambientLevel ) {
+         lightIntensity = ambientLevel;
+      }
+
+      position = worldViewProjMatrix * nv.position;
+      variables.brightness = lightIntensity;
+   }
+
+   Color pixelShader( VertexVariables variables ) {
+      return Color( 255, 255, 255 ) * variables.brightness;
+   }
+
+   struct VertexVariables {
+      float[1] values;
+      mixin( floatVariable!( "brightness", 0 ) );
+   }
+}
+
 
 /**
  * The central interface to the rendering system.
@@ -54,12 +95,15 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_rasterizers ~= new SolidRasterizer!( true, DefaultShader )();
-      m_rasterizers ~= new SolidRasterizer!( false, DefaultShader )();
+      m_whiteFlatRasterizer = new SolidRasterizer!( false, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
+      m_whiteGouraudRasterizer = new SolidRasterizer!( true, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
+      m_whiteWireframeRasterizer = new WireframeRasterizer!( SingleColorShaderCopy );
 
-      m_activeRasterizer = m_rasterizers[ 0 ];
+      m_activeRasterizer = m_whiteFlatRasterizer;
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
+
+      m_materialRasterizers = new MaterialRasterizerMap();
 
       m_rendering = false;
    }
@@ -106,6 +150,29 @@ public:
       assert( m_rendering );
       m_renderTarget.unlock();
       m_rendering = false;
+   }
+
+   /**
+    * Configures the renderer to use the specified material to render triangles.
+    *
+    * Params:
+    *     material = The material to activate.
+    */
+   void activateMaterial( IMaterial material ) {
+      if ( m_forceWireframe ) {
+         activateRasterizer( m_whiteWireframeRasterizer );
+      } else if ( m_forceFlatShading ) {
+         activateRasterizer( m_whiteFlatRasterizer );
+      } else if ( m_skipTextures && material.usesTextures() ) {
+         activateRasterizer( m_whiteGouraudRasterizer );
+      } else {
+         if ( !m_materialRasterizers.containsKey( material ) ) {
+            m_materialRasterizers.add( material, material.getRasterizer() );
+         }
+
+         activateRasterizer( m_materialRasterizers[ material ] );
+         material.prepareForRendering( this );
+      }
    }
 
 
@@ -175,66 +242,44 @@ public:
    }
 
    /**
-    * The textures needed for the active rasterizer.
+    * Causes all materials to be rendered as if their wireframe property was set.
     */
-   Image[] activeTextures() {
-      return m_activeRasterizer.textures;
+   bool forceWireframe() {
+      return m_forceWireframe;
    }
 
    /// ditto
-   void activeTextures( Image[] textures ) {
-      m_activeRasterizer.textures = textures;
-   }
-
-
-   /**
-    * Registers a new rasterizer so that it can be activated later.
-    *
-    * Params:
-    *     rasterizer = The rasterizer to register.
-    * Returns: The rasterizer id which is used to activate the rasterizer later.
-    */
-   uint registerRasterizer( IRasterizer rasterizer ) {
-      assert( rasterizer !is null, "Cannot register null rasterizer." );
-      m_rasterizers ~= rasterizer;
-      return m_rasterizers.length - 1;
+   void forceWireframe( bool forceWireframe ) {
+      m_forceWireframe = forceWireframe;
    }
 
    /**
-    * Unregister an already registered rasterizer because it is not needed
-    * anymore.
-    *
-    * Params:
-    *     id = The id of the rasterizer to unregister.
-    * Returns: A reference to the unregistered rasterizer.
+    * Causes all materials to be rendered as if gouraud shading was not enabled
+    * for them.
     */
-   IRasterizer unregisterRasterizer( uint id ) {
-      IRasterizer rasterizer = m_rasterizers[ id ];
-      assert( rasterizer !is null, "Invalid rasterizer id (already unregistered?)." );
+   bool forceFlatShading() {
+      return m_forceFlatShading;
+   }
 
-      // TODO: Better way to unregister without jumbling ids?
-      // m_rasterizers[ id ] = m_rasterizers[ $ - 1 ];
-      // m_rasterizers = m_rasterizers[ 0 .. ( $ - 1 ) ];
-      m_rasterizers[ id ] = null;
-
-      return rasterizer;
+   /// ditto
+   void forceFlatShading( bool forceFlatShading ) {
+      m_forceFlatShading = forceFlatShading;
    }
 
    /**
-    * Activates a rasterizer for rendering.
-    *
-    * Params:
-    *     id = The rasterizer id which was returned by
-    *     <code>registerRasterizer</code>.
+    * Replaces all textured materials with a generic textureless one.
     */
-   void useRasterizer( uint id ) {
-      IRasterizer rasterizer = m_rasterizers[ id ];
-      assert( rasterizer !is null );
-      setActiveRasterizer( rasterizer );
+   bool skipTextures() {
+      return m_skipTextures;
+   }
+
+   /// ditto
+   void skipTextures( bool skipTextures ) {
+      m_skipTextures = skipTextures;
    }
 
 private:
-   void setActiveRasterizer( IRasterizer rasterizer ) {
+   void activateRasterizer( IRasterizer rasterizer ) {
       if ( rasterizer == m_activeRasterizer ) {
          return;
       }
@@ -243,18 +288,26 @@ private:
       rasterizer.viewMatrix = m_activeRasterizer.viewMatrix;
       rasterizer.projectionMatrix = m_activeRasterizer.projectionMatrix;
       rasterizer.backfaceCulling = m_activeRasterizer.backfaceCulling;
-      rasterizer.textures = m_activeRasterizer.textures;
 
       m_activeRasterizer = rasterizer;
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
    }
 
-   IRasterizer[] m_rasterizers;
+   Color m_clearColor;
+   bool m_rendering;
+
+   alias HashMap!( IMaterial, IRasterizer ) MaterialRasterizerMap;
+   MaterialRasterizerMap m_materialRasterizers;
    IRasterizer m_activeRasterizer;
+
+   IRasterizer m_whiteFlatRasterizer;
+   IRasterizer m_whiteGouraudRasterizer;
+   IRasterizer m_whiteWireframeRasterizer;
 
    Surface m_renderTarget;
    ZBuffer m_zBuffer;
 
-   Color m_clearColor;
-   bool m_rendering;
+   bool m_forceWireframe;
+   bool m_forceFlatShading;
+   bool m_skipTextures;
 }

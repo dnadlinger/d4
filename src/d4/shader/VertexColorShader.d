@@ -5,6 +5,10 @@
  */
 module d4.shader.VertexColorShader;
 
+// FIXME: Apparently, each vertex type must be included once in the global
+// space for the mixin stuff to work. Import it here.
+import d4.scene.ColoredVertex;
+
 template VertexColorShader() {
    import d4.scene.ColoredVertex;
 

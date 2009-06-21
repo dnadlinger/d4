@@ -7,13 +7,13 @@ import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
+import d4.math.Texture;
 import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.math.Vector4;
 import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
-import d4.scene.Image;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
 
@@ -43,7 +43,7 @@ protected:
     *    shader.
     */
    mixin Shader!( ShaderParams );
-   static if ( !is ( typeof( ShaderConstants ) ) ) { struct ShaderConstants{} }
+   static if ( !is ( ShaderConstants ) ) { struct ShaderConstants{} }
 
 public:
    /**
@@ -71,7 +71,7 @@ public:
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
-   void renderTriangleList( Vertex[] vertices, uint[] indices ) {
+   final void renderTriangleList( Vertex[] vertices, uint[] indices ) {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
 
       // Set the FPU to truncation rounding. We have to restore the old state
@@ -110,7 +110,7 @@ public:
     *     colorBuffer = The framebuffer to use.
     *     zBuffer = The z buffer to use.
     */
-   void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
+   final void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
       assert( colorBuffer.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
       assert( colorBuffer.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
 
@@ -122,12 +122,12 @@ public:
    /**
     * The world matrix to use.
     */
-   Matrix4 worldMatrix() {
+   final Matrix4 worldMatrix() {
       return m_worldMatrix;
    }
 
    /// ditto
-   void worldMatrix( Matrix4 worldMatrix ) {
+   final void worldMatrix( Matrix4 worldMatrix ) {
       m_worldMatrix = worldMatrix;
       m_worldNormalMatrix = worldMatrix.inversed().transposed();
       updateWorldViewMatrix();
@@ -137,12 +137,12 @@ public:
    /**
     * The view matrix to use.
     */
-   Matrix4 viewMatrix() {
+   final Matrix4 viewMatrix() {
       return m_viewMatrix;
    }
 
    /// ditto
-   void viewMatrix( Matrix4 viewMatrix ) {
+   final void viewMatrix( Matrix4 viewMatrix ) {
       m_viewMatrix = viewMatrix;
       updateWorldViewMatrix();
       updateWorldViewProjMatrix();
@@ -151,12 +151,12 @@ public:
    /**
     * The projection matrix to use.
     */
-   Matrix4 projectionMatrix() {
+   final Matrix4 projectionMatrix() {
       return m_projMatrix;
    }
 
    /// ditto
-   void projectionMatrix( Matrix4 projectionMatrix ) {
+   final void projectionMatrix( Matrix4 projectionMatrix ) {
       m_projMatrix = projectionMatrix;
       updateWorldViewProjMatrix();
    }
@@ -164,24 +164,24 @@ public:
    /**
     * The backface culling mode to use.
     */
-   BackfaceCulling backfaceCulling() {
+   final BackfaceCulling backfaceCulling() {
       return m_backfaceCulling;
    }
 
    /// ditto
-   void backfaceCulling( BackfaceCulling cullingMode ) {
+   final void backfaceCulling( BackfaceCulling cullingMode ) {
       m_backfaceCulling = cullingMode;
    }
 
    /**
     * The textures to use.
     */
-   Image[] textures() {
+   final Texture[] textures() {
       return m_textures;
    }
 
    /// ditto
-   void textures( Image[] textures ) {
+   final void textures( Texture[] textures ) {
       m_textures = textures;
       m_textureDataPointers = [];
       m_shiftedWidths = [];
@@ -200,7 +200,7 @@ public:
       }
    }
 
-   ShaderConstants* shaderConstants() {
+   final ShaderConstants* shaderConstants() {
       return &m_shaderConstants;
    }
 
@@ -208,15 +208,15 @@ protected:
    /*
     * Shader interface.
     */
-   Matrix4 worldNormalMatrix() {
+   final Matrix4 worldNormalMatrix() {
       return m_worldNormalMatrix;
    }
 
-   Matrix4 worldViewProjMatrix() {
+   final Matrix4 worldViewProjMatrix() {
       return m_worldViewProjMatrix;
    }
 
-   Color readTexture( bool bilinearInterpolation = false, bool tile = true )
+   final Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
 
       // Parts of the interpolation code shamelessly taken from DShade
@@ -299,11 +299,11 @@ protected:
    /*
     * Helper functions for handling VertexVariables.
     */
-   VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
+   final VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
 
-   VertexVariables scale( VertexVariables variables, float factor ) {
+   final VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
       //   result.values[ i ] = variables.values[ i ] * factor;
@@ -313,7 +313,7 @@ protected:
       return result;
    }
 
-   VertexVariables add( VertexVariables first, VertexVariables second ) {
+   final VertexVariables add( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
       //   result.values[ i ] = first.values[ i ] + second.values[ i ];
@@ -323,7 +323,7 @@ protected:
       return result;
    }
 
-   VertexVariables substract( VertexVariables first, VertexVariables second ) {
+   final VertexVariables substract( VertexVariables first, VertexVariables second ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
       //   result.values[ i ] = first.values[ i ] - second.values[ i ];
@@ -393,7 +393,8 @@ private:
 
    /**
     * The maximum number of vertices a clipped triangle can have.
-    * 8 because the triangle can be clipped by up to 4 sides of the viewing volume.
+    * 8 because the triangle can be clipped by up to 4 sides of
+    * the viewing volume.
     */
    const CLIPPING_BUFFER_SIZE = 8;
 
@@ -493,8 +494,8 @@ private:
     *     plane = The plane to clip against.
     * Returns: The number of vertices in the target buffer.
     */
-   uint clipToPlane( TransformedVertex[] sourceBuffer, TransformedVertex[] targetBuffer,
-      uint vertexCount, Plane plane ) {
+   uint clipToPlane( TransformedVertex[] sourceBuffer,
+      TransformedVertex[] targetBuffer, uint vertexCount, Plane plane ) {
       // Due to some function overloading strangeness, we have to alias the other
       // interpolation functions.
       // TODO: Why is this necessary?
@@ -554,7 +555,7 @@ private:
 
    BackfaceCulling m_backfaceCulling;
 
-   Image[] m_textures;
+   Texture[] m_textures;
    Color[][] m_textureDataPointers;
 
    // Shift the coordinates to the left to be able to perfom the subpixel

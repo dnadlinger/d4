@@ -5,6 +5,11 @@ import d4.scene.Vertex;
 
 class NormalVertex : Vertex {
 public:
+   this( Vector3 position = Vector3(), Vector3 normal = Vector3() ) {
+      super( position );
+      m_normal = normal;
+   }
+
    /**
     * The vertex normal vector.
     */

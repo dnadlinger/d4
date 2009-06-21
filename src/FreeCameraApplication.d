@@ -7,32 +7,41 @@ import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.util.Key;
-import d4.util.SdlApplication;
+import SdlRendererApplication;
 
 /**
  * An application template for SDL applications using a completely free camera.
  *
- * TODO: Remove SdlApplication dependency – Application is perfectly enough.
+ * TODO: Move out of a subclass into a mixin of some sort.
  */
-abstract class FreeCameraApplication : SdlApplication {
+abstract class FreeCameraApplication : SdlRendererApplication {
 protected:
    abstract override void init() {
       super.init();
-
-      m_renderer = new Renderer( screen() );
-      m_renderer.backfaceCulling = BackfaceCulling.CULL_CW;
-      m_renderer.setProjection( PI / 3, 0.5f, 1000f );
 
       m_cameraPosition = Vector3( 0, 0, 10 );
       m_cameraRotation = Quaternion();
    }
 
    abstract override void render( float deltaTime ) {
+      super.render( deltaTime );
       updateCamera( deltaTime );
    }
 
 protected:
-   Renderer m_renderer;
+   final void cameraPosition() {
+      return m_cameraPosition;
+   }
+   final void cameraPosition( Vector3 position ) {
+      m_cameraPosition = position;
+   }
+
+   final void cameraRotation() {
+      return m_cameraRotation;
+   }
+   final void cameraRotation( Quaternion rotation ) {
+      m_cameraRotation = rotation;
+   }
 
 private:
    void updateCamera( float deltaTime ) {
@@ -57,7 +66,7 @@ private:
          m_cameraRotation.append( rotationQuaternion( rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
       }
 
-      Matrix4 invMat = m_renderer.viewMatrix.inversed();
+      Matrix4 invMat = renderer().viewMatrix.inversed();
       Vector3 forwardDirection = -Vector3( invMat.m13, invMat.m23, invMat.m33 );
       Vector3 leftDirection = -Vector3( invMat.m11, invMat.m21, invMat.m31 );
 
@@ -74,7 +83,7 @@ private:
          m_cameraPosition -= leftDirection * deltaTime * movementSpeed;
       }
 
-      m_renderer.viewMatrix = rotationMatrix( m_cameraRotation ) * translationMatrix( -m_cameraPosition );
+      renderer().viewMatrix = rotationMatrix( m_cameraRotation ) * translationMatrix( -m_cameraPosition );
    }
 
    Vector3 m_cameraPosition;

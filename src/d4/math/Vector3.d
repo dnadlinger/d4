@@ -189,3 +189,7 @@ struct Vector3 {
    float y; /// The y component of the vector.
    float z; /// The z component of the vector.
 }
+
+Vector3 normalize( Vector3 vector ) {
+   return vector.normalized();
+}
