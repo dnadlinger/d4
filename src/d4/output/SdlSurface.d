@@ -9,8 +9,9 @@ import d4.output.Surface;
  */
 class SdlSurface : Surface {
 public:
-   this( SDL_Surface* sdlSurface ) {
+   this( SDL_Surface* sdlSurface, bool mustLock ) {
       m_sdlSurface = sdlSurface;
+      m_mustLock = mustLock;
    }
 
    override uint width() {
@@ -20,9 +21,19 @@ public:
    override uint height() {
       return m_sdlSurface.h;
    }
+   
+   override void lock() {
+      super.lock();
+      if ( m_mustLock ) {
+         SDL_LockSurface( m_sdlSurface );
+      }
+   }
 
    override void unlock() {
       super.unlock();
+      if ( m_mustLock ) {
+         SDL_UnlockSurface( m_sdlSurface );
+      }
       SDL_Flip( m_sdlSurface );
    }
 
@@ -38,4 +49,5 @@ public:
 
 private:
    SDL_Surface* m_sdlSurface;
+   bool m_mustLock;
 }

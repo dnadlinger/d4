@@ -98,11 +98,7 @@ private:
          throw new Exception( "SDL video surface pixel format mismatch." );
       }
 
-      if ( SDL_MUSTLOCK( surface ) ) {
-         throw new Exception( "SDL video surface has to be locked, which is not implemeted yet." );
-      }
-
-      m_screen = new SdlSurface( surface );
+      m_screen = new SdlSurface( surface, SDL_MUSTLOCK( surface ) );
       Stdout( "done." ).newline;
    }
 
