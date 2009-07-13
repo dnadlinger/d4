@@ -122,10 +122,7 @@ private:
 class SpinningLights : FreeCameraApplication {
    this( char[][] args ) {
       // Parse command line options.
-      if ( args.length < 2 ) {
-         // Render a white »room« by default if no model file is given.
-         m_scene = new RoomScene( 5 );
-      } else {
+      if ( args.length > 1 ) {
          m_scene = new AssimpScene( args[ 1 ] );
       }
    }
@@ -133,6 +130,13 @@ class SpinningLights : FreeCameraApplication {
 protected:
    override void init() {
       super.init();
+
+      auto room = new RoomScene( 8 );
+      if ( m_scene is null ) {
+         m_scene = room;
+      } else {
+         m_scene.rootNode.addChild( room.rootNode );
+      }
 
       // TODO: Add global material override function to material manager instead?
       m_material = new Material();
