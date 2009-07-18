@@ -1,0 +1,3 @@
+[submodule "libs/dAssimp"]
+	path = libs/dAssimp
+	url = git://github.com/klickverbot/dAssimp.git
