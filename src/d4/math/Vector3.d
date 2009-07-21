@@ -24,7 +24,7 @@ struct Vector3 {
    }
 
    /**
-    * Negates the vector (negales all compontents).
+    * Negates the vector (negates all compontents).
     *
     * Returns: The negated vector.
     */
