@@ -22,18 +22,20 @@ import d4.scene.Scene;
 import d4.scene.TexturedNormalVertex;
 
 /**
- * Provides functionality to load and access a scene by using the Assimp library.
+ * Provides functionality to load and access a scene by using the Assimp
+ * library.
  */
 class AssimpScene : Scene {
    /**
     * Constructs a new scene object with the contents from a scene file.
     *
     * Params:
-    *     fileName = The file to load (see Assimp docs for accepted file formats).
-    *     normalType = If no normals are found in the model file, Assimp
-    *        generates a set of normals. This parameter specifies whether
-    *        they will be smoothed.
-    *     fakeColors = If fake vertex colors should be generated.
+    *    fileName = The file to load (see Assimp docs for accepted file
+    *       formats).
+    *    normalType = If no normals are found in the model file, Assimp
+    *       generates a set of normals. This parameter specifies whether
+    *       they will be smoothed.
+    *    fakeColors = If fake vertex colors should be generated.
     */
    this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
       // Make sure that the Assimp library is loaded.
@@ -57,10 +59,12 @@ class AssimpScene : Scene {
 
       auto sceneFile = FilePath( standardizePath( fileName ) );
 
-      aiScene* scene = aiImportFile( toStringz( sceneFile.toString() ), importFlags );
+      aiScene* scene = aiImportFile(
+         toStringz( sceneFile.toString() ), importFlags );
 
       if ( scene is null ) {
-         throw new Exception( "Failed to load scene from file: " ~ fromStringz( aiGetErrorString() ) );
+         throw new Exception( "Failed to load scene from file: " ~
+            fromStringz( aiGetErrorString() ) );
       }
 
       if ( scene.mRootNode is null ) {
@@ -70,14 +74,15 @@ class AssimpScene : Scene {
       char[] scenePath = sceneFile.path();
 
       for ( uint i = 0; i < scene.mNumMaterials; ++i ) {
-         m_materials ~= importMaterial( *( scene.mMaterials[ i ] ), *scene, scenePath );
+         m_materials ~= importMaterial(
+            scene.mMaterials[ i ], scene, scenePath );
       }
 
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
-         m_meshes ~= importMesh( *( scene.mMeshes[ i ] ), fakeColors );
+         m_meshes ~= importMesh( scene.mMeshes[ i ], fakeColors );
       }
 
-      m_rootNode = importNode( *( scene.mRootNode ) );
+      m_rootNode = importNode( scene.mRootNode );
 
       uint triangleCount = 0;
       foreach ( mesh; m_meshes ) {
@@ -86,12 +91,19 @@ class AssimpScene : Scene {
 
       // Print some statistics.
       Stdout( "done." ).newline;
-      Stdout.format( "Imported {} triangles in {} meshes, with a total of {} materials.",
-         triangleCount, m_meshes.length, m_materials.length ).newline;
-      Stdout.format( "{} of the meshes had textures applied, "
-         "{} of the meshes were imported with the vertex colors, "
-         "{} with the default colors and {} using fake colors.",
-         m_texturedMeshCount, m_coloredMeshCount, m_defaultColorMeshCount, m_fakeColorMeshCount ).newline;
+      Stdout.format(
+         "Imported {} triangles in {} meshes, with a total of {} materials.",
+         triangleCount, m_meshes.length, m_materials.length
+      ).newline;
+      Stdout.format(
+         "{} of the meshes had textures applied, "
+            "{} of the meshes were imported with the vertex colors, "
+            "{} with the default colors and {} using fake colors.",
+         m_texturedMeshCount,
+         m_coloredMeshCount,
+         m_defaultColorMeshCount,
+         m_fakeColorMeshCount
+      ).newline;
 
       // Everything is parsed into our internal structures, we don't need the
       // Assimp scene object and the functions from the library anymore.
@@ -107,17 +119,22 @@ class AssimpScene : Scene {
    }
 
 private:
-   BasicMaterial importMaterial( aiMaterial material, aiScene scene, char[] modelPath ) {
+   BasicMaterial importMaterial( aiMaterial* material, aiScene* scene,
+      char[] modelPath ) {
+
       BasicMaterial result = new BasicMaterial();
 
       // Read wireframe mode.
       int useWireframe = 0;
-      aiGetMaterialInteger( &material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
+      aiGetMaterialInteger(
+         material, AI_MATKEY_ENABLE_WIREFRAME, 0, 0, &useWireframe );
       result.wireframe = ( useWireframe == 1 );
 
       // Read the first diffuse texture (if any).
       aiString targetString;
-      if ( aiGetMaterialTexture( &material, aiTextureType.DIFFUSE, 0, &targetString ) == aiReturn.SUCCESS ) {
+      if ( aiGetMaterialTexture( material, aiTextureType.DIFFUSE, 0,
+         &targetString ) == aiReturn.SUCCESS ) {
+
          char[] textureFileName = importString( &targetString );
 
          DevilImporter imageLoader = new DevilImporter();
@@ -125,38 +142,46 @@ private:
 
          if ( textureFileName[ 0 ] == '*' ) {
             // The texture is embedded into the file.
-            aiTexture* texture = scene.mTextures[ toInt( textureFileName[ 1 .. $ ] ) ];
+            aiTexture* texture =
+               scene.mTextures[ toInt( textureFileName[ 1 .. $ ] ) ];
 
             uint width = texture.mWidth;
             uint height = texture.mHeight;
 
             if ( height > 0 ) {
                // If it is uncompressed, just copy the data over to a Texture.
-               image = new Texture( width, height, ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
+               image = new Texture( width, height,
+                  ( cast( Color* )texture.pcData )[ 0 .. ( width * height ) ] );
             } else {
                // The image is compressed.
-               image = imageLoader.importData( ( cast( void* )texture.pcData )[ 0 .. width ] );
+               image = imageLoader.importData(
+                  ( cast( void* )texture.pcData )[ 0 .. width ] );
             }
          } else {
             // The texture resides in a seperate file on the hard disk.
-            // Try a few different locations to be error-tolerant in the texture
-            // path specifications.
+            // Try a few different locations to be error-tolerant in the
+            // texture path specifications.
             auto textureFilePath = new FilePath( textureFileName );
             try {
-               // The texture path is probably stored relative to the model file.
+               // The texture path is probably stored relative to the model
+               // file.
                image = imageLoader.importFile( modelPath ~ textureFileName );
             } catch {
                try {
-                  // Maybe the exporter has erroneously stored an absolute path,
-                  // try using just the file name.
-                  image = imageLoader.importFile( modelPath ~ textureFilePath.name ~ textureFilePath.suffix );
+                  // Maybe the exporter has erroneously stored an absolute
+                  // path, try using just the file name.
+                  image = imageLoader.importFile( modelPath ~
+                     textureFilePath.name ~ textureFilePath.suffix );
                } catch {
                   try {
-                     // Maybe the absolute path is correct? This should not happen though.
+                     // Maybe the absolute path is correct? This should not
+                     // happen though.
                      image = imageLoader.importFile( textureFileName );
-                     Stdout( "A texture file was specified with an absoule path: ")( textureFileName );
+                     Stdout( "A texture file was specified with an " ~
+                        "absoule path: " )( textureFileName );
                   } catch {
-                     throw new Exception( "Couldn't find texture file: " ~ textureFileName );
+                     throw new Exception(
+                        "Couldn't find texture file: " ~ textureFileName );
                   }
                }
             }
@@ -173,7 +198,7 @@ private:
       return result;
    }
 
-   Mesh importMesh( aiMesh mesh, bool fakeColors ) {
+   Mesh importMesh( aiMesh* mesh, bool fakeColors ) {
       Mesh result = new Mesh();
 
       // If assimp's preprocessing worked correctly, the mesh should not be
@@ -208,14 +233,16 @@ private:
       } else {
          ++m_defaultColorMeshCount;
          // TODO: Use material color.
-         result.vertices = importVerticesWithFixedColor( mesh, Color( 255, 255, 255 ) );
+         result.vertices = importVerticesWithFixedColor(
+            mesh, Color( 255, 255, 255 ) );
       }
 
       // Import all the indices/faces.
       for ( uint i = 0; i < mesh.mNumFaces; ++i ) {
          aiFace face = mesh.mFaces[ i ];
 
-         // Since we are dealing with triangles, every face must have three vertices.
+         // Since we are dealing with triangles, every face must have thre
+         // vertices.
          assert( face.mNumIndices == 3 );
 
          result.indices ~= face.mIndices[ 0 ];
@@ -226,12 +253,12 @@ private:
       return result;
    }
 
-   ColoredNormalVertex[] importFakeColorVertices( aiMesh mesh ) {
+   ColoredNormalVertex[] importFakeColorVertices( aiMesh* mesh ) {
       ColoredNormalVertex[] result;
 
       // The fake color mechanism assigns a color from the list to each vertex.
-      // If two vertices within colorLookbackLimit have the same position, they
-      // get the same color.
+      // If two vertices within colorLookbackLimit have the same position,
+      // they get the same color.
       Color[] colors = [
          Color( 255, 0, 0 ),
          Color( 0, 255, 0 ),
@@ -270,7 +297,7 @@ private:
       return result;
    }
 
-   ColoredNormalVertex[] importColoredVertices( aiMesh mesh ) {
+   ColoredNormalVertex[] importColoredVertices( aiMesh* mesh ) {
       ColoredNormalVertex[] result;
 
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
@@ -290,7 +317,8 @@ private:
       return result;
    }
 
-   ColoredNormalVertex[] importVerticesWithFixedColor( aiMesh mesh, Color color ) {
+   ColoredNormalVertex[] importVerticesWithFixedColor( aiMesh* mesh, Color color ) {
+
       ColoredNormalVertex[] result;
 
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
@@ -310,7 +338,7 @@ private:
       return result;
    }
 
-   TexturedNormalVertex[] importTexturedVertices( aiMesh mesh ) {
+   TexturedNormalVertex[] importTexturedVertices( aiMesh* mesh ) {
       TexturedNormalVertex[] result;
 
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
@@ -330,7 +358,7 @@ private:
       return result;
    }
 
-   Node importNode( aiNode node ) {
+   Node importNode( aiNode* node ) {
       // TODO: Omit empty nodes as described in the assimp docs?
       Node result = new Node();
 
@@ -343,7 +371,7 @@ private:
       }
 
       for ( uint i = 0; i < node.mNumChildren; ++i ) {
-         result.addChild( importNode( *( node.mChildren[ i ] ) ) );
+         result.addChild( importNode( node.mChildren[ i ] ) );
       }
 
       return result;
