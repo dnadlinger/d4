@@ -1,5 +1,6 @@
 module SdlRendererApplication;
 
+import tango.math.Math : PI;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.util.Key;
