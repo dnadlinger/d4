@@ -3,7 +3,7 @@
  */
 module d4.shader.VertexVariableUtils;
 
-import util.StringMixinUtils;
+import d4.util.StringMixinUtils;
 
 /**
  * Declares a scalar float variable.

@@ -1,4 +1,4 @@
-module util.StringMixinUtils;
+module d4.util.StringMixinUtils;
 
 /**
  * Converts an integer to a string containing all the digits.

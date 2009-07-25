@@ -1,6 +1,6 @@
 module d4.renderer.ZBuffer;
 
-import util.ArrayAllocation;
+import d4.util.ArrayAllocation;
 
 /**
  * A floating point z buffer

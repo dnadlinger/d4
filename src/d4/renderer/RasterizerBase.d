@@ -2,8 +2,6 @@ module d4.renderer.RasterizerBase;
 
 import tango.math.Math : rndint;
 import tango.math.IEEE : RoundingMode, setIeeeRounding;
-import util.ArrayAllocation;
-import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
@@ -16,6 +14,8 @@ import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
 import d4.shader.VertexVariableUtils;
+import d4.util.ArrayAllocation;
+import d4.util.StringMixinUtils;
 
 /**
  * Provides common basic functionality for most kinds of rasterizers.

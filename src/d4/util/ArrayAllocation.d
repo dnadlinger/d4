@@ -1,4 +1,4 @@
-module util.ArrayAllocation;
+module d4.util.ArrayAllocation;
 
 import tango.core.Memory;
 
