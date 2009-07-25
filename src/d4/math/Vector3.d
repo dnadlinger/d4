@@ -190,6 +190,27 @@ struct Vector3 {
    float z; /// The z component of the vector.
 }
 
-Vector3 normalize( Vector3 vector ) {
-   return vector.normalized();
+
+/*
+ * This is an ugly workaround to be able to compile the shader code with LDC
+ * which currently (0.9.1+20090724) does not support CTFE of
+ * tango.math.Math.sqrt() and d4.math.Vector3.opMul().
+ */
+
+float CTFE_sqrt( float x, int pass = 5 ) {
+   if ( pass == 0 ) {
+       return 1f;
+   }
+
+   float previousPass = CTFE_sqrt( x, pass - 1 );
+   return 0.5f * ( previousPass + x / previousPass );
+}
+
+Vector3 CTFE_normalize( Vector3 v ) {
+   float invLength = 1f / CTFE_sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
+   return Vector3(
+      invLength * v.x,
+      invLength * v.y,
+      invLength * v.z
+   );
 }

@@ -12,7 +12,7 @@ module d4.shader.LitSingleColorShader;
 template LitSingleColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.NormalVertex;
 
-   const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
+   const LIGHT_DIRECTION = CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
 
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       NormalVertex nv = cast( NormalVertex ) vertex;

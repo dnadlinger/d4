@@ -34,11 +34,11 @@ template Shader( bool Specular ) {
 
    Color pixelShader( VertexVariables variables ) {
       Vector3 normal = variables.normal.normalized();
-      Vector3 toLight = normalize( shaderConstants.localLightPosition
-         - variables.localPosition );
+      Vector3 toLight = shaderConstants.localLightPosition
+         - variables.localPosition.normalized();
       static if ( Specular ) {
-         Vector3 toCamera = normalize( shaderConstants.localCameraPosition
-            - variables.localPosition );
+         Vector3 toCamera = shaderConstants.localCameraPosition
+            - variables.localPosition.normalized();
       }
 
       float brightness = AMBIENT_INTENSITY;
