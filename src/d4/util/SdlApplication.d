@@ -20,6 +20,7 @@ protected:
       Stdout( "Loading SDL library... " );
       DerelictSDL.load();
       Stdout( "done." ).newline;
+      m_sdlLoaded = true;
 
       initVideo();
 
@@ -30,8 +31,11 @@ protected:
       super.shutdown();
 
       destroyVideo();
-      SDL_Quit();
-      DerelictSDL.unload();
+
+      if ( m_sdlLoaded ) {
+         SDL_Quit();
+         DerelictSDL.unload();
+      }
    }
 
    final override uint currentTicks() {
@@ -98,13 +102,23 @@ private:
          throw new Exception( "SDL video surface pixel format mismatch." );
       }
 
+      m_videoInitialized = true;
+
       m_screen = new SdlSurface( surface, SDL_MUSTLOCK( surface ) );
       Stdout( "done." ).newline;
    }
 
    void destroyVideo() {
-      SDL_QuitSubSystem( SDL_INIT_VIDEO );
+      // Make sure that we quit the SDL video subsystem only if it is
+      // initialized, SDL segfaults otherwise.
+      if ( m_videoInitialized ) {
+         SDL_QuitSubSystem( SDL_INIT_VIDEO );
+      }
+
+      m_videoInitialized = false;
    }
 
    SdlSurface m_screen;
+   bool m_sdlLoaded;
+   bool m_videoInitialized;
 }
