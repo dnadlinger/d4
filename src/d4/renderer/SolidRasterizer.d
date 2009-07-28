@@ -61,9 +61,8 @@ protected:
          VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
          VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
       } else {
-         // Reverse the w division (which was applied for perspective-correct
-         // corrected interpolation) and divide the variables by three to compute
-         // the arithmetic mean.
+         // Calculate the sum of the three vertex variables and divide it by
+         // three to compute the arithmetic mean.
          Color triangleColor = pixelShader( scale(
             add( add( variables[ 0 ], variables[ 1 ] ), variables[ 2 ] ),
             1f/3f
