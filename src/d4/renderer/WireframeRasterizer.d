@@ -1,6 +1,6 @@
 module d4.renderer.WireframeRasterizer;
 
-import tango.math.Math : abs;
+import tango.math.Math : abs, rndint, min;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
@@ -29,11 +29,16 @@ private:
     * Bresenham line algorithm.
     */
    void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
-      int startX = cast( int ) startPos.x;
-      int startY = cast( int ) startPos.y;
+      // »Hack« to display the line even if it lies exactly on the right or
+      // bottom viewport border (looks nicer when demonstrating clipping).
+      int lastX = m_colorBuffer.width - 1;
+      int lastY = m_colorBuffer.height - 1;
 
-      int endX = cast( int ) endPos.x;
-      int endY = cast( int ) endPos.y;
+      int startX = min( rndint( startPos.x ), lastX );
+      int startY = min( rndint( startPos.y ), lastY );
+
+      int endX = min( rndint( endPos.x ), lastX );
+      int endY = min( rndint( endPos.y ), lastY );
 
       int x = startX;
       int y = startY;
@@ -85,7 +90,5 @@ private:
             y += yStep;
          }
       }
-
-      m_colorBuffer.setPixel( endX, endY, color );
    }
 }

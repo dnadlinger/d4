@@ -74,13 +74,6 @@ public:
    final void renderTriangleList( Vertex[] vertices, uint[] indices ) {
       assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
 
-      // Set the FPU to truncation rounding. We have to restore the old state
-      // when leaving the function, otherwise really strange things happen
-      // (most probably, the machine crashes).
-      // TODO: Fix rounding mode issues.
-      // auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
-      // scope ( exit ) setIeeeRounding( oldRoundingMode );
-
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
       TransformedVertex[] transformed;
@@ -428,9 +421,8 @@ private:
          }
       }
 
-      // FIXME: The substaction of 1 is a (temporary?) workaround for off-by-one error.
-      float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
-      float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
+      float halfViewportWidth = 0.5f * m_colorBuffer.width;
+      float halfViewportHeight = 0.5f * m_colorBuffer.height;
 
       for( uint i = 0; i < vertexCount; ++i ) {
          // TODO: How to use a ref instead of a pointer?

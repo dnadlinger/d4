@@ -1,6 +1,7 @@
 module d4.renderer.SolidRasterizer;
 
-import tango.math.Math : ceil, rndint;
+import tango.math.IEEE : RoundingMode, setIeeeRounding;
+import tango.math.Math : rndint;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
@@ -19,24 +20,16 @@ final class SolidRasterizer( bool Gouraud, alias Shader, ShaderParams... ) :
    RasterizerBase!( Gouraud, Shader, ShaderParams ) {
 protected:
    void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
-      // All coordinates have to be clipped to screen space.
-      debug {
-         void sanityCheck( Vector4 pos ) {
-            assert( rndint( ceil( pos.x ) ) >= 0, "Triangle coordinates must not be negative." );
-            assert( rndint( ceil( pos.y ) ) >= 0, "Triangle coordinates must not be negative." );
-            assert( pos.x < m_colorBuffer.width, "Triangle coordinates must not exceed framebuffer size." );
-            assert( pos.y < m_colorBuffer.height, "Triangle coordinates must not exceed framebuffer size." );
-         }
+      // Set rounding mode for rndint to make it behave like ceil().
+      auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDUP );
+      scope ( exit ) setIeeeRounding( oldRoundingMode );
 
-         sanityCheck( positions[ 0 ] );
-         sanityCheck( positions[ 1 ] );
-         sanityCheck( positions[ 2 ] );
-      }
+      // ---
 
       // Calculate the triangle »gradients«.
-      // The vertex at index 0 is the base vertex for the gradient calculations.
-      // In screen space, the y-axis points in the other direction, so we have
-      // to negate the y gradients.
+      // The vertex at index 0 is the base vertex for the gradient
+      // calculations. In screen space, the y-axis points in the other
+      // direction, so we have to negate the y gradients.
       float deltaX1 = positions[ 1 ].x - positions[ 0 ].x;
       float deltaX2 = positions[ 2 ].x - positions[ 0 ].x;
       float deltaY1 = positions[ 1 ].y - positions[ 0 ].y;
@@ -56,10 +49,19 @@ protected:
       float dwPerDy = -( deltaW1 * deltaX2 - deltaW2 * deltaX1 ) * invDenominator;
 
       static if ( Gouraud ) {
+         // Calculate the gradients for the vertex variable too so we can step
+         // them in rasterizeScanline() like the other values when doing
+         // Gouraud shading.
          VertexVariables deltaVars1 = substract( variables[ 1 ], variables[ 0 ] );
          VertexVariables deltaVars2 = substract( variables[ 2 ], variables[ 0 ] );
-         VertexVariables dVarsPerDx = scale( substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ), invDenominator );
-         VertexVariables dVarsPerDy = scale( substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ), -invDenominator );
+         VertexVariables dVarsPerDx = scale(
+            substract( scale( deltaVars1, deltaY2 ), scale( deltaVars2, deltaY1 ) ),
+            invDenominator
+         );
+         VertexVariables dVarsPerDy = scale(
+            substract( scale( deltaVars1, deltaX2 ), scale( deltaVars2, deltaX1 ) ),
+            -invDenominator
+         );
       } else {
          // Calculate the sum of the three vertex variables and divide it by
          // three to compute the arithmetic mean.
@@ -69,9 +71,13 @@ protected:
          ) );
       }
 
+      // ---
+
       Color* colorBuffer = m_colorBuffer.pixels;
       float* zBuffer = m_zBuffer.data;
 
+      // Function to rasterize a single scanline. This accesses, but does not
+      // modify colorBuffer, zBuffer and the gradients computed above.
       void rasterizeScanline( uint pixelCount, uint startBufferIndex,
          float startZ, float startW, VertexVariables* startVariables ) {
 
@@ -107,6 +113,8 @@ protected:
          }
       }
 
+      // ---
+
       // Sort vertices by y-coordinate. Instead of moving around the actual data,
       // we just store indices to the positions/variables array.
       uint i0 = 0;
@@ -134,19 +142,24 @@ protected:
       assert( p0.y <= p1.y, "y-sorting failed (p1.y < p0.y)" );
       assert( p1.y <= p2.y, "y-sorting failed (p2.y < p1.y)" );
 
-      // Slopes for stepping.
-      float xStep0 = ( p1.y - p0.y > 0.f ) ? ( p1.x - p0.x ) / ( p1.y - p0.y ) : 0.f;
-      float xStep1 = ( p2.y - p0.y > 0.f ) ? ( p2.x - p0.x ) / ( p2.y - p0.y ) : 0.f;
-      float xStep2 = ( p2.y - p1.y > 0.f ) ? ( p2.x - p1.x ) / ( p2.y - p1.y ) : 0.f;
+      // ---
 
       // Rasterize the triangle.
       // For this, the triangle is divided in the upper and the lower part.
-      float x0;
-      float x1;
+
+      // Calculate the slopes (dx/dy) of the triangle edges. They are used to
+      // calculate the new x coordinates of the scanline borders when the
+      // scanline is advanced.
+      float xStep0 = ( p1.y - p0.y > 0f ) ? ( p1.x - p0.x ) / ( p1.y - p0.y ) : 0f;
+      float xStep1 = ( p2.y - p0.y > 0f ) ? ( p2.x - p0.x ) / ( p2.y - p0.y ) : 0f;
+      float xStep2 = ( p2.y - p1.y > 0f ) ? ( p2.x - p1.x ) / ( p2.y - p1.y ) : 0f;
+
+      float leftX;
+      float rightX;
       uint currentY;
       uint bottomY;
-      float xDelta0;
-      float xDelta1;
+      float leftDxPerDy;
+      float rightDxPerPy;
 
       uint lineStartBufferIndex;
       uint bufferLineStride = m_colorBuffer.width;
@@ -155,12 +168,14 @@ protected:
       // modifies the variables defined above!
       void rasterizeCurrentPart() {
          while ( currentY < bottomY ) {
-            uint intX0 = rndint( ceil( x0 ) );
-            uint intX1 = rndint( ceil( x1 ) );
+            // Left and right edge of the scanline. The pixel on the left edge
+            // is drawn, the one on the right is not.
+            int intLeftX = rndint( leftX );
+            int intRightX = rndint( rightX );
 
-            if ( intX0 < intX1 ) {
+            if ( intLeftX < intRightX ) {
                // We used vertex 0 as base for the gradient calculations.
-               float relativeX = cast( float ) intX0 - positions[ 0 ].x;
+               float relativeX = cast( float ) intLeftX - positions[ 0 ].x;
                float relativeY = cast( float ) currentY - positions[ 0 ].y;
 
                float lineStartZ = positions[ 0 ].z + relativeX * dzPerDx + relativeY * dzPerDy;
@@ -169,51 +184,51 @@ protected:
                static if ( Gouraud ) {
                   VertexVariables lineStartVars = add( variables[ 0 ],
                      add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
-                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, &lineStartVars );
+                  rasterizeScanline( ( intRightX - intLeftX ), ( lineStartBufferIndex + intLeftX ), lineStartZ, lineStartW, &lineStartVars );
                } else {
-                  rasterizeScanline( ( intX1 - intX0 ), ( lineStartBufferIndex + intX0 ), lineStartZ, lineStartW, null );
+                  rasterizeScanline( ( intRightX - intLeftX ), ( lineStartBufferIndex + intLeftX ), lineStartZ, lineStartW, null );
                }
             }
 
             ++currentY;
-            x0 += xDelta0;
-            x1 += xDelta1;
+            leftX += leftDxPerDy;
+            rightX += rightDxPerPy;
             lineStartBufferIndex += bufferLineStride;
          }
       }
 
       // First, draw the upper part.
-      x0 = p0.x;
-      x1 = p0.x;
-      currentY = rndint( ceil( p0.y ) );
-      bottomY = rndint( ceil( p1.y ) );
+      leftX = p0.x;
+      rightX = p0.x;
+      currentY = rndint( p0.y );
+      bottomY = rndint( p1.y );
       if ( xStep0 > xStep1 ) {
-         xDelta0 = xStep1;
-         xDelta1 = xStep0;
+         leftDxPerDy = xStep1;
+         rightDxPerPy = xStep0;
       } else {
-         xDelta0 = xStep0;
-         xDelta1 = xStep1;
+         leftDxPerDy = xStep0;
+         rightDxPerPy = xStep1;
       }
 
       float yPreStep = ( cast( float ) currentY ) - p0.y;
-      x0 += xDelta0 * yPreStep;
-      x1 += xDelta1 * yPreStep;
+      leftX += leftDxPerDy * yPreStep;
+      rightX += rightDxPerPy * yPreStep;
 
       lineStartBufferIndex = currentY * bufferLineStride;
       rasterizeCurrentPart();
 
       // Now draw the lower part (currentY is now the previous bottomY).
-      bottomY = rndint( ceil( p2.y ) );
+      bottomY = rndint( p2.y );
 
       yPreStep = ( cast( float ) currentY ) - p1.y;
       if ( xStep1 > xStep2 ) {
-         xDelta0 = xStep1;
-         xDelta1 = xStep2;
-         x1 = p1.x + xDelta1 * yPreStep;
+         leftDxPerDy = xStep1;
+         rightDxPerPy = xStep2;
+         rightX = p1.x + rightDxPerPy * yPreStep;
       } else {
-         xDelta0 = xStep2;
-         xDelta1 = xStep1;
-         x0 = p1.x + xDelta0 * yPreStep;
+         leftDxPerDy = xStep2;
+         rightDxPerPy = xStep1;
+         leftX = p1.x + leftDxPerDy * yPreStep;
       }
 
       rasterizeCurrentPart();
