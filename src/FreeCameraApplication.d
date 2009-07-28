@@ -15,6 +15,11 @@ import SdlRendererApplication;
  * TODO: Move out of a subclass into a mixin of some sort.
  */
 abstract class FreeCameraApplication : SdlRendererApplication {
+public:
+   this( char[][] args ) {
+      super( args );
+   }
+
 protected:
    abstract override void init() {
       super.init();
@@ -28,7 +33,6 @@ protected:
       updateCamera( deltaTime );
    }
 
-protected:
    final void cameraPosition() {
       return m_cameraPosition;
    }

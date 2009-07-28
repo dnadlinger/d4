@@ -1,3 +1,13 @@
+/**
+ * Simple example demonstrating more complex per-pixel lighting by displaying
+ * a scene illuminated by two colored point lights moving around.
+ *
+ * If a model file is passed at the command line, it is loaded. A simple »room«
+ * is displayed otherwise.
+ *
+ * Additional parameters:
+ *  -display-room: Displays the »room« even if a model file is specified.
+ */
 module SpinningLights;
 
 import d4.format.AssimpScene;
@@ -15,6 +25,7 @@ import d4.shader.VertexVariableUtils;
 import util.EntryPoint;
 import FreeCameraApplication;
 import RoomScene;
+
 
 template Shader() {
    import tango.math.Math : sqrt;
@@ -121,10 +132,7 @@ private:
 
 class SpinningLights : FreeCameraApplication {
    this( char[][] args ) {
-      // Parse command line options.
-      if ( args.length > 1 ) {
-         m_scene = new AssimpScene( args[ 1 ] );
-      }
+      super( args );
    }
 
 protected:
@@ -134,7 +142,7 @@ protected:
       auto room = new RoomScene( 8 );
       if ( m_scene is null ) {
          m_scene = room;
-      } else {
+      } else if ( m_displayRoom ) {
          m_scene.rootNode.addChild( room.rootNode );
       }
 
@@ -162,8 +170,29 @@ protected:
       super.shutdown();
    }
 
+   override void handleSwitchArgument( char[] name ) {
+      switch ( name ) {
+         case "display-room":
+            m_displayRoom = true;
+            break;
+         default:
+            super.handleSwitchArgument( name );
+            break;
+      }
+   }
+
+   override void handleUnnamedArguments( char[][] values ) {
+      if ( values.length > 0 ) {
+         // Call the superclass function first to get a nice error message for
+         // too many arguments if
+         super.handleUnnamedArguments( values[ 0..($-1) ] );
+         m_scene = new AssimpScene( values[ $ - 1 ] );
+      }
+   }
+
 private:
    char[] m_sceneFileName;
+   bool m_displayRoom;
    Scene m_scene;
    Material m_material;
 }

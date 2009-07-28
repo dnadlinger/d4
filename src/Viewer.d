@@ -4,9 +4,9 @@
  * Expects at least one parameter, the model file to display.
  *
  * Additional parameters:
- *   - smoothNormals: If there are no normals present in the model file,
+ *   - smooth-normals: If there are no normals present in the model file,
  *     smoothed ones are generated (hard faces otherwise).
- *   - fakeColors: Assings a random color to each vertex.
+ *   - fake-colors: Assings a random color to each vertex.
  */
 module Viewer;
 
@@ -31,20 +31,7 @@ import FreeCameraApplication;
 class Viewer : FreeCameraApplication {
 public:
    this( char[][] args ) {
-      // Parse command line options.
-      if ( args.length < 2 ) {
-         throw new Exception( "Please specify a model file at the command line." );
-      }
-
-      m_sceneFileName = args[ 1 ];
-
-      if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-         m_generateSmoothNormals = true;
-      }
-
-      if ( contains( args[ 2..$ ], "fakeColors" ) ) {
-         m_fakeColors = true;
-      }
+      super( args );
    }
 protected:
    override void init() {
@@ -53,7 +40,8 @@ protected:
       assert( m_sceneFileName.length > 0 );
 
       Stdout.newline;
-      m_scene = new AssimpScene( m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
+      m_scene = new AssimpScene(
+         m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
 
       m_rotateWorld = false;
       m_animateBackground = false;
@@ -94,6 +82,31 @@ protected:
             // Do nothing.
             break;
       }
+   }
+
+   override void handleSwitchArgument( char[] name ) {
+      switch ( name ) {
+         case "smooth-normals":
+            m_generateSmoothNormals = true;
+            break;
+         case "fake-colors":
+            m_fakeColors = true;
+            break;
+         default:
+            super.handleSwitchArgument( name );
+            break;
+      }
+   }
+
+   override void handleUnnamedArguments( char[][] values ) {
+      if ( values.length == 0 ) {
+         throw new Exception(
+            "Please specify a model file to load at the command line." );
+      }
+
+      m_sceneFileName = values[ $ - 1 ];
+
+      super.handleUnnamedArguments( values[ 0..($-1) ] );
    }
 
 private:

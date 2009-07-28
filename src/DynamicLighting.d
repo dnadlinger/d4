@@ -86,7 +86,8 @@ class Material : IMaterial {
       m_rasterizer.shaderConstants.localLightPosition =
          renderer.worldMatrix.inversed().transformLinear( Vector3( 0, 4, 2 ) );
       m_rasterizer.shaderConstants.localCameraPosition =
-         ( renderer.worldMatrix * renderer.viewMatrix ).inversed().transformLinear( Vector3( 0, 0, 0 ) );
+         ( renderer.worldMatrix * renderer.viewMatrix ).inversed().
+         transformLinear( Vector3( 0, 0, 0 ) );
    }
 
    bool usesTextures() {
@@ -101,18 +102,16 @@ private:
 
 class DynamicLighting : FreeCameraApplication {
    this( char[][] args ) {
-      // Parse command line options.
-      if ( args.length < 2 ) {
-         // Render a white »room« by default if no model file is given.
-         m_scene = new RoomScene( 5 );
-      } else {
-         m_scene = new AssimpScene( args[ 1 ] );
-      }
+      super( args );
    }
 
 protected:
    override void init() {
       super.init();
+
+      if ( m_scene is null ) {
+         m_scene = new RoomScene( 5 );
+      }
 
       // TODO: Add global material override function to material manager instead?
       auto material = new Material();
@@ -134,6 +133,13 @@ protected:
 
    override void shutdown() {
       super.shutdown();
+   }
+
+   override void handleUnnamedArguments( char[][] values ) {
+      if ( values.length > 0 ) {
+         m_scene = new AssimpScene( values[ $ - 1 ] );
+         super.handleUnnamedArguments( values[ 0..($-1) ] );
+      }
    }
 
 private:

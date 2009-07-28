@@ -1,7 +1,6 @@
 module SdlRendererApplication;
 
 import tango.math.Math : PI;
-import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.util.Key;
 import d4.util.SdlApplication;
@@ -16,6 +15,11 @@ enum ShadingMode {
 }
 
 abstract class SdlRendererApplication : SdlApplication {
+public:
+   this( char[][] args ) {
+      super( args );
+   }
+
 protected:
    abstract override void init() {
       super.init();
