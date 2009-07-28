@@ -59,15 +59,6 @@ public:
          // Keep track of the total time the app is running.
          m_totalTicksPassed += deltaTicks;
 
-         // Detect slow frames – frames that have took siginficantely longer
-         // than the previous one. Could be a hint to certain problems like
-         // unwanted garbage collector activity.
-         const triggerLevel = 9;
-         if ( deltaTicks > ( lastDeltaTicks * triggerLevel ) ) {
-            Stdout.format( "Possible slow frame detected ({} ms).", deltaTicks ).newline;
-         }
-         lastDeltaTicks = deltaTicks;
-
          // Average the framerate over FPS_UPDATE_INTERVAL.
          m_fpsSamplingDuration += deltaTicks;
          ++m_framesInSample;
