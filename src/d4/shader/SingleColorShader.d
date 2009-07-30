@@ -23,7 +23,5 @@ template SingleColorShader() {
       return Color( 255, 255, 255 );
    }
 
-   struct VertexVariables {
-      float[0] values;
-   }
+   struct VertexVariables {}
 }

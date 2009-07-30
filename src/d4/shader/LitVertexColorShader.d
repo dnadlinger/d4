@@ -24,15 +24,14 @@ template LitVertexColorShader( float ambientLevel, float lightDirX, float lightD
          lightIntensity = ambientLevel;
       }
       position = worldViewProjMatrix * cnv.position;
-      variables.color = cnv.color * lightIntensity;
+      variables.color = colorToVector3( cnv.color ) * lightIntensity;
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return variables.color;
+      return vector3ToColor( variables.color );
    }
 
    struct VertexVariables {
-      float[3] values;
-      mixin( colorNoAlphaVariable!( "color", 0 ) );
+      Vector3 color;
    }
 }

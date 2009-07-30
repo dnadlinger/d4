@@ -36,7 +36,6 @@ template LitSingleColorShader( float ambientLevel, float lightDirX, float lightD
    }
 
    struct VertexVariables {
-      float[1] values;
-      mixin( floatVariable!( "brightness", 0 ) );
+      float brightness;
    }
 }

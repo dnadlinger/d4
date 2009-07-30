@@ -34,8 +34,7 @@ template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY,
    }
 
    struct VertexVariables {
-      float[3] values;
-      mixin( vector2Variable!( "texCoords", 0 ) );
-      mixin( floatVariable!( "brightness", 2 ) );
+      float brightness;
+      Vector2 texCoords;
    }
 }

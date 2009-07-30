@@ -13,7 +13,6 @@ import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
-import d4.shader.VertexVariableUtils;
 import d4.util.ArrayAllocation;
 import d4.util.StringMixinUtils;
 
@@ -37,14 +36,13 @@ protected:
     *
     *  - Color pixelShader( VertexVariables variables );
     *
-    *  - struct VertexVariables{}: presenting an array of float values[] which
-    *    are per-vertex paramters which are interpolated and passed to the
-    *    pixel shader.
+    *  - struct VertexVariables{}: any <code>float</code> values in this struct
+    *    are linearely interpolated and passed to the pixel shader.
     *
     * It may provide:
     *  - struct ShaderConstants{}: the instance accesible via shaderConstants()
-    *    can be used to pass values which need to be modified at runtime to the
-    *    shader.
+    *    can be used to pass values to the shader which need to be modified at
+    *    runtime.
     */
    mixin Shader!( ShaderParams );
    static if ( !is ( ShaderConstants ) ) { struct ShaderConstants{} }
@@ -328,33 +326,65 @@ protected:
    /*
     * Helper functions for handling VertexVariables.
     */
-   final VertexVariables scale( VertexVariables variables, float factor ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = variables.values[ i ] * factor;
-      // }
-      mixin( stringUnroll( "result.values[", "] = variables.values[", "] * factor;",
-         result.values.length ) );
+   final T scale( T )( T vector, float factor ) {
+      T result;
+      foreach ( i, value; vector.tupleof ) {
+         alias typeof( value ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = value * factor;
+         } else static if ( is( ElementType == class ) || is ( ElementType == struct )  ) {
+            result.tupleof[ i ] = scale( value, factor );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
       return result;
    }
 
-   final VertexVariables add( VertexVariables first, VertexVariables second ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = first.values[ i ] + second.values[ i ];
-      // }
-      mixin( stringUnroll( "result.values[", "] = first.values[", "] + second.values[", "];",
-         result.values.length ) );
+   final T add( T )( T first, T second ) {
+      T result;
+      foreach ( i, dummy; result.tupleof ) {
+         alias typeof( result.tupleof[ i ] ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = first.tupleof[ i ] + second.tupleof[ i ];
+         } else static if ( is( ElementType == class ) || is ( ElementType == struct ) ) {
+            result.tupleof[ i ] = add( first.tupleof[ i ], second.tupleof[ i ] );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
       return result;
    }
 
-   final VertexVariables substract( VertexVariables first, VertexVariables second ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = first.values[ i ] - second.values[ i ];
-      // }
-      mixin( stringUnroll( "result.values[", "] = first.values[", "] - second.values[", "];",
-         result.values.length ) );
+   final T substract( T )( T first, T second ) {
+      T result;
+      foreach ( i, dummy; result.tupleof ) {
+         alias typeof( result.tupleof[ i ] ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = first.tupleof[ i ] - second.tupleof[ i ];
+         } else static if ( is( ElementType == class ) || is ( ElementType == struct ) ) {
+            result.tupleof[ i ] = substract( first.tupleof[ i ], second.tupleof[ i ] );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
+      return result;
+   }
+
+   Color vector3ToColor( Vector3 vector ) {
+      Color result = void;
+      result.a = 255;
+      result.r = cast( ubyte )vector.x;
+      result.g = cast( ubyte )vector.y;
+      result.b = cast( ubyte )vector.z;
+      return result;
+   }
+
+   Vector3 colorToVector3( Color color ) {
+      Vector3 result = void;
+      result.x = cast( float )color.r / 255f;
+      result.y = cast( float )color.g / 255f;
+      result.z = cast( float )color.b / 255f;
       return result;
    }
 
