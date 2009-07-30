@@ -459,12 +459,16 @@ private:
 
    /**
     * View frustrum (clipping) planes for homogeneous clipping.
+    *
+    * HACK: They are nudged slightly so that floating point inaccuracies do not
+    *    lead to artifacts with the top-left filling convention.
     */
+   const float VIEWPORT_NUDGE = 0.00001f;
    const CLIPPING_PLANES = [
-      Plane( 1, 0, 0, 1 ),   // Left
-      Plane( -1, 0, 0, 1 ),  // Right
-      Plane( 0, -1, 0, 1 ),  // Top
-      Plane( 0, 1, 0, 1 ),   // Bottom
+      Plane( 1, 0, 0, 1 + VIEWPORT_NUDGE ),   // Left
+      Plane( -1, 0, 0, 1 - VIEWPORT_NUDGE ),  // Right
+      Plane( 0, -1, 0, 1 + VIEWPORT_NUDGE ),  // Top
+      Plane( 0, 1, 0, 1 - VIEWPORT_NUDGE ),   // Bottom
       Plane( 0, 0, 1, 0 ),   // Near
       Plane( 0, 0, 1, 1 )    // Far
    ];
