@@ -13,6 +13,9 @@ import d4.renderer.RasterizerBase;
  * linearly interpolated (perspective-correct Gouraud shading) or the
  * triangle is drawn using a single color.
  *
+ * As in most renderers, the top-left filling convention is used (see e.g. the
+ * Microsoft Direct3D documentation for details).
+ *
  * Partly inspired by the excellent Muli3D software rasterizer
  * (http://muli3d.sourceforge.net).
  */
@@ -182,11 +185,28 @@ protected:
                float lineStartW = positions[ 0 ].w + relativeX * dwPerDx + relativeY * dwPerDy;
 
                static if ( Gouraud ) {
-                  VertexVariables lineStartVars = add( variables[ 0 ],
-                     add( scale( dVarsPerDx, relativeX ), scale( dVarsPerDy, relativeY ) ) );
-                  rasterizeScanline( ( intRightX - intLeftX ), ( lineStartBufferIndex + intLeftX ), lineStartZ, lineStartW, &lineStartVars );
+                  VertexVariables lineStartVars = add(
+                     variables[ 0 ],
+                     add(
+                        scale( dVarsPerDx, relativeX ),
+                        scale( dVarsPerDy, relativeY )
+                     )
+                  );
+                  rasterizeScanline(
+                     ( intRightX - intLeftX ),
+                     ( lineStartBufferIndex + intLeftX ),
+                     lineStartZ,
+                     lineStartW,
+                     &lineStartVars
+                  );
                } else {
-                  rasterizeScanline( ( intRightX - intLeftX ), ( lineStartBufferIndex + intLeftX ), lineStartZ, lineStartW, null );
+                  rasterizeScanline(
+                     ( intRightX - intLeftX ),
+                     ( lineStartBufferIndex + intLeftX ),
+                     lineStartZ,
+                     lineStartW,
+                     null
+                  );
                }
             }
 

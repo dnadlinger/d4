@@ -19,20 +19,24 @@ import d4.util.StringMixinUtils;
 
 /**
  * Provides common basic functionality for most kinds of rasterizers.
- * This includes: shader support, matrix caching, clipping, backface culling, ...
+ * This includes: shader support, matrix caching, clipping, backface culling, …
  *
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
  * every thing else is handled by this class.
  */
-abstract class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+abstract class RasterizerBase( bool PrepareForPerspectiveCorrection,
+   alias Shader, ShaderParams... ) : IRasterizer {
 protected:
    /**
     * Imports the shader template passed to the class template into the class
     * scope.
     *
     * The shader has to provide:
-    *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
+    *  - void vertexShader( in Vertex vertex, out Vector4 position,
+    *    out VertexVariables variables );
+    *
     *  - Color pixelShader( VertexVariables variables );
+    *
     *  - struct VertexVariables{}: presenting an array of float values[] which
     *    are per-vertex paramters which are interpolated and passed to the
     *    pixel shader.
@@ -72,7 +76,8 @@ public:
     *     indices = The indices referring to the passed vertex array.
     */
    final void renderTriangleList( Vertex[] vertices, uint[] indices ) {
-      assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
+      assert( ( indices.length % 3 == 0 ),
+         "There must be no incomplete triangles." );
 
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
@@ -89,7 +94,8 @@ public:
       }
 
       for ( uint i = 0; i < indices.length; i += 3 ) {
-         renderTriangle( transformed[ indices[ i ] ], transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
+         renderTriangle( transformed[ indices[ i ] ],
+            transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }
 
       free( transformed );
@@ -104,8 +110,10 @@ public:
     *     zBuffer = The z buffer to use.
     */
    final void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
-      assert( colorBuffer.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
-      assert( colorBuffer.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
+      assert( colorBuffer.width == zBuffer.width,
+         "Z buffer width must match framebuffer width." );
+      assert( colorBuffer.height == zBuffer.height,
+         "Z buffer height must match framebuffer height." );
 
       m_colorBuffer = colorBuffer;
       m_zBuffer = zBuffer;
@@ -201,14 +209,40 @@ protected:
    /*
     * Shader interface.
     */
+
+   /**
+    * Returns: A matrix which transforms model normals into world space.
+    */
    final Matrix4 worldNormalMatrix() {
       return m_worldNormalMatrix;
    }
 
+   /**
+    * Returns: A matrix which transforms a vector from model space to clipping
+    *    space.
+    */
    final Matrix4 worldViewProjMatrix() {
       return m_worldViewProjMatrix;
    }
 
+   /**
+    * Reads color information from the specified texture.
+    *
+    * If the first template parameter, <code>bilinearInterpolation</code> is
+    * set to true, bilinear interpolation is used to compute the color value.
+    * Otherwise, the color of thge nearest pixel is returned.
+    *
+    * If the second template parameter, <code>tile</code> is set to true, the
+    * texture is tiled if the coordinates exceed the (0,0)-(1,1) range. If not,
+    * the color values of the edge pixels are repeated (known as »clamping«).
+    *
+    * Params:
+    *    textureIndex = The index of the texture to read from.
+    *    texCoords = The coordinates of the point to read the color information
+    *       from the texture. Note that the OpenGL convention is
+    * Returns:
+    *    The color read from the texture.
+    */
    final Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
 
@@ -219,8 +253,10 @@ protected:
 
       static if ( tile ) {
          // Tile.
-         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) % m_shiftedWidths[ textureIndex ];
-         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) % m_shiftedHeights[ textureIndex ];
+         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) %
+            m_shiftedWidths[ textureIndex ];
+         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) %
+            m_shiftedHeights[ textureIndex ];
          if ( u < 0 ) {
             u += m_shiftedWidths[ textureIndex ];
          }
@@ -292,10 +328,6 @@ protected:
    /*
     * Helper functions for handling VertexVariables.
     */
-   final VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
-      return add( first, scale( substract( second, first ), position ) );
-   }
-
    final VertexVariables scale( VertexVariables variables, float factor ) {
       VertexVariables result;
       // for ( uint i = 0; i < result.values.length; ++i ) {
@@ -327,6 +359,22 @@ protected:
    }
 
    /**
+    * Linearly interpolates between the values[] of two instances of
+    * <code>VertexVariables</code>.
+    *
+    * Params:
+    *    first = The first set of values.
+    *    second = The second set of values.
+    *    position = The position between the variables. 0 for this parameter
+    *       yields first, 1 yields second.
+    * Returns:
+    *    first * position + second * (1-position)
+    */
+   final VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
+      return add( first, scale( substract( second, first ), position ) );
+   }
+
+   /**
     * Convinience struct for storing the transformed vertices.
     */
    struct TransformedVertex {
@@ -335,10 +383,10 @@ protected:
    }
 
    /**
-    * Rasters the specified triangle to the screen.
+    * Rasterizes the specified triangle to the screen.
     *
-    * The values of the per-vertex data at the pixel position are interpolated and
-    * feeded into the pixel shader to compute the color value.
+    * The values of the per-vertex data at the pixel position are interpolated
+    * and fed into the pixel shader to compute the color value.
     *
     * Params:
     *   positions = The vertex positions in screen coordinates.
@@ -385,12 +433,14 @@ private:
    ];
 
    /**
-    * The maximum number of vertices a clipped triangle can have.
-    * 8 because the triangle can be clipped by up to 4 sides of
-    * the viewing volume.
+    * The maximum number of vertices a clipped triangle can have. 8 because
+    * the triangle can be clipped by up to 4 sides of the viewing volume.
     */
    const CLIPPING_BUFFER_SIZE = 8;
 
+   /**
+    * Renders a transformed triangle to the screen.
+    */
    void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
       // Clip all vertices against the view frustrum, which is now a cuboid from
       // [ -1; -1; 0 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
@@ -428,31 +478,33 @@ private:
          // TODO: How to use a ref instead of a pointer?
          TransformedVertex* vertex = &vertices[ i ];
 
-         // Divide the vertex coordinates by w to get the »normal« (projected) positions.
+         // Divide the vertex coordinates by w to get the »normal« (projected)
+         // positions.
          float invW = 1 / vertex.pos.w;
          vertex.pos.x *= invW;
          vertex.pos.y *= invW;
          vertex.pos.z *= invW;
 
          static if ( PrepareForPerspectiveCorrection ) {
-            // Additionally, divide all vertex variables by w so that we can linearely
-            // interpolate between them in screen space. Save invW to the w coordinate
-            // so that we can reconstruct the original values later.
+            // Additionally, divide all vertex variables by w so that we can
+            // linearly interpolate between them in screen space. Save invW to
+            // the w-coordinate so that we can reconstruct the original values
+            // later.
             vertex.vars = scale( vertex.vars, invW );
             vertex.pos.w = invW;
          }
 
-         // Transform the position into viewport coordinates. We have to invert the
-         // y-coordinate because the y-axis is pointing in the other direction in
-         // the viewport coordinate system.
+         // Transform the position into viewport coordinates. We have to invert
+         // the y-coordinate because the y-axis is pointing in the other
+         // direction in the viewport coordinate system.
          vertex.pos.x = ( vertex.pos.x + 1f ) * halfViewportWidth;
          vertex.pos.y = ( 1f - vertex.pos.y ) * halfViewportHeight;
       }
 
-      // As we already have screen coordinates, looking at the z component
-      // of the cross product of two triangle sides is enough. If it is positive,
-      // the triangle normal is pointing away from the camera (screen) which
-      // means that the triangle can be culled.
+      // As we already have screen coordinates, looking at the z-coordinate
+      // of the cross product of two triangle sides is enough. If it is
+      // positive, the vertices are oriented clockwise, if it is negative
+      // the vertices are oriented counter-clockwise.
       // TODO: Better position for this.
       if ( m_backfaceCulling != BackfaceCulling.NONE ) {
          Vector4 p0 = vertices[ 0 ].pos;
@@ -469,6 +521,8 @@ private:
          }
       }
 
+      // Triangulate the polygon produced by clipping and draw each triangle
+      // to the screen.
       uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
          drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
@@ -490,7 +544,6 @@ private:
       TransformedVertex[] targetBuffer, uint vertexCount, Plane plane ) {
       // Due to some function overloading strangeness, we have to alias the other
       // interpolation functions.
-      // TODO: Why is this necessary?
       alias d4.math.Vector4.lerp lerpVector;
       alias lerp lerpVars;
 
