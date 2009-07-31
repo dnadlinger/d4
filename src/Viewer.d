@@ -23,6 +23,7 @@ import d4.scene.Scene;
 import d4.scene.Vertex;
 import d4.util.FreeCameraApplication;
 import d4.util.Key;
+import util.EntryPoint;
 
 /**
  * The main application class.
@@ -137,9 +138,4 @@ private:
    float m_backgroundTime;
 }
 
-import util.EntryPoint;
-debug {
-   mixin EntryPoint!( Viewer, true );
-} else {
-   mixin EntryPoint!( Viewer );
-}
+mixin EntryPoint!( Viewer );
