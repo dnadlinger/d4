@@ -458,6 +458,14 @@ private:
    }
 
    /**
+    * Convinience struct for storing the transformed vertices.
+    */
+   struct TransformedVertex {
+      Vector4 pos;
+      VertexVariables vars;
+   }
+
+   /**
     * View frustrum (clipping) planes for homogeneous clipping.
     */
    const CLIPPING_PLANES = [
@@ -476,12 +484,10 @@ private:
    const CLIPPING_BUFFER_SIZE = 8;
 
    /**
-    * Convinience struct for storing the transformed vertices.
+    * Buffers used to sotre the vertices during and after clipping.
     */
-   struct TransformedVertex {
-      Vector4 pos;
-      VertexVariables vars;
-   }
+   TransformedVertex[ CLIPPING_BUFFER_SIZE ] m_clippingBuffer0;
+   TransformedVertex[ CLIPPING_BUFFER_SIZE ] m_clippingBuffer1; /// ditto
 
    /**
     * Renders a transformed triangle to the screen.
@@ -490,25 +496,24 @@ private:
       // Clip all vertices against the view frustrum, which is now a cuboid from
       // [ -1; -1; 0 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
       // which is fast and happens before the coordinates are divided by w.
-      // We (legitimately?) assume that there are never more than
-      // CLIPPING_BUFFER_SIZE vertices created during clipping.
-      // TODO: Allocate as class member?
-      TransformedVertex[ CLIPPING_BUFFER_SIZE ] vertices;
-      TransformedVertex[ CLIPPING_BUFFER_SIZE ] clippingBuffer;
+      // We assume that there are never more than CLIPPING_BUFFER_SIZE vertices
+      // created during clipping.
+      // We can only work with an even number of clipping planes since we expect
+      // the result to be in m_clippingBuffer0.
+      static assert( CLIPPING_PLANES.length % 2 == 0 );
 
-      vertices[ 0 ] = vertex0;
-      vertices[ 1 ] = vertex1;
-      vertices[ 2 ] = vertex2;
-
+      m_clippingBuffer0[ 0 ] = vertex0;
+      m_clippingBuffer0[ 1 ] = vertex1;
+      m_clippingBuffer0[ 2 ] = vertex2;
       uint vertexCount = 3;
 
       foreach ( i, plane; CLIPPING_PLANES ) {
          if ( i & 1 ) {
-            // Even pass (first pass -> i=0).
-            vertexCount = clipToPlane( clippingBuffer, vertices, vertexCount, plane );
+            // Even (second, forth, ...) pass (i==0 on the first pass).
+            vertexCount = clipToPlane( m_clippingBuffer1, m_clippingBuffer0, vertexCount, plane );
          } else {
-            // Uneven pass.
-            vertexCount = clipToPlane( vertices, clippingBuffer, vertexCount, plane );
+            // Uneven (first, third, ...) pass.
+            vertexCount = clipToPlane( m_clippingBuffer0, m_clippingBuffer1, vertexCount, plane );
          }
          if ( vertexCount < 3 ) {
             // There is nothing left to be drawn.
@@ -516,12 +521,13 @@ private:
          }
       }
 
+      // Transform the vertices to screen coordinates.
       float halfViewportWidth = 0.5f * m_colorBuffer.width;
       float halfViewportHeight = 0.5f * m_colorBuffer.height;
 
       for( uint i = 0; i < vertexCount; ++i ) {
          // TODO: How to use a ref instead of a pointer?
-         TransformedVertex* vertex = &vertices[ i ];
+         TransformedVertex* vertex = &m_clippingBuffer0[ i ];
 
          // Divide the vertex coordinates by w to get the »normal« (projected)
          // positions.
@@ -550,11 +556,11 @@ private:
       // of the cross product of two triangle sides is enough. If it is
       // positive, the vertices are oriented clockwise, if it is negative
       // the vertices are oriented counter-clockwise.
-      // TODO: Better position for this.
+      // TODO: Find the optimal position in the pipeline for this.
       if ( m_backfaceCulling != BackfaceCulling.NONE ) {
-         Vector4 p0 = vertices[ 0 ].pos;
-         Vector4 p1 = vertices[ 1 ].pos;
-         Vector4 p2 = vertices[ 2 ].pos;
+         Vector4 p0 = m_clippingBuffer0[ 0 ].pos;
+         Vector4 p1 = m_clippingBuffer0[ 1 ].pos;
+         Vector4 p2 = m_clippingBuffer0[ 2 ].pos;
 
          float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
          if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ < 0 ) ) {
@@ -570,8 +576,18 @@ private:
       // to the screen.
       uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
-         drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
-            [ vertices[ 0 ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
+         drawTriangle(
+            [
+               m_clippingBuffer0[ 0 ].pos,
+               m_clippingBuffer0[ i + 1 ].pos,
+               m_clippingBuffer0[ i + 2 ].pos
+            ],
+            [
+               m_clippingBuffer0[ 0 ].vars,
+               m_clippingBuffer0[ i + 1 ].vars,
+               m_clippingBuffer0[ i + 2 ].vars
+            ]
+         );
       }
    }
 
