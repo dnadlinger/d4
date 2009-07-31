@@ -1,7 +1,6 @@
 module d4.renderer.RasterizerBase;
 
 import tango.math.Math : rndint;
-import tango.math.IEEE : RoundingMode, setIeeeRounding;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
@@ -36,11 +35,13 @@ protected:
     *
     *  - Color pixelShader( VertexVariables variables );
     *
-    *  - struct VertexVariables{}: any <code>float</code> values in this struct
-    *    are linearely interpolated and passed to the pixel shader.
+    *  - struct VertexVariables{}: This set of vertex shader outputs, which
+    *    has to consist entirely of floats and floats nested in structs
+    *    (e.g. Vector3), is linearly interpolated for each pixel and passed to
+    *    the pixel shader.
     *
     * It may provide:
-    *  - struct ShaderConstants{}: the instance accesible via shaderConstants()
+    *  - struct ShaderConstants{}: The instance accesible via shaderConstants()
     *    can be used to pass values to the shader which need to be modified at
     *    runtime.
     */
@@ -322,17 +323,43 @@ protected:
       }
    }
 
+   /**
+    * Converts a Color to a Vector3 (used to store Color values into
+    * VertexVariables in the vertex shader).
+    */
+   final Vector3 colorToVector3( Color color ) {
+      Vector3 result = void;
+      result.x = cast( float )color.r;
+      result.y = cast( float )color.g;
+      result.z = cast( float )color.b;
+      return result;
+   }
+
+   /**
+    * Converts a Vector3 to a Color (used to retrieve Color values from the
+    * interpolated VertexVariables in the pixel shader).
+    */
+   final Color vector3ToColor( Vector3 vector ) {
+      Color result = void;
+      result.a = 255;
+      result.r = cast( ubyte )vector.x;
+      result.g = cast( ubyte )vector.y;
+      result.b = cast( ubyte )vector.z;
+      return result;
+   }
+
 
    /*
     * Helper functions for handling VertexVariables.
     */
+
    final T scale( T )( T vector, float factor ) {
       T result;
       foreach ( i, value; vector.tupleof ) {
          alias typeof( value ) ElementType;
          static if ( is( ElementType == float ) ) {
             result.tupleof[ i ] = value * factor;
-         } else static if ( is( ElementType == class ) || is ( ElementType == struct )  ) {
+         } else static if ( is ( ElementType == struct )  ) {
             result.tupleof[ i ] = scale( value, factor );
          } else {
             static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
@@ -343,11 +370,11 @@ protected:
 
    final T add( T )( T first, T second ) {
       T result;
-      foreach ( i, dummy; result.tupleof ) {
+      foreach ( i, _; result.tupleof ) {
          alias typeof( result.tupleof[ i ] ) ElementType;
          static if ( is( ElementType == float ) ) {
             result.tupleof[ i ] = first.tupleof[ i ] + second.tupleof[ i ];
-         } else static if ( is( ElementType == class ) || is ( ElementType == struct ) ) {
+         } else static if ( is ( ElementType == struct ) ) {
             result.tupleof[ i ] = add( first.tupleof[ i ], second.tupleof[ i ] );
          } else {
             static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
@@ -358,33 +385,16 @@ protected:
 
    final T substract( T )( T first, T second ) {
       T result;
-      foreach ( i, dummy; result.tupleof ) {
+      foreach ( i, _; result.tupleof ) {
          alias typeof( result.tupleof[ i ] ) ElementType;
          static if ( is( ElementType == float ) ) {
             result.tupleof[ i ] = first.tupleof[ i ] - second.tupleof[ i ];
-         } else static if ( is( ElementType == class ) || is ( ElementType == struct ) ) {
+         } else static if ( is ( ElementType == struct ) ) {
             result.tupleof[ i ] = substract( first.tupleof[ i ], second.tupleof[ i ] );
          } else {
             static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
          }
       }
-      return result;
-   }
-
-   Color vector3ToColor( Vector3 vector ) {
-      Color result = void;
-      result.a = 255;
-      result.r = cast( ubyte )vector.x;
-      result.g = cast( ubyte )vector.y;
-      result.b = cast( ubyte )vector.z;
-      return result;
-   }
-
-   Vector3 colorToVector3( Color color ) {
-      Vector3 result = void;
-      result.x = cast( float )color.r;
-      result.y = cast( float )color.g;
-      result.z = cast( float )color.b;
       return result;
    }
 
@@ -404,13 +414,10 @@ protected:
       return add( first, scale( substract( second, first ), position ) );
    }
 
-   /**
-    * Convinience struct for storing the transformed vertices.
+
+   /*
+    * Interface for Rasterizer implementations.
     */
-   struct TransformedVertex {
-      Vector4 pos;
-      VertexVariables vars;
-   }
 
    /**
     * Rasterizes the specified triangle to the screen.
@@ -467,6 +474,14 @@ private:
     * the triangle can be clipped by up to 4 sides of the viewing volume.
     */
    const CLIPPING_BUFFER_SIZE = 8;
+
+   /**
+    * Convinience struct for storing the transformed vertices.
+    */
+   struct TransformedVertex {
+      Vector4 pos;
+      VertexVariables vars;
+   }
 
    /**
     * Renders a transformed triangle to the screen.
