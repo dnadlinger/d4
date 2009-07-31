@@ -9,8 +9,8 @@ import d4.renderer.Renderer;
 import d4.renderer.SolidRasterizer;
 import d4.scene.Scene;
 import d4.scene.NormalVertex;
+import d4.util.FreeCameraApplication;
 import util.EntryPoint;
-import FreeCameraApplication;
 import RoomScene;
 
 template Shader( bool Specular ) {

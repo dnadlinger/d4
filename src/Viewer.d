@@ -21,8 +21,8 @@ import d4.math.Transformations;
 import d4.scene.Node;
 import d4.scene.Scene;
 import d4.scene.Vertex;
+import d4.util.FreeCameraApplication;
 import d4.util.Key;
-import FreeCameraApplication;
 
 /**
  * The main application class.

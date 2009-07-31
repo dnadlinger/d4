@@ -1,4 +1,4 @@
-module SdlRendererApplication;
+module d4.util.SdlRendererApplication;
 
 import tango.math.Math : PI;
 import d4.renderer.Renderer;

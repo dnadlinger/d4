@@ -1,4 +1,4 @@
-module FreeCameraApplication;
+module d4.util.FreeCameraApplication;
 
 import tango.math.Math : PI;
 import d4.math.Matrix4;
@@ -7,7 +7,7 @@ import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.util.Key;
-import SdlRendererApplication;
+import d4.util.SdlRendererApplication;
 
 /**
  * An application template for SDL applications using a completely free camera.
