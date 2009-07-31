@@ -382,9 +382,9 @@ protected:
 
    Vector3 colorToVector3( Color color ) {
       Vector3 result = void;
-      result.x = cast( float )color.r / 255f;
-      result.y = cast( float )color.g / 255f;
-      result.z = cast( float )color.b / 255f;
+      result.x = cast( float )color.r;
+      result.y = cast( float )color.g;
+      result.z = cast( float )color.b;
       return result;
    }
 
