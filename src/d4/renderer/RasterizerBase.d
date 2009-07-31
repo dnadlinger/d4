@@ -429,7 +429,8 @@ protected:
     *   positions = The vertex positions in screen coordinates.
     *   variables = The per-vertex variables.
     */
-   abstract void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables );
+   abstract void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
+      VertexVariables vars1, Vector4 pos2, VertexVariables vars2 );
 
    /**
     * The color buffer to write the output to.
@@ -577,16 +578,12 @@ private:
       uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
          drawTriangle(
-            [
-               m_clippingBuffer0[ 0 ].pos,
-               m_clippingBuffer0[ i + 1 ].pos,
-               m_clippingBuffer0[ i + 2 ].pos
-            ],
-            [
-               m_clippingBuffer0[ 0 ].vars,
-               m_clippingBuffer0[ i + 1 ].vars,
-               m_clippingBuffer0[ i + 2 ].vars
-            ]
+            m_clippingBuffer0[ 0 ].pos,
+            m_clippingBuffer0[ 0 ].vars,
+            m_clippingBuffer0[ i + 1 ].pos,
+            m_clippingBuffer0[ i + 1 ].vars,
+            m_clippingBuffer0[ i + 2 ].pos,
+            m_clippingBuffer0[ i + 2 ].vars
          );
       }
    }
