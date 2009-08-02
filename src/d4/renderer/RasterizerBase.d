@@ -13,7 +13,6 @@ import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
 import d4.util.ArrayAllocation;
-import d4.util.StringMixinUtils;
 
 /**
  * Provides common basic functionality for most kinds of rasterizers.
