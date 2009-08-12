@@ -1,6 +1,5 @@
 module d4.scene.Node;
 
-import tango.io.Stdout;
 import d4.math.Matrix4;
 import d4.renderer.Renderer;
 import d4.scene.Mesh;

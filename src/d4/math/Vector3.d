@@ -117,6 +117,13 @@ struct Vector3 {
    }
 
    /**
+    * Inverts the vector (so that it points in the other direction).
+    */
+   void invert() {
+      (*this) *= -1;
+   }
+
+   /**
     * Computes the dot product of this and another vector.
     *
     * Params:

@@ -11,6 +11,7 @@
 module SpinningLights;
 
 import d4.format.AssimpScene;
+import d4.math.AABB;
 import d4.math.Color;
 import d4.math.Texture;
 import d4.math.Transformations;
@@ -19,11 +20,13 @@ import d4.renderer.IMaterial;
 import d4.renderer.IRasterizer;
 import d4.renderer.Renderer;
 import d4.renderer.SolidRasterizer;
-import d4.scene.Scene;
-import d4.scene.NormalVertex;
+import d4.scene.Mesh;
+import d4.scene.Node;
+import d4.scene.Primitives;
+import d4.scene.Vertex;
+import d4.util.ArrayUtils;
 import d4.util.FreeCameraApplication;
 import util.EntryPoint;
-import RoomScene;
 
 template Shader() {
    import tango.math.Math : sqrt;
@@ -85,6 +88,7 @@ template Shader() {
 }
 
 class Material : IMaterial {
+public:
    this() {
       m_light0Position = Vector3( -3f, 2.5f, 3f );
       m_light1Position = Vector3( 4f, 4f, 2f );
@@ -128,6 +132,7 @@ private:
 
 
 class SpinningLights : FreeCameraApplication {
+public:
    this( char[][] args ) {
       super( args );
    }
@@ -136,16 +141,28 @@ protected:
    override void init() {
       super.init();
 
-      auto room = new RoomScene( 8 );
-      if ( m_scene is null ) {
-         m_scene = room;
+      if ( m_rootNode is null ) {
+         // Generate 16-by-16 »room« if no scene was loaded.
+         m_rootNode = new Node();
+         m_rootNode.addMesh(
+            makeCube( Vector3( -8, 0, -8 ), Vector3( 8, 8, 8 ), true ) );
       } else if ( m_displayRoom ) {
-         m_scene.rootNode.addChild( room.rootNode );
+         // Compute the bounding box of the scene geometry.
+         Vertex[] vertices = m_rootNode.flatten().
+            map( ( Mesh m ){ return m.vertices; } ).flatten();
+         AABB boundingBox = AABB( vertices.map( ( Vertex v ){ return v.position; } ) );
+
+         // Enlarge the box 5 units to the sides, 3 to the top, and 0 to the
+         // bottom.
+         boundingBox.enlarge( Vector3( 5, 3, 5 ) );
+         boundingBox.min.y += 3;
+
+         m_rootNode.addMesh( makeCube( boundingBox, true ) );
       }
 
       // TODO: Add global material override function to material manager instead?
       m_material = new Material();
-      auto allMeshes = m_scene.rootNode.flatten();
+      auto allMeshes = m_rootNode.flatten();
       foreach ( mesh; allMeshes ) {
          mesh.material = m_material;
       }
@@ -159,7 +176,7 @@ protected:
       m_material.updatePositions( deltaTime );
 
       renderer().beginScene();
-      m_scene.rootNode.render( renderer() );
+      m_rootNode.render( renderer() );
       renderer().endScene();
    }
 
@@ -181,16 +198,16 @@ protected:
    override void handleUnnamedArguments( char[][] values ) {
       if ( values.length > 0 ) {
          // Call the superclass function first to get a nice error message for
-         // too many arguments if
+         // too many arguments if loading the scene fails.
          super.handleUnnamedArguments( values[ 0..($-1) ] );
-         m_scene = new AssimpScene( values[ $ - 1 ] );
+         m_rootNode = ( new AssimpScene( values[ $ - 1 ] ) ).rootNode;
       }
    }
 
 private:
    char[] m_sceneFileName;
    bool m_displayRoom;
-   Scene m_scene;
+   Node m_rootNode;
    Material m_material;
 }
 
