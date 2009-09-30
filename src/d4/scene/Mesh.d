@@ -1,25 +1,18 @@
 module d4.scene.Mesh;
 
 import d4.renderer.IMaterial;
-import d4.renderer.Renderer;
+import d4.scene.ISceneElement;
+import d4.scene.ISceneVisitor;
 import d4.scene.Vertex;
 
 /**
  * A triangle mesh consisting of an indexed triangle list.
  * All the triangles are rendered with one material.
  */
-class Mesh {
+class Mesh : ISceneElement {
 public:
-   /**
-    * Renders the mesh.
-    *
-    * Params:
-    *     renderer = The renderer to use.
-    *     manager = The material manager connected with the renderer.
-    */
-   void render( Renderer renderer ) {
-      renderer.activateMaterial( material );
-      renderer.renderTriangleList( vertices, indices );
+   void accept( ISceneVisitor visitor ) {
+      visitor.visitMesh( this );
    }
 
    /**
