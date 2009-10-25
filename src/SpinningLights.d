@@ -20,9 +20,11 @@ import d4.renderer.IMaterial;
 import d4.renderer.IRasterizer;
 import d4.renderer.Renderer;
 import d4.renderer.SolidRasterizer;
+import d4.scene.CollectPointsVisitor;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.Primitives;
+import d4.scene.FixedMaterialRenderVisitor;
 import d4.scene.Vertex;
 import d4.util.ArrayUtils;
 import d4.util.FreeCameraApplication;
@@ -148,26 +150,24 @@ protected:
             makeCube( Vector3( -8, 0, -8 ), Vector3( 8, 8, 8 ), true ) );
       } else if ( m_displayRoom ) {
          // Compute the bounding box of the scene geometry.
-         Vertex[] vertices = m_rootNode.flatten().
-            map( ( Mesh m ){ return m.vertices; } ).flatten();
-         AABB boundingBox = AABB( vertices.map( ( Vertex v ){ return v.position; } ) );
+         auto collector = new CollectPointsVisitor();
+         m_rootNode.accept( collector );
+
+         AABB boundingBox = AABB( collector.result );
 
          // Enlarge the box 5 units to the sides, 3 to the top, and 0 to the
          // bottom.
          boundingBox.enlarge( Vector3( 5, 3, 5 ) );
          boundingBox.min.y += 3;
 
-         m_rootNode.addMesh( makeCube( boundingBox, true ) );
-      }
-
-      // TODO: Add global material override function to material manager instead?
-      m_material = new Material();
-      auto allMeshes = m_rootNode.flatten();
-      foreach ( mesh; allMeshes ) {
-         mesh.material = m_material;
+         auto newRoot = new Node();
+         newRoot.addMesh( makeCube( boundingBox, true ) );
+         newRoot.addChild( m_rootNode );
+         m_rootNode = newRoot;
       }
 
       cameraPosition = Vector3( 0, 3, 5 );
+      m_material = new Material();
    }
 
    override void render( float deltaTime ) {
@@ -176,7 +176,7 @@ protected:
       m_material.updatePositions( deltaTime );
 
       renderer().beginScene();
-      m_rootNode.render( renderer() );
+      m_rootNode.accept( new FixedMaterialRenderVisitor( renderer(), m_material ) );
       renderer().endScene();
    }
 
@@ -199,7 +199,7 @@ protected:
       if ( values.length > 0 ) {
          // Call the superclass function first to get a nice error message for
          // too many arguments if loading the scene fails.
-         super.handleUnnamedArguments( values[ 0..($-1) ] );
+         super.handleUnnamedArguments( values[ 0..( $ - 1 ) ] );
          m_rootNode = ( new AssimpScene( values[ $ - 1 ] ) ).rootNode;
       }
    }

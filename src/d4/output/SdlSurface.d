@@ -21,7 +21,7 @@ public:
    override uint height() {
       return m_sdlSurface.h;
    }
-   
+
    override void lock() {
       super.lock();
       if ( m_mustLock ) {
