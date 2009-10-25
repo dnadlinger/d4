@@ -15,13 +15,12 @@ import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
-import d4.shader.LitSingleColorShader;
 import d4.shader.SingleColorShader;
 
 alias d4.renderer.IRasterizer.BackfaceCulling BackfaceCulling;
 
 /**
- * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
+ * Workaround for compiler bug (dmd) if the shaders are instantiated in two
  * optimization modules. This is the same as SingleColorShader.
  */
 template SingleColorShaderCopy() {
@@ -33,13 +32,11 @@ template SingleColorShaderCopy() {
       return Color( 255, 255, 255 );
    }
 
-   struct VertexVariables {
-      float[0] values;
-   }
+   struct VertexVariables {}
 }
 
 /**
- * Workaround for compiler bug (dmd) if the shaders are instantiated in two 
+ * Workaround for compiler bug (dmd) if the shaders are instantiated in two
  * optimization modules. This is the same as LitSingleColorShader.
  */
 template LitSingleColorShaderCopy( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
@@ -95,11 +92,8 @@ public:
       m_zBuffer = new ZBuffer( renderTarget.width, renderTarget.height );
       m_clearColor = Color( 0, 0, 0 );
 
-      m_whiteFlatRasterizer = new SolidRasterizer!( false, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
-      m_whiteGouraudRasterizer = new SolidRasterizer!( true, LitSingleColorShaderCopy, 0.1, 1, -1, -1 )();
-      m_whiteWireframeRasterizer = new WireframeRasterizer!( SingleColorShaderCopy );
+      m_activeRasterizer = new WireframeRasterizer!( SingleColorShaderCopy );
 
-      m_activeRasterizer = m_whiteFlatRasterizer;
       m_activeRasterizer.setRenderTarget( m_renderTarget, m_zBuffer );
       setProjection( PI / 2, 0.1f, 100.f );
 
@@ -159,20 +153,12 @@ public:
     *     material = The material to activate.
     */
    void activateMaterial( IMaterial material ) {
-      if ( m_forceWireframe ) {
-         activateRasterizer( m_whiteWireframeRasterizer );
-      } else if ( m_forceFlatShading ) {
-         activateRasterizer( m_whiteFlatRasterizer );
-      } else if ( m_skipTextures && material.usesTextures() ) {
-         activateRasterizer( m_whiteGouraudRasterizer );
-      } else {
-         if ( !m_materialRasterizers.containsKey( material ) ) {
-            m_materialRasterizers.add( material, material.getRasterizer() );
-         }
-
-         activateRasterizer( m_materialRasterizers[ material ] );
-         material.prepareForRendering( this );
+      if ( !m_materialRasterizers.containsKey( material ) ) {
+         m_materialRasterizers.add( material, material.getRasterizer() );
       }
+
+      activateRasterizer( m_materialRasterizers[ material ] );
+      material.prepareForRendering( this );
    }
 
 
@@ -241,43 +227,6 @@ public:
       m_clearColor = clearColor;
    }
 
-   /**
-    * Causes all materials to be rendered as if their wireframe property was set.
-    */
-   bool forceWireframe() {
-      return m_forceWireframe;
-   }
-
-   /// ditto
-   void forceWireframe( bool forceWireframe ) {
-      m_forceWireframe = forceWireframe;
-   }
-
-   /**
-    * Causes all materials to be rendered as if gouraud shading was not enabled
-    * for them.
-    */
-   bool forceFlatShading() {
-      return m_forceFlatShading;
-   }
-
-   /// ditto
-   void forceFlatShading( bool forceFlatShading ) {
-      m_forceFlatShading = forceFlatShading;
-   }
-
-   /**
-    * Replaces all textured materials with a generic textureless one.
-    */
-   bool skipTextures() {
-      return m_skipTextures;
-   }
-
-   /// ditto
-   void skipTextures( bool skipTextures ) {
-      m_skipTextures = skipTextures;
-   }
-
 private:
    void activateRasterizer( IRasterizer rasterizer ) {
       if ( rasterizer == m_activeRasterizer ) {
@@ -300,14 +249,6 @@ private:
    MaterialRasterizerMap m_materialRasterizers;
    IRasterizer m_activeRasterizer;
 
-   IRasterizer m_whiteFlatRasterizer;
-   IRasterizer m_whiteGouraudRasterizer;
-   IRasterizer m_whiteWireframeRasterizer;
-
    Surface m_renderTarget;
    ZBuffer m_zBuffer;
-
-   bool m_forceWireframe;
-   bool m_forceFlatShading;
-   bool m_skipTextures;
 }

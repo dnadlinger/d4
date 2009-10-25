@@ -1,9 +1,6 @@
 module d4.renderer.RasterizerBase;
 
 import tango.math.Math : rndint;
-import tango.math.IEEE : RoundingMode, setIeeeRounding;
-import util.ArrayAllocation;
-import util.StringMixinUtils;
 import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Plane;
@@ -15,32 +12,37 @@ import d4.output.Surface;
 import d4.renderer.IRasterizer;
 import d4.renderer.ZBuffer;
 import d4.scene.Vertex;
-import d4.shader.VertexVariableUtils;
+import d4.util.ArrayAllocation;
 
 /**
  * Provides common basic functionality for most kinds of rasterizers.
- * This includes: shader support, matrix caching, clipping, backface culling, ...
+ * This includes: shader support, matrix caching, clipping, backface culling, …
  *
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
  * every thing else is handled by this class.
  */
-class RasterizerBase( bool PrepareForPerspectiveCorrection, alias Shader, ShaderParams... ) : IRasterizer {
+class RasterizerBase( bool PrepareForPerspectiveCorrection,
+   alias Shader, ShaderParams... ) : IRasterizer {
 protected:
    /**
     * Imports the shader template passed to the class template into the class
     * scope.
     *
     * The shader has to provide:
-    *  - void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables );
+    *  - void vertexShader( in Vertex vertex, out Vector4 position,
+    *    out VertexVariables variables );
+    *
     *  - Color pixelShader( VertexVariables variables );
-    *  - struct VertexVariables{}: presenting an array of float values[] which
-    *    are per-vertex paramters which are interpolated and passed to the
-    *    pixel shader.
+    *
+    *  - struct VertexVariables{}: This set of vertex shader outputs, which
+    *    has to consist entirely of floats and floats nested in structs
+    *    (e.g. Vector3), is linearly interpolated for each pixel and passed to
+    *    the pixel shader.
     *
     * It may provide:
-    *  - struct ShaderConstants{}: the instance accesible via shaderConstants()
-    *    can be used to pass values which need to be modified at runtime to the
-    *    shader.
+    *  - struct ShaderConstants{}: The instance accesible via shaderConstants()
+    *    can be used to pass values to the shader which need to be modified at
+    *    runtime.
     */
    mixin Shader!( ShaderParams );
    static if ( !is ( ShaderConstants ) ) { struct ShaderConstants{} }
@@ -72,14 +74,8 @@ public:
     *     indices = The indices referring to the passed vertex array.
     */
    final void renderTriangleList( Vertex[] vertices, uint[] indices ) {
-      assert( ( indices.length % 3 == 0 ), "There must be no incomplete triangles." );
-
-      // Set the FPU to truncation rounding. We have to restore the old state
-      // when leaving the function, otherwise really strange things happen
-      // (most probably, the machine crashes).
-      // TODO: Fix rounding mode issues.
-      // auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDDOWN );
-      // scope ( exit ) setIeeeRounding( oldRoundingMode );
+      assert( ( indices.length % 3 == 0 ),
+         "There must be no incomplete triangles." );
 
       // Invoke vertex shader to get the positions in clipping coordinates
       // and to compute any additional per-vertex data.
@@ -96,7 +92,8 @@ public:
       }
 
       for ( uint i = 0; i < indices.length; i += 3 ) {
-         renderTriangle( transformed[ indices[ i ] ], transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
+         renderTriangle( transformed[ indices[ i ] ],
+            transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }
 
       free( transformed );
@@ -111,8 +108,10 @@ public:
     *     zBuffer = The z buffer to use.
     */
    final void setRenderTarget( Surface colorBuffer, ZBuffer zBuffer ) {
-      assert( colorBuffer.width == zBuffer.width, "ZBuffer width must match framebuffer width." );
-      assert( colorBuffer.height == zBuffer.height, "ZBuffer height must match framebuffer height." );
+      assert( colorBuffer.width == zBuffer.width,
+         "Z buffer width must match framebuffer width." );
+      assert( colorBuffer.height == zBuffer.height,
+         "Z buffer height must match framebuffer height." );
 
       m_colorBuffer = colorBuffer;
       m_zBuffer = zBuffer;
@@ -208,14 +207,40 @@ protected:
    /*
     * Shader interface.
     */
+
+   /**
+    * Returns: A matrix which transforms model normals into world space.
+    */
    final Matrix4 worldNormalMatrix() {
       return m_worldNormalMatrix;
    }
 
+   /**
+    * Returns: A matrix which transforms a vector from model space to clipping
+    *    space.
+    */
    final Matrix4 worldViewProjMatrix() {
       return m_worldViewProjMatrix;
    }
 
+   /**
+    * Reads color information from the specified texture.
+    *
+    * If the first template parameter, <code>bilinearInterpolation</code> is
+    * set to true, bilinear interpolation is used to compute the color value.
+    * Otherwise, the color of thge nearest pixel is returned.
+    *
+    * If the second template parameter, <code>tile</code> is set to true, the
+    * texture is tiled if the coordinates exceed the (0,0)-(1,1) range. If not,
+    * the color values of the edge pixels are repeated (known as »clamping«).
+    *
+    * Params:
+    *    textureIndex = The index of the texture to read from.
+    *    texCoords = The coordinates of the point to read the color information
+    *       from the texture. Note that the OpenGL convention is
+    * Returns:
+    *    The color read from the texture.
+    */
    final Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
 
@@ -226,8 +251,10 @@ protected:
 
       static if ( tile ) {
          // Tile.
-         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) % m_shiftedWidths[ textureIndex ];
-         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) % m_shiftedHeights[ textureIndex ];
+         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) %
+            m_shiftedWidths[ textureIndex ];
+         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) %
+            m_shiftedHeights[ textureIndex ];
          if ( u < 0 ) {
             u += m_shiftedWidths[ textureIndex ];
          }
@@ -295,63 +322,114 @@ protected:
       }
    }
 
+   /**
+    * Converts a Color to a Vector3 (used to store Color values into
+    * VertexVariables in the vertex shader).
+    */
+   final Vector3 colorToVector3( Color color ) {
+      Vector3 result = void;
+      result.x = cast( float )color.r;
+      result.y = cast( float )color.g;
+      result.z = cast( float )color.b;
+      return result;
+   }
+
+   /**
+    * Converts a Vector3 to a Color (used to retrieve Color values from the
+    * interpolated VertexVariables in the pixel shader).
+    */
+   final Color vector3ToColor( Vector3 vector ) {
+      Color result = void;
+      result.a = 255;
+      result.r = cast( ubyte )vector.x;
+      result.g = cast( ubyte )vector.y;
+      result.b = cast( ubyte )vector.z;
+      return result;
+   }
+
 
    /*
     * Helper functions for handling VertexVariables.
+    */
+
+   final T scale( T )( T vector, float factor ) {
+      T result;
+      foreach ( i, value; vector.tupleof ) {
+         alias typeof( value ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = value * factor;
+         } else static if ( is ( ElementType == struct )  ) {
+            result.tupleof[ i ] = scale( value, factor );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
+      return result;
+   }
+
+   final T add( T )( T first, T second ) {
+      T result;
+      foreach ( i, _; result.tupleof ) {
+         alias typeof( result.tupleof[ i ] ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = first.tupleof[ i ] + second.tupleof[ i ];
+         } else static if ( is ( ElementType == struct ) ) {
+            result.tupleof[ i ] = add( first.tupleof[ i ], second.tupleof[ i ] );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
+      return result;
+   }
+
+   final T substract( T )( T first, T second ) {
+      T result;
+      foreach ( i, _; result.tupleof ) {
+         alias typeof( result.tupleof[ i ] ) ElementType;
+         static if ( is( ElementType == float ) ) {
+            result.tupleof[ i ] = first.tupleof[ i ] - second.tupleof[ i ];
+         } else static if ( is ( ElementType == struct ) ) {
+            result.tupleof[ i ] = substract( first.tupleof[ i ], second.tupleof[ i ] );
+         } else {
+            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+         }
+      }
+      return result;
+   }
+
+   /**
+    * Linearly interpolates between the values[] of two instances of
+    * <code>VertexVariables</code>.
+    *
+    * Params:
+    *    first = The first set of values.
+    *    second = The second set of values.
+    *    position = The position between the variables. 0 for this parameter
+    *       yields first, 1 yields second.
+    * Returns:
+    *    first * position + second * (1-position)
     */
    final VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
 
-   final VertexVariables scale( VertexVariables variables, float factor ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = variables.values[ i ] * factor;
-      // }
-      mixin( stringUnroll( "result.values[", "] = variables.values[", "] * factor;",
-         result.values.length ) );
-      return result;
-   }
 
-   final VertexVariables add( VertexVariables first, VertexVariables second ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = first.values[ i ] + second.values[ i ];
-      // }
-      mixin( stringUnroll( "result.values[", "] = first.values[", "] + second.values[", "];",
-         result.values.length ) );
-      return result;
-   }
-
-   final VertexVariables substract( VertexVariables first, VertexVariables second ) {
-      VertexVariables result;
-      // for ( uint i = 0; i < result.values.length; ++i ) {
-      //   result.values[ i ] = first.values[ i ] - second.values[ i ];
-      // }
-      mixin( stringUnroll( "result.values[", "] = first.values[", "] - second.values[", "];",
-         result.values.length ) );
-      return result;
-   }
-
-   /**
-    * Convinience struct for storing the transformed vertices.
+   /*
+    * Interface for Rasterizer implementations.
     */
-   struct TransformedVertex {
-      Vector4 pos;
-      VertexVariables vars;
-   }
 
    /**
-    * Rasters the specified triangle to the screen.
+    * Rasterizes the specified triangle to the screen.
     *
-    * The values of the per-vertex data at the pixel position are interpolated and
-    * feeded into the pixel shader to compute the color value.
+    * The values of the per-vertex data at the pixel position are interpolated
+    * and fed into the pixel shader to compute the color value.
     *
     * Params:
     *   positions = The vertex positions in screen coordinates.
     *   variables = The per-vertex variables.
     */
-   abstract void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables );
+   abstract void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
+      VertexVariables vars1, Vector4 pos2, VertexVariables vars2 );
 
    /**
     * The color buffer to write the output to.
@@ -380,47 +458,66 @@ private:
    }
 
    /**
-    * View frustrum (clipping) planes for homogeneous clipping.
+    * Convinience struct for storing the transformed vertices.
     */
+   struct TransformedVertex {
+      Vector4 pos;
+      VertexVariables vars;
+   }
+
+   /**
+    * View frustrum (clipping) planes for homogeneous clipping.
+    *
+    * HACK: They are nudged slightly so that floating point inaccuracies do not
+    *    lead to artifacts with the top-left filling convention.
+    */
+   const float VIEWPORT_NUDGE = 0.00001f;
    const CLIPPING_PLANES = [
-      Plane( 1, 0, 0, 1 ),   // Left
-      Plane( -1, 0, 0, 1 ),  // Right
-      Plane( 0, -1, 0, 1 ),  // Top
-      Plane( 0, 1, 0, 1 ),   // Bottom
+      Plane( 1, 0, 0, 1 + VIEWPORT_NUDGE ),   // Left
+      Plane( -1, 0, 0, 1 - VIEWPORT_NUDGE ),  // Right
+      Plane( 0, -1, 0, 1 + VIEWPORT_NUDGE ),  // Top
+      Plane( 0, 1, 0, 1 - VIEWPORT_NUDGE ),   // Bottom
       Plane( 0, 0, 1, 0 ),   // Near
       Plane( 0, 0, 1, 1 )    // Far
    ];
 
    /**
-    * The maximum number of vertices a clipped triangle can have.
-    * 8 because the triangle can be clipped by up to 4 sides of
-    * the viewing volume.
+    * The maximum number of vertices a clipped triangle can have. 8 because
+    * the triangle can be clipped by up to 4 sides of the viewing volume.
     */
    const CLIPPING_BUFFER_SIZE = 8;
 
+   /**
+    * Buffers used to sotre the vertices during and after clipping.
+    */
+   TransformedVertex[ CLIPPING_BUFFER_SIZE ] m_clippingBuffer0;
+   TransformedVertex[ CLIPPING_BUFFER_SIZE ] m_clippingBuffer1; /// ditto
+
+   /**
+    * Renders a transformed triangle to the screen.
+    */
    void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
       // Clip all vertices against the view frustrum, which is now a cuboid from
       // [ -1; -1; 0 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
       // which is fast and happens before the coordinates are divided by w.
-      // We (legitimately?) assume that there are never more than
-      // CLIPPING_BUFFER_SIZE vertices created during clipping.
-      // TODO: Allocate as class member?
-      TransformedVertex[ CLIPPING_BUFFER_SIZE ] vertices;
-      TransformedVertex[ CLIPPING_BUFFER_SIZE ] clippingBuffer;
+      // We assume that there are never more than CLIPPING_BUFFER_SIZE vertices
+      // created during clipping.
+      // We can only work with an even number of clipping planes since we expect
+      // the result to be in m_clippingBuffer0.
+      static assert( CLIPPING_PLANES.length % 2 == 0 );
 
-      vertices[ 0 ] = vertex0;
-      vertices[ 1 ] = vertex1;
-      vertices[ 2 ] = vertex2;
-
+      m_clippingBuffer0[ 0 ] = vertex0;
+      m_clippingBuffer0[ 1 ] = vertex1;
+      m_clippingBuffer0[ 2 ] = vertex2;
       uint vertexCount = 3;
 
       foreach ( i, plane; CLIPPING_PLANES ) {
          if ( i & 1 ) {
-            // Even pass (first pass -> i=0).
-            vertexCount = clipToPlane( clippingBuffer, vertices, vertexCount, plane );
+            // Even (second, forth, ...) pass (i==0 on the first pass).
+            vertexCount = clipToPlane( m_clippingBuffer1, m_clippingBuffer0, vertexCount, plane );
          } else {
-            // Uneven pass.
-            vertexCount = clipToPlane( vertices, clippingBuffer, vertexCount, plane );
+            // Uneven (first, third, ...) pass.
+            vertexCount = clipToPlane( m_clippingBuffer0, m_clippingBuffer1, vertexCount, plane );
          }
          if ( vertexCount < 3 ) {
             // There is nothing left to be drawn.
@@ -428,44 +525,46 @@ private:
          }
       }
 
-      // FIXME: The substaction of 1 is a (temporary?) workaround for off-by-one error.
-      float halfViewportWidth = 0.5f * cast( float )( m_colorBuffer.width - 1 );
-      float halfViewportHeight = 0.5f * cast( float )( m_colorBuffer.height - 1 );
+      // Transform the vertices to screen coordinates.
+      float halfViewportWidth = 0.5f * m_colorBuffer.width;
+      float halfViewportHeight = 0.5f * m_colorBuffer.height;
 
       for( uint i = 0; i < vertexCount; ++i ) {
          // TODO: How to use a ref instead of a pointer?
-         TransformedVertex* vertex = &vertices[ i ];
+         TransformedVertex* vertex = &m_clippingBuffer0[ i ];
 
-         // Divide the vertex coordinates by w to get the »normal« (projected) positions.
+         // Divide the vertex coordinates by w to get the »normal« (projected)
+         // positions.
          float invW = 1 / vertex.pos.w;
          vertex.pos.x *= invW;
          vertex.pos.y *= invW;
          vertex.pos.z *= invW;
 
          static if ( PrepareForPerspectiveCorrection ) {
-            // Additionally, divide all vertex variables by w so that we can linearely
-            // interpolate between them in screen space. Save invW to the w coordinate
-            // so that we can reconstruct the original values later.
+            // Additionally, divide all vertex variables by w so that we can
+            // linearly interpolate between them in screen space. Save invW to
+            // the w-coordinate so that we can reconstruct the original values
+            // later.
             vertex.vars = scale( vertex.vars, invW );
             vertex.pos.w = invW;
          }
 
-         // Transform the position into viewport coordinates. We have to invert the
-         // y-coordinate because the y-axis is pointing in the other direction in
-         // the viewport coordinate system.
+         // Transform the position into viewport coordinates. We have to invert
+         // the y-coordinate because the y-axis is pointing in the other
+         // direction in the viewport coordinate system.
          vertex.pos.x = ( vertex.pos.x + 1f ) * halfViewportWidth;
          vertex.pos.y = ( 1f - vertex.pos.y ) * halfViewportHeight;
       }
 
-      // As we already have screen coordinates, looking at the z component
-      // of the cross product of two triangle sides is enough. If it is positive,
-      // the triangle normal is pointing away from the camera (screen) which
-      // means that the triangle can be culled.
-      // TODO: Better position for this.
+      // As we already have screen coordinates, looking at the z-coordinate
+      // of the cross product of two triangle sides is enough. If it is
+      // positive, the vertices are oriented clockwise, if it is negative
+      // the vertices are oriented counter-clockwise.
+      // TODO: Find the optimal position in the pipeline for this.
       if ( m_backfaceCulling != BackfaceCulling.NONE ) {
-         Vector4 p0 = vertices[ 0 ].pos;
-         Vector4 p1 = vertices[ 1 ].pos;
-         Vector4 p2 = vertices[ 2 ].pos;
+         Vector4 p0 = m_clippingBuffer0[ 0 ].pos;
+         Vector4 p1 = m_clippingBuffer0[ 1 ].pos;
+         Vector4 p2 = m_clippingBuffer0[ 2 ].pos;
 
          float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
          if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ < 0 ) ) {
@@ -477,10 +576,18 @@ private:
          }
       }
 
+      // Triangulate the polygon produced by clipping and draw each triangle
+      // to the screen.
       uint triangleCount = vertexCount - 2;
       for ( uint i = 0; i < triangleCount; ++i ) {
-         drawTriangle( [ vertices[ 0 ].pos, vertices[ i + 1 ].pos, vertices[ i + 2 ].pos ],
-            [ vertices[ 0 ].vars, vertices[ i + 1 ].vars, vertices[ i + 2 ].vars ] );
+         drawTriangle(
+            m_clippingBuffer0[ 0 ].pos,
+            m_clippingBuffer0[ 0 ].vars,
+            m_clippingBuffer0[ i + 1 ].pos,
+            m_clippingBuffer0[ i + 1 ].vars,
+            m_clippingBuffer0[ i + 2 ].pos,
+            m_clippingBuffer0[ i + 2 ].vars
+         );
       }
    }
 
@@ -498,7 +605,6 @@ private:
       TransformedVertex[] targetBuffer, uint vertexCount, Plane plane ) {
       // Due to some function overloading strangeness, we have to alias the other
       // interpolation functions.
-      // TODO: Why is this necessary?
       alias d4.math.Vector4.lerp lerpVector;
       alias lerp lerpVars;
 

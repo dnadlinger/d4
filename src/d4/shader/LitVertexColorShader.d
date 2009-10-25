@@ -9,7 +9,7 @@ module d4.shader.LitVertexColorShader;
 template LitVertexColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.ColoredNormalVertex;
 
-   const LIGHT_DIRECTION = Vector3( lightDirX, lightDirY, lightDirZ ).normalized();
+   const LIGHT_DIRECTION = CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
 
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       ColoredNormalVertex cnv = cast( ColoredNormalVertex ) vertex;
@@ -24,15 +24,14 @@ template LitVertexColorShader( float ambientLevel, float lightDirX, float lightD
          lightIntensity = ambientLevel;
       }
       position = worldViewProjMatrix * cnv.position;
-      variables.color = cnv.color * lightIntensity;
+      variables.color = colorToVector3( cnv.color ) * lightIntensity;
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return variables.color;
+      return vector3ToColor( variables.color );
    }
 
    struct VertexVariables {
-      float[3] values;
-      mixin( colorNoAlphaVariable!( "color", 0 ) );
+      Vector3 color;
    }
 }

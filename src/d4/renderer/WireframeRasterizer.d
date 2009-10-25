@@ -1,6 +1,6 @@
 module d4.renderer.WireframeRasterizer;
 
-import tango.math.Math : abs;
+import tango.math.Math : abs, rndint, min;
 import d4.math.Color;
 import d4.math.Vector4;
 import d4.renderer.RasterizerBase;
@@ -14,13 +14,13 @@ import d4.renderer.RasterizerBase;
 final class WireframeRasterizer( alias Shader, ShaderParams... ) :
    RasterizerBase!( false, Shader, ShaderParams ) {
 protected:
-   void drawTriangle( Vector4[ 3 ] positions, VertexVariables[ 3 ] variables ) {
+   void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
+      VertexVariables vars1, Vector4 pos2, VertexVariables vars2 ) {
       // Use either one to get the color, the variables are not interpolated anyway.
-      Color color = pixelShader( variables[ 0 ] );
-
-      drawLine( positions[ 0 ], positions[ 1 ], color );
-      drawLine( positions[ 1 ], positions[ 2 ], color );
-      drawLine( positions[ 2 ], positions[ 0 ], color );
+      Color color = pixelShader( vars0 );
+      drawLine( pos0, pos1, color );
+      drawLine( pos1, pos2, color );
+      drawLine( pos2, pos0, color );
    }
 
 private:
@@ -29,11 +29,16 @@ private:
     * Bresenham line algorithm.
     */
    void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
-      int startX = cast( int ) startPos.x;
-      int startY = cast( int ) startPos.y;
+      // »Hack« to display the line even if it lies exactly on the right or
+      // bottom viewport border (looks nicer when demonstrating clipping).
+      int lastX = m_colorBuffer.width - 1;
+      int lastY = m_colorBuffer.height - 1;
 
-      int endX = cast( int ) endPos.x;
-      int endY = cast( int ) endPos.y;
+      int startX = min( rndint( startPos.x ), lastX );
+      int startY = min( rndint( startPos.y ), lastY );
+
+      int endX = min( rndint( endPos.x ), lastX );
+      int endY = min( rndint( endPos.y ), lastY );
 
       int x = startX;
       int y = startY;
@@ -85,7 +90,5 @@ private:
             y += yStep;
          }
       }
-
-      m_colorBuffer.setPixel( endX, endY, color );
    }
 }

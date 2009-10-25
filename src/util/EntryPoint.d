@@ -3,7 +3,11 @@
  */
 module util.EntryPoint;
 
-template EntryPoint( ApplicationClass, bool TraceGc = false ) {
+debug {
+   version = TraceGc;
+}
+
+template EntryPoint( ApplicationClass ) {
    import tango.core.Exception;
    import tango.core.Memory;
    import tango.core.Runtime;
@@ -54,7 +58,7 @@ template EntryPoint( ApplicationClass, bool TraceGc = false ) {
       // Execute asm "int 3" when encountering a false assert to be able to debug it.
       setAssertHandler( &assertHandler );
 
-      static if ( TraceGc ) {
+      version ( TraceGc ) {
          // Show garbage collection activity while the program is running.
          Runtime.collectHandler = &printGlyph;
       }
@@ -76,29 +80,27 @@ template EntryPoint( ApplicationClass, bool TraceGc = false ) {
             }
          }
       } finally {
-         static if ( TraceGc ) {
+         version ( TraceGc ) {
             // Count objects collected on program end.
             collectedObjectsCount = 0;
             Runtime.collectHandler = &countObject;
          }
-            
+
          // The application has to be deleted when the program ends, even if
          // something has gone wrong before, because some libraries like Derelict
          // cause a segfault if they are not unloaded properly.
          delete app;
-         
-         static if ( TraceGc ) {
+
+         version ( TraceGc ) {
             GC.collect();
             Stdout.newline;
             Stdout.format( "{} objects collected.", collectedObjectsCount ).newline;
-            
-            debug {
-               // Print the class name if any objects are garbage collected after
-               // this point in debug builds, which could be a sign for some unwanted
-               // references.
-               Runtime.collectHandler = &printClass;
-            }
-         }  
+
+            // Print the class name if any objects are garbage collected after
+            // this point in debug builds, which could be a sign for some unwanted
+            // references.
+            Runtime.collectHandler = &printClass;
+         }
 
          // On Windows, wait for user pressing <Enter> before exiting.
          version ( Windows ) {

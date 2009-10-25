@@ -22,7 +22,6 @@ template TextureShader() {
    }
 
    struct VertexVariables {
-      float[2] values;
-      mixin( vector2Variable!( "texCoords", 0 ) );
+      Vector2 texCoords;
    }
 }

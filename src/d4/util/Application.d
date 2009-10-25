@@ -1,6 +1,7 @@
 module d4.util.Application;
 
 import tango.io.Stdout;
+import tango.text.Util;
 import d4.output.Surface;
 import d4.util.Key;
 
@@ -11,12 +12,27 @@ import d4.util.Key;
 abstract class Application {
 public:
    /**
+    * Basic constructor.
+    *
+    * Params:
+    *    args = The command line arguments passed to the application. Expects
+    *       the first value to be the name of the application.
+    */
+   this( char[][] args ) {
+      m_args = args;
+   }
+
+   /**
     * Executes the application main (event) loop.
     *
     * This function returns when the application has been closed.
     */
    final void run() {
-      m_appFinished = false;
+      // Parse the command line arguments. We cannot do this in the
+      // constructor, as this would require the subclasses to set up the
+      // default values for the properties modifyable via the command line
+      // *before* the super()-call, which is rather uncommon.
+      parseCommandLineArgs();
 
       init();
 
@@ -43,15 +59,6 @@ public:
          // Keep track of the total time the app is running.
          m_totalTicksPassed += deltaTicks;
 
-         // Detect slow frames – frames that have took siginficantely longer
-         // than the previous one. Could be a hint to certain problems like
-         // unwanted garbage collector activity.
-         const triggerLevel = 9;
-         if ( deltaTicks > ( lastDeltaTicks * triggerLevel ) ) {
-            Stdout.format( "Possible slow frame detected ({} ms).", deltaTicks ).newline;
-         }
-         lastDeltaTicks = deltaTicks;
-
          // Average the framerate over FPS_UPDATE_INTERVAL.
          m_fpsSamplingDuration += deltaTicks;
          ++m_framesInSample;
@@ -74,6 +81,15 @@ public:
       }
 
       shutdown();
+   }
+
+   ~this() {
+      // Make sure that shutdown() is called even on irregular program
+      // termination to make sure that e.g the video subsystem is shut down
+      // correctly.
+      if ( !m_appFinished ) {
+         shutdown();
+      }
    }
 
 protected:
@@ -136,6 +152,57 @@ protected:
     */
 
    /**
+    * Handles a »switch« command line argument, a command line option without
+    * a value (e.g. »--enable-xyz«).
+    *
+    * Subclasses are expected to overwrite this to register command line
+    * switches and to call the parent class implementation if they did not
+    * process the switch.
+    *
+    * Params:
+    *    name = The name of the command line switch (without the »-< or »--«
+    *       prefix).
+    */
+   void handleSwitchArgument( char[] name ) {
+      throw new Exception( "Invalid argument: " ~ name );
+   }
+
+   /**
+    * Handles a value command line argument, a command line option which
+    * includes an equals sign for value assignment (e.g. »--value=10«).
+    *
+    * Subclasses are expected to overwrite this to register value arguments
+    * switches and to call the parent class implementation if they did not
+    * process the argument.
+    *
+    * Params:
+    *    name = The name of the command line argument (without the »-< or »--«
+    *       prefix).
+    *    value = The value of the argument (without the »=« sign).
+    */
+   void handleValueArgument( char[] name, char[] value ) {
+      throw new Exception( "Invalid argument: " ~ name );
+   }
+
+   /**
+    * Handles unnamed command line arguments, arguments without a preceding »-«
+    * or »--« (e.g. a path).
+    *
+    * Subclasses are expected to overwrite this to react to unnamed arguments
+    * and to call the parent class implementation with any arguments they did
+    * not process.
+    *
+    * Params:
+    *    values = All unnamed arguments in the command line (which were not
+    *       processed yet by a subclass).
+    */
+   void handleUnnamedArguments( char[][] values ) {
+      if ( values.length > 0 ) {
+         throw new Exception( "Too many arguments!" );
+      }
+   }
+
+   /**
     * Returns: The total amount of time the event loop was running (in milliseconds).
     */
    final uint totalTicksPassed() {
@@ -183,6 +250,35 @@ protected:
    }
 
 private:
+   void parseCommandLineArgs() {
+      char[][] unnamedArguments;
+
+      foreach ( argument; m_args[ 1..$ ] ) {
+         if ( locatePattern( argument, "-" ) == 0 ) {
+            // If the argument is a »named« option (prefixed with - or --),
+            // call handleValueArgument if a value was passed (the string
+            // contains an equals-sign) or handleSwitchArgument otherwise.
+            char[] stripped = stripl( argument, '-' );
+
+            char[] value;
+            char[] name = head( stripped, "=", value );
+
+            if ( value is null ) {
+               handleSwitchArgument( name );
+            } else {
+               handleValueArgument( name, value );
+            }
+         } else {
+            // The argument is unnamed (e.g. a filename).
+            unnamedArguments ~= argument;
+         }
+      }
+
+      handleUnnamedArguments( unnamedArguments );
+   }
+
+   char[][] m_args;
+
    uint m_totalTicksPassed;
    bool m_appFinished;
 

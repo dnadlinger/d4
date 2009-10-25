@@ -1,8 +1,9 @@
 module d4.scene.Node;
 
-import tango.io.Stdout;
 import d4.math.Matrix4;
 import d4.renderer.Renderer;
+import d4.scene.ISceneElement;
+import d4.scene.ISceneVisitor;
 import d4.scene.Mesh;
 
 /**
@@ -11,7 +12,7 @@ import d4.scene.Mesh;
  * It can contain any number of child nodes and meshes and stores a local
  * transformation matrix.
  */
-class Node {
+class Node : ISceneElement {
 public:
    /**
     * Constructs an empty node with no children and no local transformations.
@@ -69,36 +70,16 @@ public:
       m_meshes ~= mesh;
    }
 
-   /**
-    * Renders the local meshes and all child nodes using the specified renderer.
-    *
-    * Params:
-    *     renderer = The renderer to use.
-    *     manager = The material manager to use for rendering.
-    */
-   void render( Renderer renderer ) {
-      renderer.worldMatrix = worldMatrix();
+   void accept( ISceneVisitor visitor ) {
+      visitor.visitNode( this );
+
       foreach ( mesh; m_meshes ) {
-         mesh.render( renderer );
+         mesh.accept( visitor );
       }
 
-      // Render all child nodes. This enables us to render the whole scene by
-      // just calling #render() on the root node.
       foreach ( node; m_children ) {
-         node.render( renderer );
+         node.accept( visitor );
       }
-   }
-
-   /**
-    * Returns: Flat array containing all child meshes.
-    */
-   Mesh[] flatten() {
-      Mesh[] result;
-      result ~= m_meshes;
-      foreach ( node; m_children ) {
-         result ~= node.flatten();
-      }
-      return result;
    }
 
    /**
@@ -111,16 +92,6 @@ public:
    /// ditto
    void transformation( Matrix4 localMatrix ) {
       m_localMatrix = localMatrix;
-      invalidateWorldMatrix();
-   }
-
-protected:
-   Node parent() {
-      return m_parent;
-   }
-
-   void parent( Node parentNode ) {
-      m_parent = parentNode;
       invalidateWorldMatrix();
    }
 
@@ -137,6 +108,20 @@ protected:
       }
 
       return m_worldMatrix;
+   }
+
+   Mesh[] meshes() {
+      return m_meshes;
+   }
+
+protected:
+   Node parent() {
+      return m_parent;
+   }
+
+   void parent( Node parentNode ) {
+      m_parent = parentNode;
+      invalidateWorldMatrix();
    }
 
    void invalidateWorldMatrix() {

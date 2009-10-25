@@ -17,15 +17,14 @@ template VertexColorShader() {
       assert( cv !is null );
 
       position = worldViewProjMatrix * cv.position;
-      variables.color = cv.color;
+      variables.color = colorToVector3( cv.color );
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return variables.color;
+      return vector3ToColor( variables.color );
    }
 
    struct VertexVariables {
-      float[3] values;
-      mixin( colorNoAlphaVariable!( "color", 0 ) );
+      Vector3 color;
    }
 }

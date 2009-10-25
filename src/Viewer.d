@@ -4,9 +4,9 @@
  * Expects at least one parameter, the model file to display.
  *
  * Additional parameters:
- *   - smoothNormals: If there are no normals present in the model file,
+ *   - smooth-normals: If there are no normals present in the model file,
  *     smoothed ones are generated (hard faces otherwise).
- *   - fakeColors: Assings a random color to each vertex.
+ *   - fake-colors: Assings a random color to each vertex.
  */
 module Viewer;
 
@@ -18,11 +18,29 @@ import d4.math.Color;
 import d4.math.Matrix4;
 import d4.math.Quaternion;
 import d4.math.Transformations;
+import d4.renderer.IMaterial;
+import d4.renderer.SolidRasterizer;
+import d4.scene.BasicMaterial;
+import d4.scene.ISceneVisitor;
 import d4.scene.Node;
 import d4.scene.Scene;
+import d4.scene.FixedMaterialRenderVisitor;
+import d4.scene.RenderVisitor;
 import d4.scene.Vertex;
+import d4.shader.LitSingleColorShader;
+import d4.shader.SingleColorShader;
+import d4.util.FreeCameraApplication;
 import d4.util.Key;
-import FreeCameraApplication;
+import util.EntryPoint;
+
+/**
+ * The available shading modes.
+ */
+enum ShadingMode {
+   FLAT,
+   GOURAUD,
+   GOURAUD_TEXTURED
+}
 
 /**
  * The main application class.
@@ -31,20 +49,7 @@ import FreeCameraApplication;
 class Viewer : FreeCameraApplication {
 public:
    this( char[][] args ) {
-      // Parse command line options.
-      if ( args.length < 2 ) {
-         throw new Exception( "Please specify a model file at the command line." );
-      }
-
-      m_sceneFileName = args[ 1 ];
-
-      if ( contains( args[ 2..$ ], "smoothNormals" ) ) {
-         m_generateSmoothNormals = true;
-      }
-
-      if ( contains( args[ 2..$ ], "fakeColors" ) ) {
-         m_fakeColors = true;
-      }
+      super( args );
    }
 protected:
    override void init() {
@@ -53,12 +58,28 @@ protected:
       assert( m_sceneFileName.length > 0 );
 
       Stdout.newline;
-      m_scene = new AssimpScene( m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
+      m_scene = new AssimpScene(
+         m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
 
       m_rotateWorld = false;
       m_animateBackground = false;
       m_backgroundTime = 0;
       renderer().clearColor = Color( 0, 0, 0 );
+
+      // Enable everything by default.
+      m_shadingMode = ShadingMode.GOURAUD_TEXTURED;
+      m_forceWireframe = false;
+
+      m_wireframeMaterial = new BasicMaterial();
+      m_wireframeMaterial.wireframe = true;
+
+      m_flatMaterial = new BasicMaterial();
+      m_flatMaterial.gouraudShading = false;
+      m_flatMaterial.lighting = true;
+
+      m_gouraudMaterial = new BasicMaterial();
+      m_gouraudMaterial.vertexColors = false;
+      m_gouraudMaterial.lighting = true;
    }
 
    override void render( float deltaTime ) {
@@ -71,8 +92,29 @@ protected:
          updateRotatingWorld( deltaTime );
       }
 
+      ISceneVisitor renderVisitor;
+
+      if ( m_forceWireframe ) {
+         renderVisitor = new FixedMaterialRenderVisitor(
+            renderer(), m_wireframeMaterial );
+      } else {
+         switch ( m_shadingMode ) {
+            case ShadingMode.FLAT:
+               renderVisitor = new FixedMaterialRenderVisitor(
+                  renderer(), m_flatMaterial );
+               break;
+            case ShadingMode.GOURAUD:
+               renderVisitor = new FixedMaterialRenderVisitor(
+                  renderer(), m_gouraudMaterial );
+               break;
+            case ShadingMode.GOURAUD_TEXTURED:
+               renderVisitor = new RenderVisitor( renderer() );
+               break;
+         }
+      }
+
       renderer().beginScene();
-      m_scene.rootNode.render( renderer() );
+      m_scene.rootNode.accept( renderVisitor );
       renderer().endScene();
    }
 
@@ -84,6 +126,13 @@ protected:
       super.handleKeyUp( key );
 
       switch ( key ) {
+         case Key.y:
+         case Key.z:
+            m_shadingMode = cast( ShadingMode )( ( m_shadingMode + 1 ) % ( m_shadingMode.max + 1 ) );
+            break;
+         case Key.x:
+            m_forceWireframe = !m_forceWireframe;
+            break;
          case Key.v:
             m_rotateWorld = !m_rotateWorld;
             break;
@@ -94,6 +143,31 @@ protected:
             // Do nothing.
             break;
       }
+   }
+
+   override void handleSwitchArgument( char[] name ) {
+      switch ( name ) {
+         case "smooth-normals":
+            m_generateSmoothNormals = true;
+            break;
+         case "fake-colors":
+            m_fakeColors = true;
+            break;
+         default:
+            super.handleSwitchArgument( name );
+            break;
+      }
+   }
+
+   override void handleUnnamedArguments( char[][] values ) {
+      if ( values.length == 0 ) {
+         throw new Exception(
+            "Please specify a model file to load at the command line." );
+      }
+
+      m_sceneFileName = values[ $ - 1 ];
+
+      super.handleUnnamedArguments( values[ 0..($-1) ] );
    }
 
 private:
@@ -119,14 +193,16 @@ private:
 
    Scene m_scene;
 
+   ShadingMode m_shadingMode;
+   bool m_forceWireframe;
+
+   BasicMaterial m_wireframeMaterial;
+   BasicMaterial m_flatMaterial;
+   BasicMaterial m_gouraudMaterial;
+
    bool m_rotateWorld;
    bool m_animateBackground;
    float m_backgroundTime;
 }
 
-import util.EntryPoint;
-debug {
-   mixin EntryPoint!( Viewer, true );
-} else {
-   mixin EntryPoint!( Viewer );
-}
+mixin EntryPoint!( Viewer );

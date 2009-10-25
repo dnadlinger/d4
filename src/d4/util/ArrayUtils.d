@@ -1,4 +1,4 @@
-module util.ArrayUtils;
+module d4.util.ArrayUtils;
 
 // Thanks to DanielKeep (freenode#d) for this gem.
 U[] map( T, U )( T[] source, U delegate( T ) func ) {
@@ -8,6 +8,14 @@ U[] map( T, U )( T[] source, U delegate( T ) func ) {
         result[ index ] = func( element );
     }
     return result;
+}
+
+T[] flatten( T )( T[][] source ) {
+   T[] result;
+   foreach ( element; source ) {
+      result ~= element;
+   }
+   return result;
 }
 
 T[] add( T )( T[] source, T summand ) {

@@ -1,4 +1,4 @@
-module FreeCameraApplication;
+module d4.util.FreeCameraApplication;
 
 import tango.math.Math : PI;
 import d4.math.Matrix4;
@@ -7,7 +7,7 @@ import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
 import d4.util.Key;
-import SdlRendererApplication;
+import d4.util.SdlRendererApplication;
 
 /**
  * An application template for SDL applications using a completely free camera.
@@ -15,6 +15,11 @@ import SdlRendererApplication;
  * TODO: Move out of a subclass into a mixin of some sort.
  */
 abstract class FreeCameraApplication : SdlRendererApplication {
+public:
+   this( char[][] args ) {
+      super( args );
+   }
+
 protected:
    abstract override void init() {
       super.init();
@@ -28,7 +33,6 @@ protected:
       updateCamera( deltaTime );
    }
 
-protected:
    final void cameraPosition() {
       return m_cameraPosition;
    }
@@ -66,7 +70,9 @@ private:
          m_cameraRotation.append( rotationQuaternion( rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
       }
 
-      Matrix4 invMat = renderer().viewMatrix.inversed();
+      // TODO: File LDC bug about this.
+      Matrix4 invMat = renderer().viewMatrix;
+      invMat = invMat.inversed();
       Vector3 forwardDirection = -Vector3( invMat.m13, invMat.m23, invMat.m33 );
       Vector3 leftDirection = -Vector3( invMat.m11, invMat.m21, invMat.m31 );
 
