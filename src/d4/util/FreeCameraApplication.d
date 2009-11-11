@@ -33,14 +33,14 @@ protected:
       updateCamera( deltaTime );
    }
 
-   final void cameraPosition() {
+   final Vector3 cameraPosition() {
       return m_cameraPosition;
    }
    final void cameraPosition( Vector3 position ) {
       m_cameraPosition = position;
    }
 
-   final void cameraRotation() {
+   final Quaternion cameraRotation() {
       return m_cameraRotation;
    }
    final void cameraRotation( Quaternion rotation ) {
