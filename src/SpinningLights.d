@@ -198,7 +198,8 @@ protected:
    override void handleUnnamedArguments( char[][] values ) {
       if ( values.length > 0 ) {
          // Call the superclass function first to get a nice error message for
-         // too many arguments if loading the scene fails.
+         // too many arguments (we would probably try to load an invalid scene
+         // file then).
          super.handleUnnamedArguments( values[ 0..( $ - 1 ) ] );
          m_rootNode = ( new AssimpScene( values[ $ - 1 ] ) ).rootNode;
       }
