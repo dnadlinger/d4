@@ -1,4 +1,4 @@
-module d4.scene.SceneRenderVisitor;
+module d4.scene.RenderVisitor;
 
 import d4.renderer.Renderer;
 import d4.scene.ISceneVisitor;
