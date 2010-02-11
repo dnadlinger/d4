@@ -322,31 +322,6 @@ protected:
       }
    }
 
-   /**
-    * Converts a Color to a Vector3 (used to store Color values into
-    * VertexVariables in the vertex shader).
-    */
-   final Vector3 colorToVector3( Color color ) {
-      Vector3 result = void;
-      result.x = cast( float )color.r;
-      result.y = cast( float )color.g;
-      result.z = cast( float )color.b;
-      return result;
-   }
-
-   /**
-    * Converts a Vector3 to a Color (used to retrieve Color values from the
-    * interpolated VertexVariables in the pixel shader).
-    */
-   final Color vector3ToColor( Vector3 vector ) {
-      Color result = void;
-      result.a = 255;
-      result.r = cast( ubyte )vector.x;
-      result.g = cast( ubyte )vector.y;
-      result.b = cast( ubyte )vector.z;
-      return result;
-   }
-
 
    /*
     * Helper functions for handling VertexVariables.

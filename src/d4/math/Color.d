@@ -1,5 +1,7 @@
 module d4.math.Color;
 
+import d4.math.Vector3;
+
 /**
  * A 32-bit color, stored in memory as ARGB.
  */
@@ -80,4 +82,48 @@ struct Color {
    static const uint GREEN_MASK = 255 << 8; /// Bit mask for the green component.
    static const uint BLUE_MASK = 255; /// Bit mask for the blue component.
    static const uint ALPHA_MASK = 255 << 24; /// Bit mask for the alpha component.
+}
+
+/**
+ * Converts a Color to a Vector3 (used to store Color values into
+ * VertexVariables in the vertex shader).
+ */
+final Vector3 colorToVector3( Color color ) {
+   Vector3 result = void;
+   result.x = cast( float )color.r;
+   result.y = cast( float )color.g;
+   result.z = cast( float )color.b;
+   return result;
+}
+
+/**
+ * Converts a Vector3 to a Color (used to retrieve Color values from the
+ * interpolated VertexVariables in the pixel shader).
+ */
+final Color vector3ToColor( bool CheckForOverrun = false )( Vector3 vector ) {
+   Color result = void;
+   result.a = 255;
+   static if ( CheckForOverrun ) {
+      if ( vector.x > 255 ) {
+         result.r = 255;
+      } else {
+         result.r = cast( ubyte )vector.x;
+      }
+      if ( vector.y > 255 ) {
+         result.g = 255;
+      } else {
+         result.g = cast( ubyte )vector.y;
+      }
+      if ( vector.z > 255 ) {
+         result.b = 255;
+      } else {
+         result.b = cast( ubyte )vector.z;
+      }
+   } else {
+      result.r = cast( ubyte )vector.x;
+      result.g = cast( ubyte )vector.y;
+      result.b = cast( ubyte )vector.z;
+   }
+
+   return result;
 }

@@ -30,6 +30,19 @@ import d4.util.ArrayUtils;
 import d4.util.FreeCameraApplication;
 import util.EntryPoint;
 
+/**
+ * A shader which renders the objects all white illuminated with two colored
+ * omni lights (with decay) and ambient light.
+ *
+ * Instead of (integer) <code>Color</code>s, <code>Vector3</code>s are used
+ * internally because it turned out that this is quite a bit faster than
+ * working with colors packed into a 32 bit integer and performing clipping for
+ * all three channels on every operation.
+ *
+ * There might be a more elaborate solution, but for now, it works quite well.
+ *
+ * Vertex type: NormalVertex.
+ */
 template Shader() {
    import tango.math.Math : sqrt;
    import d4.scene.NormalVertex;
@@ -51,36 +64,34 @@ template Shader() {
       Vector3 normal = variables.normal.normalized();
 
       Vector3 toLight0 = shaderConstants.light0LocalPosition - variables.localPosition;
-      float decayFactor0 = 1f / ( 1 + toLight0.sqrLength() * DECAY_0 );
+      float decayFactor0 = 1f / ( 1f + toLight0.sqrLength() * DECAY_0 );
       toLight0.normalize();
 
       Vector3 toLight1 = shaderConstants.light1LocalPosition - variables.localPosition;
-      float decayFactor1 = 1f / ( 1 + toLight1.sqrLength() * DECAY_1 );
+      float decayFactor1 = 1f / ( 1f + toLight1.sqrLength() * DECAY_1 );
       toLight1.normalize();
 
-      Color result = Color( 255, 255, 255 ) * AMBIENT_INTENSITY;
-
-      // TODO: Prevent »color overruns«.
+      Vector3 color = Vector3( 255, 255, 255 ) * AMBIENT_INTENSITY;
 
       float diffuseFactor0 = toLight0.dot( normal );
       if ( diffuseFactor0 > 0 ) {
-         result += shaderConstants.light0Color * diffuseFactor0 * decayFactor0;
+         color += shaderConstants.light0Color * diffuseFactor0 * decayFactor0;
       }
 
       float diffuseFactor1 = toLight1.dot( normal );
       if ( diffuseFactor1 > 0 ) {
-         result += shaderConstants.light1Color * diffuseFactor1 * decayFactor1;
+         color += shaderConstants.light1Color * diffuseFactor1 * decayFactor1;
       }
 
-      return result;
+      return vector3ToColor!( true )( color );
    }
 
    struct ShaderConstants {
       Vector3 light0LocalPosition;
-      Color light0Color;
+      Vector3 light0Color;
 
       Vector3 light1LocalPosition;
-      Color light1Color;
+      Vector3 light1Color;
    }
 
    struct VertexVariables {
@@ -89,6 +100,11 @@ template Shader() {
    }
 }
 
+
+/**
+ * An IMaterial which uses the above Shader to render the scene with a blue and
+ * an orange light spinning around the y-axis.
+ */
 class Material : IMaterial {
 public:
    this() {
@@ -106,8 +122,8 @@ public:
    IRasterizer getRasterizer() {
       if ( m_rasterizer is null ) {
          m_rasterizer = new Rasterizer();
-         m_rasterizer.shaderConstants.light0Color = Color( 0, 127, 255 );
-         m_rasterizer.shaderConstants.light1Color = Color( 255, 128, 0 );
+         m_rasterizer.shaderConstants.light0Color = colorToVector3( Color( 0, 128, 255 ) );
+         m_rasterizer.shaderConstants.light1Color = colorToVector3( Color( 255, 128, 0 ) );
       }
 
       return m_rasterizer;
