@@ -21,10 +21,12 @@ import d4.math.Transformations;
 import d4.renderer.IMaterial;
 import d4.renderer.SolidRasterizer;
 import d4.scene.BasicMaterial;
+import d4.scene.IBasicRasterizerFactory;
 import d4.scene.ISceneVisitor;
 import d4.scene.Node;
 import d4.scene.Scene;
 import d4.scene.FixedMaterialRenderVisitor;
+import d4.scene.GenericBasicRasterizerFactory;
 import d4.scene.RenderVisitor;
 import d4.scene.Vertex;
 import d4.shader.LitSingleColorShader;
@@ -55,11 +57,13 @@ protected:
    override void init() {
       super.init();
 
+      m_rasterizerFactory = new GenericBasicRasterizerFactory();
+
       assert( m_sceneFileName.length > 0 );
 
       Stdout.newline;
-      m_scene = new AssimpScene(
-         m_sceneFileName, m_generateSmoothNormals, m_fakeColors );
+      m_scene = new AssimpScene( m_sceneFileName, m_rasterizerFactory,
+         m_generateSmoothNormals, m_fakeColors );
 
       m_rotateWorld = false;
       m_animateBackground = false;
@@ -70,14 +74,14 @@ protected:
       m_shadingMode = ShadingMode.GOURAUD_TEXTURED;
       m_forceWireframe = false;
 
-      m_wireframeMaterial = new BasicMaterial();
+      m_wireframeMaterial = new BasicMaterial( m_rasterizerFactory );
       m_wireframeMaterial.wireframe = true;
 
-      m_flatMaterial = new BasicMaterial();
+      m_flatMaterial = new BasicMaterial( m_rasterizerFactory );
       m_flatMaterial.gouraudShading = false;
       m_flatMaterial.lighting = true;
 
-      m_gouraudMaterial = new BasicMaterial();
+      m_gouraudMaterial = new BasicMaterial( m_rasterizerFactory );
       m_gouraudMaterial.vertexColors = false;
       m_gouraudMaterial.lighting = true;
    }
@@ -196,6 +200,7 @@ private:
    ShadingMode m_shadingMode;
    bool m_forceWireframe;
 
+   IBasicRasterizerFactory m_rasterizerFactory;
    BasicMaterial m_wireframeMaterial;
    BasicMaterial m_flatMaterial;
    BasicMaterial m_gouraudMaterial;

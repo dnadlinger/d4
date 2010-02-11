@@ -6,24 +6,25 @@ import d4.math.Vector3;
 import d4.renderer.IMaterial;
 import d4.renderer.IRasterizer;
 import d4.renderer.Renderer;
-import d4.renderer.SolidRasterizer;
-import d4.renderer.WireframeRasterizer;
-import d4.shader.LitVertexColorShader;
-import d4.shader.LitSingleColorShader;
-import d4.shader.LitTextureShader;
-import d4.shader.SingleColorShader;
-import d4.shader.TextureShader;
-import d4.shader.VertexColorShader;
+import d4.scene.IBasicRasterizerFactory;
 
 /**
- * A simple, straightforward IMaterial implementation.
+ * A simple IMaterial implementation.
+ *
+ * The only purpose of delegating the actual rasterizer creation to a seperate
+ * instance (IBasicRasterizerFactory) is to avoid instancing RasterizerBase
+ * several times for the generic default shaders if they are not nedeed (and so
+ * bloating the resulting binary), but BasicMaterial is used (e.g. in the model
+ * loader).
  */
 class BasicMaterial : IMaterial {
 public:
    /**
     * Constructs a new material with the default settings.
     */
-   this() {
+   this( IBasicRasterizerFactory rasterizerFactory ) {
+      m_rasterizerFactory = rasterizerFactory;
+
       m_wireframe = false;
       m_gouraudShading = true;
       m_vertexColors = false;
@@ -71,7 +72,7 @@ public:
 
 
    /**
-    * Whether lighting is enable for the material.
+    * Whether lighting is enabled for the material.
     */
    bool lighting() {
       return m_lighting;
@@ -103,76 +104,15 @@ public:
    * to draw the material.
    */
    IRasterizer getRasterizer() {
-      if ( m_wireframe ) {
-         // This causes dmd to segfault:
-         // return new WireframeRasterizer!( SingleColorShader, Color() )();
-         return new WireframeRasterizer!( SingleColorShader )();
-      }
-
-      if ( gouraudShading ) {
-         if ( m_vertexColors ) {
-            if ( m_lighting ) {
-               // Simply doing the following does not work:
-               // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-               //
-               // and doing this crashes gdc:
-               // auto lightDirection = Vector3( 0, -1, 1 );
-               // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
-               return new SolidRasterizer!( true, LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-            } else {
-               return new SolidRasterizer!( true, VertexColorShader )();
-            }
-         } else if ( m_diffuseTexture !is null ) {
-            if ( m_lighting ) {
-               auto rasterizer = new SolidRasterizer!( true, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-               rasterizer.textures = [ m_diffuseTexture ];
-               return rasterizer;
-            } else {
-               auto rasterizer = new SolidRasterizer!( true, TextureShader )();
-               rasterizer.textures = [ m_diffuseTexture ];
-               return rasterizer;
-            }
-         } else {
-            if ( m_lighting ) {
-               return new SolidRasterizer!( true, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-            } else {
-               // See above.
-               // return new SolidRasterizer!( true, SingleColorShader, Color() )();
-               return new SolidRasterizer!( true, SingleColorShader )();
-            }
-         }
-      } else {
-         if ( m_vertexColors ) {
-            if ( m_lighting ) {
-               return new SolidRasterizer!( false, LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-            } else {
-               return new SolidRasterizer!( false, VertexColorShader )();
-            }
-         } else if ( m_diffuseTexture !is null ) {
-            if ( m_lighting ) {
-               auto rasterizer = new SolidRasterizer!( false, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-               rasterizer.textures = [ m_diffuseTexture ];
-               return rasterizer;
-            } else {
-               auto rasterizer = new SolidRasterizer!( false, TextureShader )();
-               rasterizer.textures = [ m_diffuseTexture ];
-               return rasterizer;
-            }
-         } else {
-            if ( m_lighting ) {
-               return new SolidRasterizer!( false, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-            } else {
-               return new SolidRasterizer!( false, SingleColorShader )();
-            }
-         }
-      }
+      return m_rasterizerFactory.getRasterizer( this );
    }
 
    void prepareForRendering( Renderer renderer ) {
       // Nothing to do here – we only need our rasterizer activated.
    }
 
-   const AMBIENT_LIGHT_LEVEL = 0.1;
+private:
+   IBasicRasterizerFactory m_rasterizerFactory;
 
    bool m_wireframe;
    bool m_gouraudShading;

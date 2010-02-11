@@ -14,8 +14,10 @@ import d4.math.Texture;
 import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.scene.BasicMaterial;
+import d4.scene.IBasicRasterizerFactory;
 import d4.scene.Mesh;
 import d4.scene.Node;
+import d4.scene.NullBasicRasterizerFactory;
 import d4.scene.Vertex;
 import d4.scene.ColoredNormalVertex;
 import d4.scene.Scene;
@@ -32,17 +34,25 @@ class AssimpScene : Scene {
     * Params:
     *    fileName = The file to load (see Assimp docs for accepted file
     *       formats).
+    *    rasterizerFactory = The rasterizer factory to pass to the
+    *       <code>BasicMaterial</code>s created for the scene materials.
     *    normalType = If no normals are found in the model file, Assimp
     *       generates a set of normals. This parameter specifies whether
     *       they will be smoothed.
     *    fakeColors = If fake vertex colors should be generated.
     */
-   this( char[] fileName, bool smoothNormals = false, bool fakeColors = false ) {
+   this( char[] fileName,
+      IBasicRasterizerFactory rasterizerFactory = new NullBasicRasterizerFactory(),
+      bool smoothNormals = false, bool fakeColors = false ) {
+
+      m_rasterizerFactory = rasterizerFactory;
+
       // Make sure that the Assimp library is loaded.
       Assimp.load();
 
       Stdout( "Loading scene file: ")( fileName )( "... " );
 
+      // Use the Assimp library to load the scene file into memory.
       uint importFlags =
          aiProcess.JoinIdenticalVertices
          | aiProcess.Triangulate
@@ -58,7 +68,6 @@ class AssimpScene : Scene {
       }
 
       auto sceneFile = FilePath( standardizePath( fileName ) );
-
       aiScene* scene = aiImportFile(
          toStringz( sceneFile.toString() ), importFlags );
 
@@ -71,6 +80,7 @@ class AssimpScene : Scene {
          throw new Exception( "Model file contains no root node." );
       }
 
+      // Import materials into our own data structures.
       char[] scenePath = sceneFile.path();
 
       for ( uint i = 0; i < scene.mNumMaterials; ++i ) {
@@ -78,18 +88,20 @@ class AssimpScene : Scene {
             scene.mMaterials[ i ], scene, scenePath );
       }
 
+      // Import meshes into our own data structures.
       for ( uint i = 0; i < scene.mNumMeshes; ++i ) {
          m_meshes ~= importMesh( scene.mMeshes[ i ], fakeColors );
       }
 
+      // Import the scenegraph into our own data structures.
       m_rootNode = importNode( scene.mRootNode );
 
+      // Print some statistics.
       uint triangleCount = 0;
       foreach ( mesh; m_meshes ) {
          triangleCount += mesh.indices.length / 3;
       }
 
-      // Print some statistics.
       Stdout( "done." ).newline;
       Stdout.format(
          "Imported {} triangles in {} meshes, with a total of {} materials.",
@@ -122,7 +134,7 @@ private:
    BasicMaterial importMaterial( aiMaterial* material, aiScene* scene,
       char[] modelPath ) {
 
-      BasicMaterial result = new BasicMaterial();
+      BasicMaterial result = new BasicMaterial( m_rasterizerFactory );
 
       // Read wireframe mode.
       int useWireframe = 0;
@@ -318,7 +330,6 @@ private:
    }
 
    ColoredNormalVertex[] importVerticesWithFixedColor( aiMesh* mesh, Color color ) {
-
       ColoredNormalVertex[] result;
 
       for ( uint i = 0; i < mesh.mNumVertices; ++i ) {
@@ -423,6 +434,8 @@ private:
    char[] importString( aiString* s ) {
       return s.data[ 0 .. s.length ];
    }
+
+   IBasicRasterizerFactory m_rasterizerFactory;
 
    Mesh[] m_meshes;
    BasicMaterial[] m_materials;
