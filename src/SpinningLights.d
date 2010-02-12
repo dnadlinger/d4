@@ -183,10 +183,11 @@ protected:
 
          AABB boundingBox = AABB( collector.result );
 
-         // Enlarge the box 5 units to the sides, 3 to the top, and 0 to the
-         // bottom.
-         boundingBox.enlarge( Vector3( 5, 3, 5 ) );
-         boundingBox.min.y += 3;
+         // Enlarge the box to the sides and top, mimicking a room the model is
+         // standing in.
+         float size = ( boundingBox.max - boundingBox.min ).length;
+         boundingBox.enlarge( Vector3( size / 2, size / 3, size / 2 ) );
+         boundingBox.min.y += size / 3;
 
          auto newRoot = new Node();
          newRoot.addMesh( makeCube( boundingBox, true ) );
