@@ -8,6 +8,7 @@ import d4.math.Color;
 import d4.output.Surface;
 import d4.output.SdlSurface;
 import d4.util.Application;
+import d4.util.Option;
 import d4.util.Key;
 
 /**
@@ -121,6 +122,14 @@ protected:
             super.handleValueArgument( name, value );
             break;
       }
+   }
+
+   override Option[] helpOptions() {
+      return super.helpOptions() ~ [
+         new Option( "fullscreen", "If specified, fullscreen mode is used." ),
+         new Option( "width=SIZE", "Sets the output width to SIZE pixels." ),
+         new Option( "height=SIZE", "Sets the output height to SIZE pixels." )
+      ];
    }
 
 private:

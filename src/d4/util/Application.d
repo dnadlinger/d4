@@ -1,8 +1,12 @@
 module d4.util.Application;
 
+import tango.core.Array;
 import tango.io.Stdout;
+import tango.math.Math;
+import Integer = tango.text.convert.Integer;
 import tango.text.Util;
 import d4.output.Surface;
+import d4.util.Option;
 import d4.util.Key;
 
 /**
@@ -33,6 +37,12 @@ public:
       // default values for the properties modifyable via the command line
       // *before* the super()-call, which is rather uncommon.
       parseCommandLineArgs();
+
+      // Check here if the application is already finished to avoid
+      // unnecessarily entering the main loop.
+      if ( m_appFinished ) {
+         return;
+      }
 
       init();
 
@@ -139,67 +149,15 @@ protected:
    abstract void processEvents();
 
 
-   /**
-    * Causes the application to exit after the current frame is finished.
-    */
-   final void exit() {
-      m_appFinished = true;
-   }
-
-
    /*
     * Internal functionality provided to subclasses.
     */
 
    /**
-    * Handles a »switch« command line argument, a command line option without
-    * a value (e.g. »--enable-xyz«).
-    *
-    * Subclasses are expected to overwrite this to register command line
-    * switches and to call the parent class implementation if they did not
-    * process the switch.
-    *
-    * Params:
-    *    name = The name of the command line switch (without the »-< or »--«
-    *       prefix).
+    * Causes the application to exit after the current frame is finished.
     */
-   void handleSwitchArgument( char[] name ) {
-      throw new Exception( "Invalid argument: " ~ name );
-   }
-
-   /**
-    * Handles a value command line argument, a command line option which
-    * includes an equals sign for value assignment (e.g. »--value=10«).
-    *
-    * Subclasses are expected to overwrite this to register value arguments
-    * switches and to call the parent class implementation if they did not
-    * process the argument.
-    *
-    * Params:
-    *    name = The name of the command line argument (without the »-< or »--«
-    *       prefix).
-    *    value = The value of the argument (without the »=« sign).
-    */
-   void handleValueArgument( char[] name, char[] value ) {
-      throw new Exception( "Invalid argument: " ~ name );
-   }
-
-   /**
-    * Handles unnamed command line arguments, arguments without a preceding »-«
-    * or »--« (e.g. a path).
-    *
-    * Subclasses are expected to overwrite this to react to unnamed arguments
-    * and to call the parent class implementation with any arguments they did
-    * not process.
-    *
-    * Params:
-    *    values = All unnamed arguments in the command line (which were not
-    *       processed yet by a subclass).
-    */
-   void handleUnnamedArguments( char[][] values ) {
-      if ( values.length > 0 ) {
-         throw new Exception( "Too many arguments!" );
-      }
+   final void exit() {
+      m_appFinished = true;
    }
 
    /**
@@ -232,6 +190,120 @@ protected:
     */
    final float fps() {
       return m_fps;
+   }
+
+
+   /*
+    * Argument handling
+    */
+
+   /**
+    * Handles a »switch« command line argument, a command line option without
+    * a value (e.g. »--enable-xyz«).
+    *
+    * Subclasses are expected to overwrite this to register command line
+    * switches and to call the parent class implementation if they did not
+    * process the switch.
+    *
+    * Params:
+    *    name = The name of the command line switch (without the »-« or »--«
+    *       prefix).
+    */
+   void handleSwitchArgument( char[] name ) {
+      switch ( name ) {
+         case "help":
+            printHelp();
+            m_appFinished = true;
+            break;
+         default:
+            printHelp();
+            throw new Exception( "Invalid argument: " ~ name );
+      }
+   }
+
+   /**
+    * Handles a value command line argument, a command line option which
+    * includes an equals sign for value assignment (e.g. »--value=10«).
+    *
+    * Subclasses are expected to overwrite this to register value arguments
+    * switches and to call the parent class implementation if they did not
+    * process the argument.
+    *
+    * Params:
+    *    name = The name of the command line argument (without the »-« or »--«
+    *       prefix).
+    *    value = The value of the argument (without the »=« sign).
+    */
+   void handleValueArgument( char[] name, char[] value ) {
+      printHelp();
+      throw new Exception( "Invalid argument: " ~ name );
+   }
+
+   /**
+    * Handles unnamed command line arguments, arguments without a preceding »-«
+    * or »--« (e.g. a path).
+    *
+    * Subclasses are expected to overwrite this to react to unnamed arguments
+    * and to call the parent class implementation with any arguments they did
+    * not process.
+    *
+    * Params:
+    *    values = All unnamed arguments in the command line (which were not
+    *       processed yet by a subclass).
+    */
+   void handleUnnamedArguments( char[][] values ) {
+      if ( values.length > 0 ) {
+         printHelp();
+         throw new Exception( "Too many arguments!" );
+      }
+   }
+
+   /**
+    * Returns: A short description of the application which is part of the help
+    *    text.
+    */
+   abstract char[] helpSummary();
+
+   /**
+    * Returns: A short command line usage hint which is part of the help text.
+    */
+   abstract char[] helpUsage();
+
+   /**
+    * Returns: A description of all possible command line options which is part
+    *    of the help text.
+    */
+   Option[] helpOptions() {
+      return [
+        new Option( "help", "Display this help text and exit." )
+      ];
+   }
+
+   /**
+    * Prints a short help text to the standard output, consisting of the summary,
+    * usage information and description of the available options.
+    */
+   void printHelp() {
+      Stdout( helpSummary() ).newline;
+      Stdout.newline;
+
+      Stdout( "Usage: " )( m_args[ 0 ] )( " " )( helpUsage() ).newline;
+      Stdout.newline;
+
+      Stdout( "Options: " ).newline;
+      Option[] options = helpOptions();
+      options.sort();
+
+      uint maxLength = 0;
+      foreach ( option; options ) {
+         maxLength = max( maxLength, option.name.length );
+      }
+
+      foreach ( option; options ) {
+         Stdout.format( " --{0,-" ~ Integer.toString( maxLength ) ~ "} – {1}",
+            option.name, option.description ).newline;
+      }
+      Stdout.newline;
    }
 
    /*

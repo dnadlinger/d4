@@ -31,6 +31,7 @@ import d4.shader.SingleColorShader;
 import d4.util.ArrayUtils;
 import d4.util.FreeCameraApplication;
 import d4.util.Key;
+import d4.util.Option;
 import util.EntryPoint;
 import util.EnumUtils;
 
@@ -258,6 +259,20 @@ protected:
          super.handleUnnamedArguments( values[ 0..( $ - 1 ) ] );
          m_rootNode = ( new AssimpScene( values[ $ - 1 ] ) ).rootNode;
       }
+   }
+
+   override char[] helpSummary() {
+      return "SpinningLights – demonstrating more complex per-pixel lighting.";
+   }
+
+   override char[] helpUsage() {
+      return "[options] [scene_file]";
+   }
+
+   override Option[] helpOptions() {
+      return super.helpOptions() ~ [
+         new Option( "display-room", "Display a box around the loaded model." )
+      ];
    }
 
 private:

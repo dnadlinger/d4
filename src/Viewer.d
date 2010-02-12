@@ -34,6 +34,7 @@ import d4.shader.LitSingleColorShader;
 import d4.shader.SingleColorShader;
 import d4.util.FreeCameraApplication;
 import d4.util.Key;
+import d4.util.Option;
 import util.EntryPoint;
 import util.EnumUtils;
 
@@ -69,9 +70,12 @@ protected:
    override void init() {
       super.init();
 
-      m_rasterizerFactory = new GenericBasicRasterizerFactory();
+      if ( m_sceneFileName is null ) {
+         throw new Exception(
+            "Please specify a model file to load at the command line." );
+      }
 
-      assert( m_sceneFileName.length > 0 );
+      m_rasterizerFactory = new GenericBasicRasterizerFactory();
 
       Stdout.newline;
       m_scene = new AssimpScene( m_sceneFileName, m_rasterizerFactory,
@@ -180,14 +184,27 @@ protected:
    }
 
    override void handleUnnamedArguments( char[][] values ) {
-      if ( values.length == 0 ) {
-         throw new Exception(
-            "Please specify a model file to load at the command line." );
+      if ( values.length > 0 ) {
+         m_sceneFileName = values[ $ - 1 ];
+         super.handleUnnamedArguments( values[ 0..( $ - 1 ) ] );
+      } else {
+         super.handleUnnamedArguments( values );
       }
+   }
 
-      m_sceneFileName = values[ $ - 1 ];
+   override char[] helpSummary() {
+      return "Viewer – a simple model viewer.";
+   }
 
-      super.handleUnnamedArguments( values[ 0..($-1) ] );
+   override char[] helpUsage() {
+      return "[options] scene_file";
+   }
+
+   override Option[] helpOptions() {
+      return super.helpOptions() ~ [
+         new Option( "smooth-normals", "Smooth the normals generated for models without normals." ),
+         new Option( "fake-colors", "Color each model vertex in a random color." )
+      ];
    }
 
 private:
