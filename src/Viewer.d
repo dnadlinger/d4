@@ -42,9 +42,9 @@ import util.EnumUtils;
  * The available shading modes.
  */
 enum ShadingMode {
-   FLAT,
-   GOURAUD,
-   GOURAUD_TEXTURED
+   FLAT, /// Use a default flat material for all meshes.
+   GOURAUD, /// Use a default gouraud-shading material for all meshes.
+   MATERIAL /// Use the materials stored in the meshes to be rendered.
 }
 
 /**
@@ -86,9 +86,8 @@ protected:
       m_backgroundTime = 0;
       renderer().clearColor = Color( 0, 0, 0 );
 
-      // Use non-wireframe mode with both gouraud shading and texturing enabled
-      // by default.
-      m_shadingMode = ShadingMode.GOURAUD_TEXTURED;
+      // Use the mesh materials by default.
+      m_shadingMode = ShadingMode.MATERIAL;
       m_wireframeMode = WireframeMode.OFF;
 
       m_wireframeMaterial = new WireframeMaterial();
@@ -125,7 +124,7 @@ protected:
                renderVisitor = new FixedMaterialRenderVisitor(
                   renderer(), m_gouraudMaterial );
                break;
-            case ShadingMode.GOURAUD_TEXTURED:
+            case ShadingMode.MATERIAL:
                renderVisitor = new RenderVisitor( renderer() );
                break;
             default:
