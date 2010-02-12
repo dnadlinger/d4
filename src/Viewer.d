@@ -29,11 +29,13 @@ import d4.scene.FixedMaterialRenderVisitor;
 import d4.scene.GenericBasicRasterizerFactory;
 import d4.scene.RenderVisitor;
 import d4.scene.Vertex;
+import d4.scene.WireframeMaterial;
 import d4.shader.LitSingleColorShader;
 import d4.shader.SingleColorShader;
 import d4.util.FreeCameraApplication;
 import d4.util.Key;
 import util.EntryPoint;
+import util.EnumUtils;
 
 /**
  * The available shading modes.
@@ -45,7 +47,17 @@ enum ShadingMode {
 }
 
 /**
+ * The available wireframe drawing modes.
+ */
+enum WireframeMode {
+   OFF, /// Use the normal solid materials.
+   ONLY, /// Only render the wireframes.
+   OVERLAY /// Render the wireframes above the solid image.
+}
+
+/**
  * The main application class.
+ *
  * Manages the scene, reacts to user input, etc.
  */
 class Viewer : FreeCameraApplication {
@@ -70,12 +82,12 @@ protected:
       m_backgroundTime = 0;
       renderer().clearColor = Color( 0, 0, 0 );
 
-      // Enable everything by default.
+      // Use non-wireframe mode with both gouraud shading and texturing enabled
+      // by default.
       m_shadingMode = ShadingMode.GOURAUD_TEXTURED;
-      m_forceWireframe = false;
+      m_wireframeMode = WireframeMode.OFF;
 
-      m_wireframeMaterial = new BasicMaterial( m_rasterizerFactory );
-      m_wireframeMaterial.wireframe = true;
+      m_wireframeMaterial = new WireframeMaterial();
 
       m_flatMaterial = new BasicMaterial( m_rasterizerFactory );
       m_flatMaterial.gouraudShading = false;
@@ -96,12 +108,10 @@ protected:
          updateRotatingWorld( deltaTime );
       }
 
-      ISceneVisitor renderVisitor;
+      renderer().beginScene();
 
-      if ( m_forceWireframe ) {
-         renderVisitor = new FixedMaterialRenderVisitor(
-            renderer(), m_wireframeMaterial );
-      } else {
+      if ( m_wireframeMode != WireframeMode.ONLY ) {
+         ISceneVisitor renderVisitor;
          switch ( m_shadingMode ) {
             case ShadingMode.FLAT:
                renderVisitor = new FixedMaterialRenderVisitor(
@@ -114,11 +124,17 @@ protected:
             case ShadingMode.GOURAUD_TEXTURED:
                renderVisitor = new RenderVisitor( renderer() );
                break;
+            default:
+               throw new Exception( "Invalid shading mode!" );
          }
+         m_scene.rootNode.accept( renderVisitor );
       }
 
-      renderer().beginScene();
-      m_scene.rootNode.accept( renderVisitor );
+      if ( m_wireframeMode != WireframeMode.OFF ) {
+         m_scene.rootNode.accept(
+            new FixedMaterialRenderVisitor( renderer(), m_wireframeMaterial ) );
+      }
+
       renderer().endScene();
    }
 
@@ -132,10 +148,10 @@ protected:
       switch ( key ) {
          case Key.y:
          case Key.z:
-            m_shadingMode = cast( ShadingMode )( ( m_shadingMode + 1 ) % ( m_shadingMode.max + 1 ) );
+            m_shadingMode = step( m_shadingMode, 1 );
             break;
          case Key.x:
-            m_forceWireframe = !m_forceWireframe;
+            m_wireframeMode = step( m_wireframeMode, 1 );
             break;
          case Key.v:
             m_rotateWorld = !m_rotateWorld;
@@ -198,10 +214,10 @@ private:
    Scene m_scene;
 
    ShadingMode m_shadingMode;
-   bool m_forceWireframe;
+   WireframeMode m_wireframeMode;
 
    IBasicRasterizerFactory m_rasterizerFactory;
-   BasicMaterial m_wireframeMaterial;
+   IMaterial m_wireframeMaterial;
    BasicMaterial m_flatMaterial;
    BasicMaterial m_gouraudMaterial;
 

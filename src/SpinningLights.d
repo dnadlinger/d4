@@ -26,9 +26,13 @@ import d4.scene.Node;
 import d4.scene.Primitives;
 import d4.scene.FixedMaterialRenderVisitor;
 import d4.scene.Vertex;
+import d4.scene.WireframeMaterial;
+import d4.shader.SingleColorShader;
 import d4.util.ArrayUtils;
 import d4.util.FreeCameraApplication;
+import d4.util.Key;
 import util.EntryPoint;
+import util.EnumUtils;
 
 /**
  * A shader which renders the objects all white illuminated with two colored
@@ -148,6 +152,14 @@ private:
    Rasterizer m_rasterizer;
 }
 
+/**
+ * The available wireframe drawing modes.
+ */
+enum WireframeMode {
+   OFF, /// Use the normal solid materials.
+   ONLY, /// Only render the wireframes.
+   OVERLAY /// Render the wireframes above the solid image.
+}
 
 class SpinningLights : FreeCameraApplication {
 public:
@@ -184,6 +196,9 @@ protected:
 
       cameraPosition = Vector3( 0, 3, 5 );
       m_material = new Material();
+
+      m_wireframeMode = WireframeMode.OFF;
+      m_wireframeMaterial = new WireframeMaterial();
    }
 
    override void render( float deltaTime ) {
@@ -192,12 +207,35 @@ protected:
       m_material.updatePositions( deltaTime );
 
       renderer().beginScene();
-      m_rootNode.accept( new FixedMaterialRenderVisitor( renderer(), m_material ) );
+
+      if ( m_wireframeMode != WireframeMode.ONLY ) {
+         m_rootNode.accept(
+            new FixedMaterialRenderVisitor( renderer(), m_material ) );
+      }
+
+      if ( m_wireframeMode != WireframeMode.OFF ) {
+         m_rootNode.accept(
+            new FixedMaterialRenderVisitor( renderer(), m_wireframeMaterial ) );
+      }
+
       renderer().endScene();
    }
 
    override void shutdown() {
       super.shutdown();
+   }
+
+   override void handleKeyUp( Key key ) {
+      super.handleKeyUp( key );
+
+      switch ( key ) {
+         case Key.x:
+            m_wireframeMode = step( m_wireframeMode, 1 );
+            break;
+         default:
+            // Do nothing.
+            break;
+      }
    }
 
    override void handleSwitchArgument( char[] name ) {
@@ -226,6 +264,9 @@ private:
    bool m_displayRoom;
    Node m_rootNode;
    Material m_material;
+
+   WireframeMode m_wireframeMode;
+   IMaterial m_wireframeMaterial;
 }
 
 mixin EntryPoint!( SpinningLights );
