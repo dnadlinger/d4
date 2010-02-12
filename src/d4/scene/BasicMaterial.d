@@ -62,7 +62,7 @@ public:
     * Whether vertex colors should be respected.
     */
    bool vertexColors() {
-      return m_wireframe;
+      return m_vertexColors;
    }
 
    /// ditto
