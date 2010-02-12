@@ -17,6 +17,4 @@ interface IMaterial {
    IRasterizer getRasterizer();
 
    void prepareForRendering( Renderer renderer );
-
-   bool usesTextures();
 }

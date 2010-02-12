@@ -95,10 +95,6 @@ public:
       m_diffuseTexture = texture;
    }
 
-   bool usesTextures() {
-      return ( m_diffuseTexture !is null );
-   }
-
   /**
    * Returns a reference to an IRasterizer which is configured
    * to draw the material.

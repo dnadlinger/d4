@@ -135,14 +135,11 @@ public:
    }
 
    void prepareForRendering( Renderer renderer ) {
+      // Is it really neccessary to pass the renderer here?
       m_rasterizer.shaderConstants.light0LocalPosition =
          renderer.worldMatrix.inversed().transformLinear( m_light0Position );
       m_rasterizer.shaderConstants.light1LocalPosition =
          renderer.worldMatrix.inversed().transformLinear( m_light1Position );
-   }
-
-   bool usesTextures() {
-      return false;
    }
 
 private:

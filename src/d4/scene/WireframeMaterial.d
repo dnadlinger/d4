@@ -17,8 +17,4 @@ class WireframeMaterial : IMaterial {
    void prepareForRendering( Renderer renderer ) {
       // Nothing to do – we just need our rasterizer activated.
    }
-
-   bool usesTextures() {
-      return false;
-   }
 }
