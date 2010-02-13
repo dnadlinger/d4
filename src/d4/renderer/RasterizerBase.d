@@ -182,14 +182,14 @@ public:
    /// ditto
    final void textures( Texture[] textures ) {
       m_textures = textures;
-      m_textureDataPointers = [];
+      m_textureData = [];
       m_shiftedWidths = [];
       m_shiftedHeights = [];
       m_shiftedXLimits = [];
       m_shiftedYLimits = [];
 
       foreach ( i, texture; textures ) {
-         m_textureDataPointers ~= texture.colorData;
+         m_textureData ~= texture.colorData;
          m_texWidths ~= texture.width;
          m_texHeights ~= texture.height;
          m_shiftedWidths ~= texture.width << TEX_COORD_SHIFT;
@@ -228,10 +228,10 @@ protected:
     *
     * If the first template parameter, <code>bilinearInterpolation</code> is
     * set to true, bilinear interpolation is used to compute the color value.
-    * Otherwise, the color of thge nearest pixel is returned.
+    * Otherwise, the color of the nearest pixel is returned.
     *
     * If the second template parameter, <code>tile</code> is set to true, the
-    * texture is tiled if the coordinates exceed the (0,0)-(1,1) range. If not,
+    * texture is tiled if the coordinates exceed the (0,0)–(1,1) range. If not,
     * the color values of the edge pixels are repeated (known as »clamping«).
     *
     * Params:
@@ -244,8 +244,9 @@ protected:
    final Color readTexture( bool bilinearInterpolation = false, bool tile = true )
       ( uint textureIndex, Vector2 texCoords ) {
 
-      // Parts of the interpolation code shamelessly taken from DShade
-      // (http://h3.team0xf.com/proj/).
+      // Some fixed-point math is used to here to speed up the very time-critical
+      // filtering code. For an example of more elaborate optimizations, see:
+      // http://www.flipcode.com/archives/Bilinear_Filtering_Interpolation.shtml.
       int u;
       int v;
 
@@ -255,12 +256,6 @@ protected:
             m_shiftedWidths[ textureIndex ];
          v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) %
             m_shiftedHeights[ textureIndex ];
-         if ( u < 0 ) {
-            u += m_shiftedWidths[ textureIndex ];
-         }
-         if ( v < 0 ) {
-            v += m_shiftedHeights[ textureIndex ];
-         }
       } else {
          // Clamp.
          u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] );
@@ -285,40 +280,46 @@ protected:
          // We probably should round correctly for the uninterpolated mode
          // instead of just truncating the lower bits, but nobody will see
          // that anyway...
-         return m_textureDataPointers[ textureIndex ][ v0 * m_texWidths[ textureIndex ] + u0 ];
+         return m_textureData[ textureIndex ][ v0 * m_texWidths[ textureIndex ] + u0 ];
       } else {
-         // Calculate the indices of the two neighbour pixels.
+         // Read the four surrounding pixels.
+         //
+         // v
+         // ^
+         // | .  .  .  .
+         // | . 01 11  .
+         // | . 00 10  .
+         // | .  .  .  .
+         // X———————————> u
+         //
+         // u0 and v0 were rounded down by truncating the low bits above, so by
+         // adding 1 to them, we get the indices of the four pixels surrounding
+         // the precise position.
          int u1 = ( u0 + 1 ) % m_texWidths[ textureIndex ];
          int v1 = ( v0 + 1 ) % m_texHeights[ textureIndex ];
+         Color c00 = m_textureData[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v0 ];
+         Color c10 = m_textureData[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v0 ];
+         Color c01 = m_textureData[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v1 ];
+         Color c11 = m_textureData[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
 
-         // Read the four surrounding pixels.
-         Color c00 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v0 ];
-         Color c10 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v0 ];
-         Color c01 = m_textureDataPointers[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v1 ];
-         Color c11 = m_textureDataPointers[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
+         // The value of the lower, added bits is effectively the distance of
+         // the precise sampling position to 00, its inverse the distance to 11.
+         const LOWER_BITS_MASK = ( 1 << TEX_COORD_SHIFT ) - 1;
+         int lu = u & LOWER_BITS_MASK;
+         int ilu = LOWER_BITS_MASK + 1 - lu;
+         int lv = v & LOWER_BITS_MASK;
+         int ilv = LOWER_BITS_MASK + 1 - lv;
 
-         // Use only the low, added bits to calculate the interpolation point.
-         int offsetU = u & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
-         int negOffsetU = ( 1 << TEX_COORD_SHIFT ) - offsetU;
-         int offsetV = v & ( ( 1 << TEX_COORD_SHIFT ) - 1 );
-         int negOffsetV = ( 1 << TEX_COORD_SHIFT ) - offsetV;
+         // Interpolation code template for a single channel.
+         char[] c( char[] n ) {
+            return
+               "( ( " ~
+                  "( cast(uint) c00."~n~" * ilu + lu * c10."~n~" ) * ilv +" ~
+                  "( cast(uint) c01."~n~" * ilu + lu * c11."~n~" ) * lv" ~
+               ") >> ( TEX_COORD_SHIFT * 2 ) )";
+         }
 
-         return Color(
-             (
-                ( ( cast(uint) c00.r * negOffsetU + offsetU * c10.r ) ) * negOffsetV
-                + ( (cast(uint)c01.r * negOffsetU + offsetU * c11.r ) ) * offsetV
-             ) >> ( TEX_COORD_SHIFT * 2 ),
-
-             (
-                ( ( cast(uint) c00.g * negOffsetU + offsetU * c10.g ) ) * negOffsetV
-                + ( (cast(uint) c01.g * negOffsetU + offsetU * c11.g ) ) * offsetV
-             ) >> ( TEX_COORD_SHIFT * 2 ),
-
-             (
-                ( ( cast(uint) c00.b * negOffsetU + offsetU * c10.b ) ) * negOffsetV
-                + ( ( cast(uint) c01.b * negOffsetU + offsetU * c11.b ) ) * offsetV
-             ) >> ( TEX_COORD_SHIFT * 2 )
-         );
+         return Color( mixin( c( "r" ) ), mixin( c( "g" ) ), mixin( c( "b" ) ) );
       }
    }
 
@@ -637,15 +638,27 @@ private:
    BackfaceCulling m_backfaceCulling;
 
    Texture[] m_textures;
-   Color[][] m_textureDataPointers;
+   Color[][] m_textureData;
 
-   // Shift the coordinates to the left to be able to perfom the subpixel
-   // calculations using integer arithmetic.
-   const TEX_COORD_SHIFT = 8;
+   /*
+    * The performance of the texture reading code typically has a large impact
+    * on the overall speed of the application. Hence, the dimensions are
+    * pre-processed for use with fixed-point math when a new set of textures is
+    * activated and just read from the cache in readTexture().
+    */
    uint[] m_shiftedWidths;
    uint[] m_shiftedHeights;
    uint[] m_shiftedXLimits;
    uint[] m_shiftedYLimits;
    uint[] m_texWidths;
    uint[] m_texHeights;
+
+   /**
+    * The number of bits in the subpixel part of the fixed-point texture
+    * coordinates used for bilinear interpolation.
+    *
+    * For instance, if the value is 8, the integer coordinates are shifted 8 bits
+    * to the left, so 24 bits are remaining for the integer part.
+    */
+   const TEX_COORD_SHIFT = 8;
 }
