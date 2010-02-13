@@ -20,6 +20,8 @@ import d4.output.Surface;
  *
  * For example, a typical 3D application class might be derived from
  * <code>FreeCamera!( Rendering!( Sdl!( Application ) ) )</code>.
+ *
+ * Pressing Escape closes the application.
  */
 abstract class Application {
 public:
@@ -202,6 +204,43 @@ protected:
 
 
    /*
+    * Asynchronous keyboard handling.
+    */
+
+   /**
+    * Handler function called when the user presses a key.
+    *
+    * You might probably want to overwrite this in subclasses to react to
+    * keyboard input. Be sure to always call the implementation from the parent
+    * class, regardless whether you handled the key or not.
+    *
+    * Params:
+    *    key = The keycode of the pressed key.
+    */
+   void handleKeyDown( Key key ) {
+      m_keyDownList[ key ] = true;
+   }
+
+   /**
+    * Handler function called when the user releases a key.
+    *
+    * You might probably want to overwrite this in subclasses to react to
+    * keyboard input. Be sure to always call the implementation from the parent
+    * class, regardless whether you handled the key or not.
+    *
+    * Params:
+    *    key = The keycode of the released key.
+    */
+   void handleKeyUp( Key key ) {
+      m_keyDownList[ key ] = false;
+
+      if ( key == Key.ESCAPE ) {
+         exit();
+      }
+   }
+
+
+   /*
     * Argument handling
     */
 
@@ -224,8 +263,8 @@ protected:
             m_appFinished = true;
             break;
          default:
-            printHelp();
-            throw new Exception( "Invalid argument: " ~ name );
+            throw new Exception( "Invalid argument: " ~ name ~ ". "
+               "Try " ~ m_args[ 0 ] ~ " --help." );
       }
    }
 
@@ -243,8 +282,10 @@ protected:
     *    value = The value of the argument (without the »=« sign).
     */
    void handleValueArgument( char[] name, char[] value ) {
-      printHelp();
-      throw new Exception( "Invalid argument: " ~ name );
+      // If this point is reached, none of the subclasses has handeled the
+      // argument.
+      throw new Exception( "Invalid argument: " ~ name ~ ". "
+         "Try " ~ m_args[ 0 ] ~ " --help." );
    }
 
    /**
@@ -261,8 +302,9 @@ protected:
     */
    void handleUnnamedArguments( char[][] values ) {
       if ( values.length > 0 ) {
-         printHelp();
-         throw new Exception( "Too many arguments!" );
+         // There are arguments left which no subclass has handled.
+         throw new Exception( "Too many arguments. "
+            "Try " ~ m_args[ 0 ] ~ " --help." );
       }
    }
 
@@ -312,21 +354,6 @@ protected:
             option.name, option.description ).newline;
       }
       Stdout.newline;
-   }
-
-   /*
-    * Callback functions for the key tracking system.
-    */
-   void handleKeyDown( Key key ) {
-      m_keyDownList[ key ] = true;
-   }
-
-   void handleKeyUp( Key key ) {
-      m_keyDownList[ key ] = false;
-
-      if ( key == Key.ESCAPE ) {
-         exit();
-      }
    }
 
 private:
