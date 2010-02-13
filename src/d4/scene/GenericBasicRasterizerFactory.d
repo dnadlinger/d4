@@ -21,7 +21,7 @@ import d4.shader.VertexColorShader;
  * (1, -1, -1) is used.
  */
 class GenericBasicRasterizerFactory : IBasicRasterizerFactory {
-   IRasterizer getRasterizer( BasicMaterial m ) {
+   IRasterizer createRasterizer( BasicMaterial m ) {
       if ( m.wireframe ) {
          // This causes dmd to segfault:
          // return new WireframeRasterizer!( SingleColorShader, Color() )();

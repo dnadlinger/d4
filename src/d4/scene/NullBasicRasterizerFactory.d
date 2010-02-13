@@ -6,12 +6,12 @@ import d4.scene.IBasicRasterizerFactory;
 
 /**
  * A stub IBasicRasterizerFactory which just returns null when
- * <code>getRasterizer</code> is called. This avoids bloat if you do not intend
- * to use the <code>BasicMaterial</code>s created by e.g. a model importer for
- * rendering.
+ * <code>createRasterizer</code> is called. This avoids bloat if you do not
+ * intend to use the <code>BasicMaterial</code>s created by e.g. a model
+ * importer for rendering.
  */
 class NullBasicRasterizerFactory : IBasicRasterizerFactory {
-   IRasterizer getRasterizer( BasicMaterial material ) {
+   IRasterizer createRasterizer( BasicMaterial material ) {
       return null;
    }
 }

@@ -127,7 +127,7 @@ public:
          deltaTime, Vector3( 0, 1, 0 ) ) ).transformLinear( m_light1Position );
    }
 
-   IRasterizer getRasterizer() {
+   IRasterizer createRasterizer() {
       if ( m_rasterizer is null ) {
          m_rasterizer = new Rasterizer();
          m_rasterizer.shaderConstants.light0Color = colorToVector3( Color( 0, 128, 255 ) );
@@ -138,7 +138,6 @@ public:
    }
 
    void prepareForRendering( Renderer renderer ) {
-      // Is it really neccessary to pass the renderer here?
       m_rasterizer.shaderConstants.light0LocalPosition =
          renderer.worldMatrix.inversed().transformLinear( m_light0Position );
       m_rasterizer.shaderConstants.light1LocalPosition =

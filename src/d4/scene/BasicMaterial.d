@@ -99,8 +99,8 @@ public:
    * Returns a reference to an IRasterizer which is configured
    * to draw the material.
    */
-   IRasterizer getRasterizer() {
-      return m_rasterizerFactory.getRasterizer( this );
+   IRasterizer createRasterizer() {
+      return m_rasterizerFactory.createRasterizer( this );
    }
 
    void prepareForRendering( Renderer renderer ) {

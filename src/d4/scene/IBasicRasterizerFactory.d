@@ -20,5 +20,5 @@ interface IBasicRasterizerFactory {
     * Returns:
     *    The newly created rasterizer.
     */
-   IRasterizer getRasterizer( BasicMaterial material );
+   IRasterizer createRasterizer( BasicMaterial material );
 }

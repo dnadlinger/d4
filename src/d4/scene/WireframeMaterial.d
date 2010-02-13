@@ -10,7 +10,7 @@ import d4.shader.SingleColorShader;
  * A simple material for rendering a white unlit wireframe model.
  */
 class WireframeMaterial : IMaterial {
-   IRasterizer getRasterizer() {
+   IRasterizer createRasterizer() {
       return new WireframeRasterizer!( SingleColorShader )();
    }
 

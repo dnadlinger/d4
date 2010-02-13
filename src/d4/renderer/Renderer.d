@@ -100,7 +100,7 @@ public:
     */
    void activateMaterial( IMaterial material ) {
       if ( !m_materialRasterizers.containsKey( material ) ) {
-         m_materialRasterizers.add( material, material.getRasterizer() );
+         m_materialRasterizers.add( material, material.createRasterizer() );
       }
 
       activateRasterizer( m_materialRasterizers[ material ] );
