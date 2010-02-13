@@ -1,20 +1,20 @@
-module d4.util.FreeCameraApplication;
+module d4.app.FreeCamera;
 
 import tango.math.Math : PI;
+import d4.app.Key;
 import d4.math.Matrix4;
 import d4.math.Quaternion;
 import d4.math.Transformations;
 import d4.math.Vector3;
 import d4.renderer.Renderer;
-import d4.util.Key;
-import d4.util.SdlRendererApplication;
 
 /**
- * An application template for SDL applications using a completely free camera.
+ * Provides a basic free camera mode for <code>Rendering!( Application )</code>s.
  *
- * TODO: Move out of a subclass into a mixin of some sort.
+ * Controls are WSAD for the movement and the cursor keys for the rotation, with
+ * SHIFT increasing the speed for both.
  */
-abstract class FreeCameraApplication : SdlRendererApplication {
+abstract class FreeCamera( alias Base ) : Base {
 public:
    this( char[][] args ) {
       super( args );
@@ -58,16 +58,20 @@ private:
       }
 
       if ( isKeyDown( Key.UP ) ) {
-         m_cameraRotation.append( rotationQuaternion( -rotationSpeed * deltaTime, Vector3( 1, 0, 0 ) ) );
+         m_cameraRotation.append(
+            rotationQuaternion( -rotationSpeed * deltaTime, Vector3( 1, 0, 0 ) ) );
       }
       if ( isKeyDown( Key.DOWN ) ) {
-         m_cameraRotation.append( rotationQuaternion( rotationSpeed * deltaTime, Vector3( 1, 0, 0 ) ) );
+         m_cameraRotation.append(
+            rotationQuaternion( rotationSpeed * deltaTime, Vector3( 1, 0, 0 ) ) );
       }
       if ( isKeyDown( Key.LEFT ) ) {
-         m_cameraRotation.append( rotationQuaternion( -rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
+         m_cameraRotation.append(
+            rotationQuaternion( -rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
       }
       if ( isKeyDown( Key.RIGHT ) ) {
-         m_cameraRotation.append( rotationQuaternion( rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
+         m_cameraRotation.append(
+            rotationQuaternion( rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
       }
 
       // TODO: File LDC bug about this.

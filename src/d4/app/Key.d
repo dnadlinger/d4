@@ -1,8 +1,8 @@
-module d4.util.Key;
+module d4.app.Key;
 
 /**
- * The keycodes used by d4.util.Application
- * (adapted from derelict.sdl.keysym).
+ * The keycodes used in the application framework (adapted from
+ * <code>derelict.sdl.keysym</code>).
  */
 enum Key {
    // The keyboard syms have been cleverly chosen to map to ASCII

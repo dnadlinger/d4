@@ -13,6 +13,12 @@ module Viewer;
 import tango.core.Array;
 import tango.io.Stdout;
 import tango.math.Math : sin, PI;
+import d4.app.Application;
+import d4.app.FreeCamera;
+import d4.app.Key;
+import d4.app.Option;
+import d4.app.Rendering;
+import d4.app.Sdl;
 import d4.format.AssimpScene;
 import d4.math.Color;
 import d4.math.Matrix4;
@@ -32,11 +38,8 @@ import d4.scene.Vertex;
 import d4.scene.WireframeMaterial;
 import d4.shader.LitSingleColorShader;
 import d4.shader.SingleColorShader;
-import d4.util.FreeCameraApplication;
-import d4.util.Key;
-import d4.util.Option;
+import d4.util.EnumUtils;
 import util.EntryPoint;
-import util.EnumUtils;
 
 /**
  * The available shading modes.
@@ -61,7 +64,7 @@ enum WireframeMode {
  *
  * Manages the scene, reacts to user input, etc.
  */
-class Viewer : FreeCameraApplication {
+class Viewer : FreeCamera!( Rendering!( Sdl!( Application ) ) ) {
 public:
    this( char[][] args ) {
       super( args );

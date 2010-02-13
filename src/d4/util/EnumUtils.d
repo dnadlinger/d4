@@ -1,4 +1,4 @@
-module util.EnumUtils;
+module d4.util.EnumUtils;
 
 /**
  * Advances the passed enumeration value by the given number of steps, wrapping

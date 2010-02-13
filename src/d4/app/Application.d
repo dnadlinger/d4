@@ -1,17 +1,25 @@
-module d4.util.Application;
+module d4.app.Application;
 
 import tango.core.Array;
 import tango.io.Stdout;
 import tango.math.Math;
 import Integer = tango.text.convert.Integer;
 import tango.text.Util;
+import d4.app.Key;
+import d4.app.Option;
 import d4.output.Surface;
-import d4.util.Option;
-import d4.util.Key;
 
 /**
- * Provides basic functionality for all kinds of 3d applications
- * (event loop, key handling, ...).
+ * Provides a basic skeleton for graphics applications (event loop,
+ * key handling, ...).
+ *
+ * This class is designed to be extended with the other classes in
+ * <code>d4.app</code> which implement a bit of the abstract functionality or
+ * add new features. This actually resembles the Composite pattern, but on class
+ * level.
+ *
+ * For example, a typical 3D application class might be derived from
+ * <code>FreeCamera!( Rendering!( Sdl!( Application ) ) )</code>.
  */
 abstract class Application {
 public:

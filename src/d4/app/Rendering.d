@@ -1,11 +1,16 @@
-module d4.util.SdlRendererApplication;
+module d4.app.Rendering;
 
 import tango.math.Math : PI;
+import d4.app.Key;
 import d4.renderer.Renderer;
-import d4.util.Key;
-import d4.util.SdlApplication;
+import d4.util.EnumUtils;
 
-abstract class SdlRendererApplication : SdlApplication {
+/**
+ * Provides a renderer to <code>Application</code>s.
+ *
+ * The c key toggles the culling mode.
+ */
+abstract class Rendering( alias Base ) : Base {
 public:
    this( char[][] args ) {
       super( args );
@@ -25,8 +30,7 @@ protected:
 
       switch ( key ) {
          case Key.c:
-            renderer().backfaceCulling = cast( BackfaceCulling )
-               ( ( renderer().backfaceCulling + 1 ) % ( BackfaceCulling.max + 1 ) );
+            renderer().backfaceCulling = step( renderer().backfaceCulling, 1 );
             break;
          default:
             // Do nothing.

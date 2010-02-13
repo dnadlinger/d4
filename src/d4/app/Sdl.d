@@ -1,20 +1,19 @@
-module d4.util.SdlApplication;
+module d4.app.Sdl;
 
 import tango.io.Stdout;
 import tango.stdc.stringz : fromStringz, toStringz;
-import tango.text.convert.Integer;
+import tango.text.convert.Integer : toInt;
 import derelict.sdl.sdl;
+import d4.app.Key;
+import d4.app.Option;
 import d4.math.Color;
 import d4.output.Surface;
 import d4.output.SdlSurface;
-import d4.util.Application;
-import d4.util.Option;
-import d4.util.Key;
 
 /**
  * Implements the parts of Application for which SDL can be used.
  */
-abstract class SdlApplication : Application {
+abstract class Sdl( alias Base ) : Base {
 public:
    this( char[][] args ) {
       super( args );

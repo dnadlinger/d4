@@ -1,4 +1,4 @@
-module d4.util.Option;
+module d4.app.Option;
 
 /**
  * Convenience class for the command line support functionality.
