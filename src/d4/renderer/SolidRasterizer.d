@@ -25,7 +25,6 @@ protected:
    void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
       VertexVariables vars1, Vector4 pos2, VertexVariables vars2 ) {
       // Set rounding mode for rndint to make it behave like ceil().
-      // TODO: Check if it is worth moving this into renderTriangleList performance-wise.
       auto oldRoundingMode = setIeeeRounding( RoundingMode.ROUNDUP );
       scope ( exit ) setIeeeRounding( oldRoundingMode );
 

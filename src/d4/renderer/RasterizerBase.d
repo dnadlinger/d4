@@ -19,7 +19,7 @@ import d4.util.ArrayAllocation;
  * This includes: shader support, matrix caching, clipping, backface culling, …
  *
  * The concrete subclasses only need to implement <code>drawTriangle</code>,
- * every thing else is handled by this class.
+ * everything else is handled by this class.
  */
 abstract class RasterizerBase( bool PrepareForPerspectiveCorrection,
    alias Shader, ShaderParams... ) : IRasterizer {

@@ -126,7 +126,7 @@ protected:
 
    override Option[] helpOptions() {
       return super.helpOptions() ~ [
-         new Option( "fullscreen", "If specified, fullscreen mode is used." ),
+         new Option( "fullscreen", "Use fullscreen mode." ),
          new Option( "width=SIZE", "Sets the output width to SIZE pixels." ),
          new Option( "height=SIZE", "Sets the output height to SIZE pixels." )
       ];
