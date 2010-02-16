@@ -31,7 +31,7 @@ Working on the code has turned out to be quite fun, and so I created a few small
 
 h3(#features). Features
 
-As mentioned above, the architecture of d4's 3D pipeline resembles the ones found on modern graphics cards. This also means that the set of supported features is quite similar, at least from a high-level point of view. For example, the renderer supports perspectively correct interpolation, backface culling, z-buffering, vertex and pixel shaders, texturing, and so on. The project also includes a tiny "<abbr>SDL</abbr>":[http://www.libsdl.org]-based application »framework« to make playing around with the rasterizer easier.
+As mentioned above, the architecture of d4's 3D pipeline resembles the ones found on modern graphics cards. This also means that the set of supported features is quite similar, at least from a high-level point of view. For example, the renderer supports _perspectively correct interpolation, backface culling, z-buffering, vertex and pixel shaders, texturing,_ and so on. The project also includes a tiny "<abbr>SDL</abbr>":http://www.libsdl.org based application »framework« to make playing around with the rasterizer easier.
 
 Please note, however, that d4 is still about demonstrating the _basics_ of realtime rasterization and not about replicating a <abbr>GPU</abbr> in software. Therefore, you can also find quite a number of features on recent graphics cards which d4 does not support: geometry shaders, instancing, multiple render targets, <abbr>HDR</abbr> rendering and mip mapping (and thus trilinear/anisotropic filtering), to name a few.
 
