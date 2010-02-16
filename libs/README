@@ -1,0 +1,16 @@
+The compiler looks for Derelict SDL/DevIL and the Assimp D bindings (directory
+»dAssimp«) here:
+
+d4/
+ libs/
+  dAssimp/
+   assimp/
+    ...
+  derelict/
+   derelict/
+    devil/
+     ...
+    sdl/
+     ...
+    util/
+     ...
