@@ -31,22 +31,22 @@ Working on the code has turned out to be quite fun, and so I created a few small
 
 h3(#features). Features
 
-As mentioned above, the architecture of d4's 3D pipeline resembles the ones found on modern graphics cards. This also means that the set of supported features is quite similar, at least from a high-level point of view. For example, the renderer supports perspectively correct interpolation, backface culling, z-buffering, vertex and pixel shaders, texturing, and so on. The project also includes a tiny application »framework« based on "SDL":http://www.libsdl.org to make playing around with the rasterizer easier.
+As mentioned above, the architecture of d4's 3D pipeline resembles the ones found on modern graphics cards. This also means that the set of supported features is quite similar, at least from a high-level point of view. For example, the renderer supports perspectively correct interpolation, backface culling, z-buffering, vertex and pixel shaders, texturing, and so on. The project also includes a tiny "<abbr>SDL</abbr>":[http://www.libsdl.org]-based application »framework« to make playing around with the rasterizer easier.
 
 Please note, however, that d4 is still about demonstrating the _basics_ of realtime rasterization and not about replicating a GPU in software. Therefore, you can also find quite a number of features on recent graphics cards which d4 does not support: geometry shaders, instancing, multiple render targets, HDR rendering and mip mapping (and thus trilinear/anisotropic filtering), to name a few.
 
 Most of the above would be easy to implement, but there is another obvious problem which would render these more advacnced features virtually useless: Performance. It is widely known that even the fastest, most optimized software renderers are embarassingly slow when compared to today's graphics cards. Additionally, as I stated in the introduction, my primary goals were readability and clean design, not maximum performance. No custom SIMD assembler (well, no assembler at all), no fixed-point math, no fancy programming tricks, and no optimization specifically for a single application – which inevitably means: bad performance.
 
-However, I still wanted my simple demo applications to run at an acceptable speed, so wasting lots of compution time was not what I intended either. Apart from general precautions (like avoiding allocations and GC activity), I also used parts of the extensive metaprogramming facilities of D to create a shader system based on templates. The big advantage of this is that it enables the compiler to inline the shader into the rasterization loop, but remains straightforward in use. After discovering the LLVM-based "LDC":http://dsource.org/projects/ldc which offers much more sophisticated optimizations than the standard Digital Mars compiler, I decided that I won't do any big optimizations manually because the performance is already acceptable.
+However, I still wanted my simple demo applications to run at an acceptable speed, so wasting lots of compution time was not what I intended either. Apart from general precautions (like avoiding allocations and GC activity), I also used parts of the extensive metaprogramming facilities of D to create a shader system based on templates. The big advantage of this is that it enables the compiler to inline the shader into the rasterization loop, but remains straightforward in use. After discovering the <abbr>LLVM</abbr>-based "<abbr>LDC</abbr>":http://dsource.org/projects/ldc which offers much more sophisticated optimizations than the standard Digital Mars compiler, I decided that I won't do any big optimizations manually because the performance is already acceptable.
 
-There are also some downsides to my approach, though: Firstly, templates are evaluated at compile-time, so runtime modifications are not possible (at least not without sacrifying performance). For future versions, I plan to implement dynamic shader (re-)compilation to work around this. Secondly, relying on the compiler to optimize speed-critical code obviously causes the quality of its optimizer to greatly influence the performance. For example, binaries produced by LDC are typically several times faster than the ones DMD generates. Unfortunately, LDC is not of production quality on Windows yet; most notable it lacks support for exceptions.
+There are also some downsides to my approach, though: Firstly, templates are evaluated at compile-time, so runtime modifications are not possible (at least not without sacrifying performance). For future versions, I plan to implement dynamic shader (re-)compilation to work around this. Secondly, relying on the compiler to optimize speed-critical code obviously causes the quality of its optimizer to greatly influence the performance. For example, binaries produced by <abbr>LDC</abbr> are typically several times faster than the ones <abbr>DMD</abbr> generates. Unfortunately, <abbr>LDC</abbr> is not of production quality on Windows yet; most notable it lacks support for exceptions.
 
 h4. File formats
 
 The Open Asset Import Libary ("Assimp":http://assimp.sf.net) is used for reading model files. Thanks to this excellent library, d4 can read over twenty different model file formats:
 
 (columns2 bullet)* Collada (*.dae)
- * 3D Studio Max <abbr>3DS</abbr> (*.3ds)
+ * 3D Studio Max 3DS (*.3ds)
  * 3D Studio Max ASE (*.ase)
  * Wavefront Object (*.obj)
  * Stanford Polygon Library (*.ply)
@@ -108,7 +108,7 @@ Another jewel of a library is "DevIL":http://openil.sourceforge.net, which is us
 
 h3(#download). Download
 
-The downloads below contain the source tree of the {{ page.title }} release {{ page.current_release }}, including the necessary library bindings so you can start playing with it right away. All you need is a working, not-too-old D1 compiler configured for use with "Tango":http://dsource.org/projects/tango/ (if in doubt, just try the packages from the Tango website), and a build tool. A configuration file for "DSSS":http://dsource.org/projects/dsss is included, although I personally use "xfBuild":http://bitbucket.org/h3r3tic/xfbuild/wiki/Home now.
+The downloads below contain the source tree of the {{ page.title }} release {{ page.current_release }}, including the necessary library bindings so you can start playing with it right away. All you need is a working, not-too-old D1 compiler configured for use with "Tango":http://dsource.org/projects/tango/ (if in doubt, just try the packages from the Tango website), and a build tool. A configuration file for "<abbr>DSSS</abbr>":http://dsource.org/projects/dsss is included, although I personally use "xfBuild":http://bitbucket.org/h3r3tic/xfbuild/wiki/Home now.
 
 (columns2)* "(icon tar){{ page.title }} {{ page.current_release }}, sources, Gzip'd tarball":http://github.com/klickverbot/{{ page.github_name }}/tarball/{{ page.current_release }}
  * "(icon zip){{ page.title }} {{ page.current_release }}, sources, Zip archive":http://github.com/klickverbot/{{ page.github_name }}/zipball/{{ page.current_release }}
@@ -118,9 +118,9 @@ If you do not have a D1/Tango environment available and just want to see what th
 (columns2)* "(icon tar){{ page.title }} {{ page.current_release }} binaries, Linux 32 bit":http://github.com/downloads/klickverbot/{{ page.github_name }}/{{ page.github_name }}-{{ page.current_release }}-linux-x86_32.tar.gz
  * "(icon zip){{ page.title }} {{ page.current_release }} binaries, Windows 32 bit":http://github.com/downloads/klickverbot/{{ page.github_name }}/{{ page.github_name }}-{{ page.current_release }}-win32.zip
 
-The Windows package contains two binaries, one built with DMD and another one built with LDC. The LDC one runs significantely faster, but when any error occurs, it aborts with an interal error instead of displaying a useful message (see above). The package also contains a recent version of all the needed DLLs, it should work out of the box.
+The Windows package contains two binaries, one built with <abbr>DMD</abbr> and another one built with <abbr>LDC</abbr>. The <abbr>LDC</abbr> one runs significantely faster, but when any error occurs, it aborts with an interal error instead of displaying a useful message (see above). The package also contains a recent version of all the needed DLLs, it should work out of the box.
 
-The linux version, however, only has a copy of the not-yet-released Assimp along with the binary. If the widely-used DevIL and SDL libraries are not yet present on your system, you have to install them via your package manager of choice first.
+The linux version, however, only has a copy of the not-yet-released Assimp along with the binary. If the widely-used DevIL and <abbr>SDL</abbr> libraries are not yet present on your system, you have to install them via your package manager of choice first.
 
 The packages also include a free model of a dwarf by an artist named "Psionic":http://www.psionic3d.co.uk so that you can play around with d4 in case you don't have another one handy.
 
@@ -134,9 +134,9 @@ If you want to tell me about any bugs or have sugestions for improvement, please
 
 h3(#license). License
 
-d4 is free Open Source software and is distributed under the GNU GPLv3 (or any later version). However, please do not hesitate to contact me if you want to use parts of it under a more permissive license.
+d4 is free Open Source software and is distributed under the <abbr>GNU GPL 3</abbr> (or any later version). However, please do not hesitate to contact me if you want to use parts of it under a more permissive license.
 
-The BSD-licensed Assimp library is © ASSIMP Development Team; DevIL and the multimedia library SDL are used under the terms of the LGPL license.
+The <abbr>BSD</abbr>-licensed Assimp library is © ASSIMP Development Team; DevIL and the multimedia library <abbr>SDL</abbr> are used under the terms of the <abbr>GNU LGPL</abbr>.
 
 h3(#contact). Contact
 
