@@ -33,9 +33,9 @@ h3(#features). Features
 
 As mentioned above, the architecture of d4's 3D pipeline resembles the ones found on modern graphics cards. This also means that the set of supported features is quite similar, at least from a high-level point of view. For example, the renderer supports perspectively correct interpolation, backface culling, z-buffering, vertex and pixel shaders, texturing, and so on. The project also includes a tiny "<abbr>SDL</abbr>":[http://www.libsdl.org]-based application »framework« to make playing around with the rasterizer easier.
 
-Please note, however, that d4 is still about demonstrating the _basics_ of realtime rasterization and not about replicating a GPU in software. Therefore, you can also find quite a number of features on recent graphics cards which d4 does not support: geometry shaders, instancing, multiple render targets, HDR rendering and mip mapping (and thus trilinear/anisotropic filtering), to name a few.
+Please note, however, that d4 is still about demonstrating the _basics_ of realtime rasterization and not about replicating a <abbr>GPU</abbr> in software. Therefore, you can also find quite a number of features on recent graphics cards which d4 does not support: geometry shaders, instancing, multiple render targets, <abbr>HDR</abbr> rendering and mip mapping (and thus trilinear/anisotropic filtering), to name a few.
 
-Most of the above would be easy to implement, but there is another obvious problem which would render these more advacnced features virtually useless: Performance. It is widely known that even the fastest, most optimized software renderers are embarassingly slow when compared to today's graphics cards. Additionally, as I stated in the introduction, my primary goals were readability and clean design, not maximum performance. No custom SIMD assembler (well, no assembler at all), no fixed-point math, no fancy programming tricks, and no optimization specifically for a single application – which inevitably means: bad performance.
+Most of the above would be easy to implement, but there is another obvious problem which would render these more advacnced features virtually useless: Performance. It is widely known that even the fastest, most optimized software renderers are embarassingly slow when compared to today's graphics cards. Additionally, as I stated in the introduction, my primary goals were readability and clean design, not maximum performance. No hand-crafted <abbr title="Single Instruction, Multiple Data">SIMD</abbr> assembler (well, no assembler at all), no fixed-point math, no fancy programming tricks, and no optimization specifically for a single application – which inevitably means: bad performance.
 
 However, I still wanted my simple demo applications to run at an acceptable speed, so wasting lots of compution time was not what I intended either. Apart from general precautions (like avoiding allocations and GC activity), I also used parts of the extensive metaprogramming facilities of D to create a shader system based on templates. The big advantage of this is that it enables the compiler to inline the shader into the rasterization loop, but remains straightforward in use. After discovering the <abbr>LLVM</abbr>-based "<abbr>LDC</abbr>":http://dsource.org/projects/ldc which offers much more sophisticated optimizations than the standard Digital Mars compiler, I decided that I won't do any big optimizations manually because the performance is already acceptable.
 
@@ -137,6 +137,7 @@ h3(#license). License
 d4 is free Open Source software and is distributed under the <abbr>GNU GPL 3</abbr> (or any later version). However, please do not hesitate to contact me if you want to use parts of it under a more permissive license.
 
 The <abbr>BSD</abbr>-licensed Assimp library is © ASSIMP Development Team; DevIL and the multimedia library <abbr>SDL</abbr> are used under the terms of the <abbr>GNU LGPL</abbr>.
+
 
 h3(#contact). Contact
 
