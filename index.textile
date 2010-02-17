@@ -118,7 +118,7 @@ Both programs accept several options at the command line, pass the __==Â»--helpÂ
  * Cursor keys: Rotate the camera.
  * __U, I__: Move the lights in and out, holding __Alt__ changes the direction. %(small)(_SpinningLights only_)%
  * __Shift__: Move/rotate faster.
- * __Y__: Disable materials and Gouraud shading. %(small)(_Viewer only_)%
+ * __Y, Z__: Toggle materials and Gouraud shading. %(small)(_Viewer only_)%
  * __X__: Toggle wireframe mode.
  * __C__: Toggle backface culling.
  * __V__: Toggle auto world rotation. %(small)(_Viewer only_)%
