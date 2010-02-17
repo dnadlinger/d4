@@ -157,6 +157,14 @@ public:
          renderer.worldMatrix.inversed().transformLinear( m_light1Position );
    }
 
+   void moveLight0( float factor ) {
+      m_light0Position *= ( 1 + factor );
+   }
+
+   void moveLight1( float factor ) {
+      m_light1Position *= ( 1 + factor );
+   }
+
 private:
    Vector3 m_light0Position;
    Vector3 m_light1Position;
@@ -223,8 +231,27 @@ protected:
    override void render( float deltaTime ) {
       super.render( deltaTime );
 
+      // Update light positions.
       m_material.updatePositions( deltaTime );
 
+      int direction = 1;
+      if ( isKeyDown( Key.LALT ) || isKeyDown( Key.RALT ) ) {
+         direction *= -1;
+      }
+
+      uint speed = 1;
+      if ( isKeyDown( Key.LSHIFT ) || isKeyDown( Key.RSHIFT ) ) {
+         speed *= 4;
+      }
+
+      if ( isKeyDown( Key.u ) ) {
+         m_material.moveLight0( deltaTime * direction * speed );
+      }
+      if ( isKeyDown( Key.i ) ) {
+         m_material.moveLight1( deltaTime * direction * speed );
+      }
+
+      // Render the scene.
       renderer().beginScene();
 
       if ( m_wireframeMode != WireframeMode.ONLY ) {
