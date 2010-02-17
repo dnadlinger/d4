@@ -88,5 +88,6 @@ command += " " + ARGV.join(" ") unless ARGV.empty?
 #
 # Invoke xfBuild.
 #
+puts "Building #{target}..."
 puts command if verbose
 system command
