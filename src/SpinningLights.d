@@ -69,8 +69,8 @@ template Shader() {
    import d4.scene.NormalVertex;
 
    const AMBIENT_INTENSITY = 0f;
-   const DECAY_0 = 0.05f;
-   const DECAY_1 = 0.05f;
+   const DECAY_0 = 0.01f;
+   const DECAY_1 = 0.01f;
 
    void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
       NormalVertex nv = cast( NormalVertex ) vertex;
