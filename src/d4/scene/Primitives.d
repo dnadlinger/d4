@@ -14,6 +14,9 @@
  * d4. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Helper functions for creating mesh representations of primitive objects.
+ */
 module d4.scene.Primitives;
 
 import d4.math.AABB;
@@ -22,6 +25,16 @@ import d4.scene.Mesh;
 import d4.scene.NormalVertex;
 import d4.util.ArrayUtils;
 
+/**
+ * Creates a cuboid between the two specified points.
+ *
+ * Params:
+ *    min = The corner with the smallest values in each component.
+ *    max = The corner with the largest values in each component.
+ *    inwards = Whether the faces point inwards or outwards.
+ * Returns:
+ *    A mesh containing the triangulated cuboid and no (null) material.
+ */
 Mesh makeCube( Vector3 min, Vector3 max, bool inwards = false ) {
    Mesh mesh = new Mesh();
 
@@ -103,6 +116,15 @@ Mesh makeCube( Vector3 min, Vector3 max, bool inwards = false ) {
    return mesh;
 }
 
+/**
+ * Creates a cuboid from the given axis-aligned bounding box.
+ *
+ * Params:
+ *    aabb = The bounding box.
+ *    inwards = Whether the faces point inwards or outwards.
+ * Returns:
+ *    A mesh containing the triangulated cuboid and no (null) material.
+ */
 Mesh makeCube( AABB aabb, bool inwards = false ) {
    return makeCube( aabb.min, aabb.max, inwards );
 }

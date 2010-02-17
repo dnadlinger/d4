@@ -30,20 +30,18 @@ import d4.math.Texture;
 import d4.math.Vector2;
 import d4.math.Vector3;
 import d4.scene.BasicMaterial;
+import d4.scene.ColoredNormalVertex;
 import d4.scene.IBasicRasterizerFactory;
 import d4.scene.Mesh;
 import d4.scene.Node;
 import d4.scene.NullBasicRasterizerFactory;
-import d4.scene.Vertex;
-import d4.scene.ColoredNormalVertex;
-import d4.scene.Scene;
 import d4.scene.TexturedNormalVertex;
+import d4.scene.Vertex;
 
 /**
- * Provides functionality to load and access a scene by using the Assimp
- * library.
+ * Loads a scene from a model file using the Assimp library.
  */
-class AssimpScene : Scene {
+class AssimpScene {
    /**
     * Constructs a new scene object with the contents from a scene file.
     *
@@ -124,8 +122,8 @@ class AssimpScene : Scene {
          triangleCount, m_meshes.length, m_materials.length
       ).newline;
       Stdout.format(
-         "{} of the meshes had textures applied, "
-            "{} of the meshes were imported with the vertex colors, "
+         "{} of the meshes had textures applied, " ~
+            "{} of the meshes were imported with the vertex colors, " ~
             "{} with the default colors and {} using fake colors.",
          m_texturedMeshCount,
          m_coloredMeshCount,

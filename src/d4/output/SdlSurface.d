@@ -25,6 +25,13 @@ import d4.output.Surface;
  */
 class SdlSurface : Surface {
 public:
+   /**
+    * Constructs a new instance.
+    *
+    * Params:
+    *    sdlSurface = A pointer to the target SDL surface structure.
+    *    mustLock = Whether the SDL surface must be locked before accessing it.
+    */
    this( SDL_Surface* sdlSurface, bool mustLock ) {
       m_sdlSurface = sdlSurface;
       m_mustLock = mustLock;

@@ -25,12 +25,16 @@ module d4.shader.LitSingleColorShader;
 /*
  * See SingleColorShader.
  */
-template LitSingleColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+template LitSingleColorShader( float ambientLevel,
+   float lightDirX, float lightDirY, float lightDirZ ) {
    import d4.scene.NormalVertex;
 
-   const LIGHT_DIRECTION = CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
+   const LIGHT_DIRECTION =
+      CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
 
-   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+   void vertexShader( in Vertex vertex,
+      out Vector4 position, out VertexVariables variables ) {
+
       NormalVertex nv = cast( NormalVertex ) vertex;
       assert( nv !is null );
 

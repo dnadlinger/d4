@@ -19,6 +19,9 @@ module d4.scene.NormalVertex;
 import d4.math.Vector3;
 import d4.scene.Vertex;
 
+/**
+ * A simple Vertex with just a position and a normal vector.
+ */
 class NormalVertex : Vertex {
 public:
    this( Vector3 position = Vector3(), Vector3 normal = Vector3() ) {

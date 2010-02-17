@@ -30,7 +30,8 @@ abstract class Surface {
     */
    void lock() {
       if ( m_locked ) {
-         throw new Exception( "Could not lock SdlSurface because it was already locked." );
+         throw new Exception(
+            "Could not lock the Surface because it was already locked." );
       }
       m_locked = true;
    }
@@ -61,16 +62,19 @@ abstract class Surface {
     * Returns a pointer to the pixel data through which it can be directly
     * modified.
     *
-    * Use this only where performance is critical, because you loose all safety checks.
+    * Use this only where performance is critical, because you loose all safety
+    * checks.
+    *
     * Returns: A pointer to the pixel data.
     */
    abstract Color* pixels();
 
    /**
     * Returns the color of the pixel at the specified coordinates.
+    *
     * Params:
-    *     x = The x-coordinate of the pixel (zero-based).
-    *     y = The y-coordinate of the pixel (zero-based).
+    *    x = The x-coordinate of the pixel (zero-based).
+    *    y = The y-coordinate of the pixel (zero-based).
     * Returns: The color of the pixel.
     */
    Color pixel( uint x, uint y ) {
@@ -84,10 +88,11 @@ abstract class Surface {
 
    /**
     * Sets the pixel at the specified coordinates to the specified color.
+    *
     * Params:
-    *     x = The x-coordinate of the pixel (zero-based).
-    *     y = The y-coordinate of the pixel (zero-based).
-    *     color = The new color of the pixel.
+    *    x = The x-coordinate of the pixel (zero-based).
+    *    y = The y-coordinate of the pixel (zero-based).
+    *    color = The new color of the pixel.
     */
    void setPixel( uint x, uint y, Color color ) {
       assert( m_locked, "The surface must be locked to set pixel values." );
@@ -101,8 +106,9 @@ abstract class Surface {
 
    /**
     * Fills all pixels of the surface with the specified color.
+    *
     * Params:
-    *     clearColor = The color to fill the surface with.
+    *    clearColor = The color to fill the surface with.
     */
    void clear( Color clearColor ) {
       assert( m_locked );

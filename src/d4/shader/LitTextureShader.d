@@ -22,12 +22,17 @@
  */
 module d4.shader.LitTextureShader;
 
-template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+template LitTextureShader( float ambientLevel,
+   float lightDirX, float lightDirY, float lightDirZ ) {
+
    import d4.scene.TexturedNormalVertex;
 
-   const LIGHT_DIRECTION = CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
+   const LIGHT_DIRECTION =
+      CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
 
-   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+   void vertexShader( in Vertex vertex,
+      out Vector4 position, out VertexVariables variables ) {
+
       TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
       assert( tnv !is null );
 
@@ -46,7 +51,8 @@ template LitTextureShader( float ambientLevel, float lightDirX, float lightDirY,
    }
 
    Color pixelShader( VertexVariables variables ) {
-      return readTexture!( true, true )( 0, variables.texCoords ) * variables.brightness;
+      return readTexture!( true, true )( 0, variables.texCoords ) *
+         variables.brightness;
    }
 
    struct VertexVariables {

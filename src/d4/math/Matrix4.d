@@ -16,13 +16,11 @@
 
 module d4.math.Matrix4;
 
-import tango.io.Stdout;
-import tango.math.Math : sin, cos, tan;
 import d4.math.Vector3;
 import d4.math.Vector4;
 
 /**
- * A basic 4x4 matrix (row-major memory layout).
+ * A basic 4x4 matrix of floats (row-major memory layout).
  */
 struct Matrix4 {
    /**
@@ -94,6 +92,7 @@ struct Matrix4 {
 
    /**
     * Multiplies the matrix with another Matrix4.
+    *
     * This operation is not commutative!
     *
     * Params:
@@ -130,7 +129,9 @@ struct Matrix4 {
    /**
     * Multiplies this matrix with another Matrix4 and save the result to this
     * matrix.
+    *
     * This is also known as concatenation.
+    *
     * Params:
     *     rhs = The right hand side matrix.
     */
@@ -174,6 +175,7 @@ struct Matrix4 {
 
    /**
     * Multiplies this matrix with a vector.
+    *
     * This is also known as vector transformation.
     *
     * Params:
@@ -197,7 +199,6 @@ struct Matrix4 {
     * Returns: The resulting (four-dimensional) vector.
     */
    Vector4 opMul( Vector3 rhs ) {
-      // Implicitely setting w = 1 here.
       return Vector4(
          m11 * rhs.x + m12 * rhs.y + m13 * rhs.z + m14,
          m21 * rhs.x + m22 * rhs.y + m23 * rhs.z + m24,
@@ -215,7 +216,6 @@ struct Matrix4 {
     * Returns: The resulting three-dimensional vector.
     */
    Vector3 transformLinear( Vector3 rhs ) {
-      // Implicitely setting w = 1 here.
       return Vector3(
          m11 * rhs.x + m12 * rhs.y + m13 * rhs.z + m14,
          m21 * rhs.x + m22 * rhs.y + m23 * rhs.z + m24,
@@ -224,8 +224,8 @@ struct Matrix4 {
    }
 
    /**
-    * Transforms a vector, using only the rotational (top-left 3x3) part of the matrix.
-    * The w component of the vector is not modified.
+    * Transforms a vector, using only the rotational (top-left 3x3) part of the
+    * matrix. The w component of the vector is not modified.
     *
     * Params:
     *     rhs = The vector to transform.
@@ -262,7 +262,8 @@ struct Matrix4 {
 
       float determinant = L * A - J * B + I * C + F * G - E * H + D * K;
       if ( determinant == 0 ) {
-         throw new Exception( "Cannot inverse singular matix (determinant is zero)." );
+         throw new Exception(
+            "Cannot inverse singular matix (determinant is zero)." );
       }
 
       float invDet = 1f / determinant;
@@ -299,16 +300,6 @@ struct Matrix4 {
       result.m44 = invDet * (-m11 * F - m12 * J - m13 * L );
 
       return result;
-   }
-
-   /**
-    * Pretty-prints the elements of the matrix to the standard output.
-    */
-   void print() {
-      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m11, m12, m13, m14 ).newline;
-      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m21, m22, m23, m24 ).newline;
-      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m31, m32, m33, m34 ).newline;
-      Stdout.format( "{,-4} {,-4} {,-4} {,-4}", m41, m42, m43, m44 ).newline;
    }
 
    union {

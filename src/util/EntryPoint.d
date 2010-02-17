@@ -16,6 +16,9 @@
 
 /**
  * Template for the entry point of a typical application.
+ *
+ * It creates a main() function which passes the command line arguments to the
+ * application class and sets up some debugging aids.
  */
 module util.EntryPoint;
 

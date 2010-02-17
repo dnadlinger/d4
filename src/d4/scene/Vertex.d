@@ -20,6 +20,15 @@ import d4.math.Vector3;
 
 /**
  * A basic vertex consisting only of a (three-dimensional) position vector.
+ *
+ * The chosen approach of attaching further data by subclassing has turned out
+ * to be a major design flaw since it is very inflexible, and it does not really
+ * belong into the »scene« package. A really clean solution has yet to be found,
+ * however, – the main problem here is the incompatibilty of
+ * the OOP-based scene graph system and the template-based renderer.
+ *
+ * Until then, this solution does not kill performance while allowing for some,
+ * albeit very limited, flexibilty.
  */
 class Vertex {
    /**

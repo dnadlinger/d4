@@ -21,8 +21,18 @@ import d4.scene.ISceneVisitor;
 import d4.scene.Mesh;
 import d4.scene.Node;
 
+/**
+ * An ISceneVisitor which renders the scene using the materials which are stored
+ * with each mesh.
+ */
 class RenderVisitor : ISceneVisitor {
 public:
+   /**
+    * Constructs a new instance.
+    *
+    * Params:
+    *     renderer = The target renderer.
+    */
    this( Renderer renderer ) {
       m_renderer = renderer;
    }

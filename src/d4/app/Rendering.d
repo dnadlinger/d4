@@ -24,7 +24,7 @@ import d4.util.EnumUtils;
 /**
  * Provides a renderer to <code>Application</code>s.
  *
- * The c key toggles the culling mode.
+ * The C key toggles the culling mode.
  */
 abstract class Rendering( alias Base ) : Base {
 public:

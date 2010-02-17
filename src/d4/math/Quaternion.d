@@ -32,7 +32,9 @@ struct Quaternion {
     *     newZ = The z-component (k).
     * Returns:
     */
-   static Quaternion opCall( float newW = 1f, float newX = 0f, float newY = 0f, float newZ = 0f ) {
+   static Quaternion opCall( float newW = 1f, float newX = 0f, float newY = 0f,
+      float newZ = 0f ) {
+
       Quaternion result;
       result.w = newW;
       result.x = newX;

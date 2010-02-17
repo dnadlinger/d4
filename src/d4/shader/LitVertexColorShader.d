@@ -22,12 +22,16 @@
  */
 module d4.shader.LitVertexColorShader;
 
-template LitVertexColorShader( float ambientLevel, float lightDirX, float lightDirY, float lightDirZ ) {
+template LitVertexColorShader( float ambientLevel,
+   float lightDirX, float lightDirY, float lightDirZ ) {
+
    import d4.scene.ColoredNormalVertex;
 
    const LIGHT_DIRECTION = CTFE_normalize( Vector3( lightDirX, lightDirY, lightDirZ ) );
 
-   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+   void vertexShader( in Vertex vertex,
+      out Vector4 position,out VertexVariables variables ) {
+
       ColoredNormalVertex cnv = cast( ColoredNormalVertex ) vertex;
       assert( cnv !is null );
 

@@ -251,14 +251,14 @@ protected:
     * the color values of the edge pixels are repeated (known as »clamping«).
     *
     * Params:
-    *    textureIndex = The index of the texture to read from.
+    *    texIndex = The index of the texture to read from.
     *    texCoords = The coordinates of the point to read the color information
     *       from the texture. Note that the OpenGL convention is
     * Returns:
     *    The color read from the texture.
     */
    final Color readTexture( bool bilinearInterpolation = false, bool tile = true )
-      ( uint textureIndex, Vector2 texCoords ) {
+      ( uint texIndex, Vector2 texCoords ) {
 
       // Some fixed-point math is used to here to speed up the very time-critical
       // filtering code. For an example of more elaborate optimizations, see:
@@ -268,23 +268,23 @@ protected:
 
       static if ( tile ) {
          // Tile.
-         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] ) %
-            m_shiftedWidths[ textureIndex ];
-         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] ) %
-            m_shiftedHeights[ textureIndex ];
+         u = rndint( texCoords.x * m_shiftedXLimits[ texIndex ] ) %
+            m_shiftedWidths[ texIndex ];
+         v = rndint( texCoords.y * m_shiftedYLimits[ texIndex ] ) %
+            m_shiftedHeights[ texIndex ];
       } else {
          // Clamp.
-         u = rndint( texCoords.x * m_shiftedXLimits[ textureIndex ] );
-         v = rndint( texCoords.y * m_shiftedYLimits[ textureIndex ] );
+         u = rndint( texCoords.x * m_shiftedXLimits[ texIndex ] );
+         v = rndint( texCoords.y * m_shiftedYLimits[ texIndex ] );
          if ( u < 0 ) {
             u = 0;
-         } else if ( u > m_shiftedXLimits[ textureIndex ] ) {
-            u = m_shiftedXLimits[ textureIndex ];
+         } else if ( u > m_shiftedXLimits[ texIndex ] ) {
+            u = m_shiftedXLimits[ texIndex ];
          }
          if ( v < 0 ) {
             v = 0;
-         } else if ( v > m_shiftedYLimits[ textureIndex ] ) {
-            v = m_shiftedYLimits[ textureIndex ];
+         } else if ( v > m_shiftedYLimits[ texIndex ] ) {
+            v = m_shiftedYLimits[ texIndex ];
          }
       }
 
@@ -296,7 +296,7 @@ protected:
          // We probably should round correctly for the uninterpolated mode
          // instead of just truncating the lower bits, but nobody will see
          // that anyway...
-         return m_textureData[ textureIndex ][ v0 * m_texWidths[ textureIndex ] + u0 ];
+         return m_textureData[ texIndex ][ v0 * m_texWidths[ texIndex ] + u0 ];
       } else {
          // Read the four surrounding pixels.
          //
@@ -311,12 +311,12 @@ protected:
          // u0 and v0 were rounded down by truncating the low bits above, so by
          // adding 1 to them, we get the indices of the four pixels surrounding
          // the precise position.
-         int u1 = ( u0 + 1 ) % m_texWidths[ textureIndex ];
-         int v1 = ( v0 + 1 ) % m_texHeights[ textureIndex ];
-         Color c00 = m_textureData[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v0 ];
-         Color c10 = m_textureData[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v0 ];
-         Color c01 = m_textureData[ textureIndex ][ u0 + m_texWidths[ textureIndex ] * v1 ];
-         Color c11 = m_textureData[ textureIndex ][ u1 + m_texWidths[ textureIndex ] * v1 ];
+         int u1 = ( u0 + 1 ) % m_texWidths[ texIndex ];
+         int v1 = ( v0 + 1 ) % m_texHeights[ texIndex ];
+         Color c00 = m_textureData[ texIndex ][ u0 + m_texWidths[ texIndex ] * v0 ];
+         Color c10 = m_textureData[ texIndex ][ u1 + m_texWidths[ texIndex ] * v0 ];
+         Color c01 = m_textureData[ texIndex ][ u0 + m_texWidths[ texIndex ] * v1 ];
+         Color c11 = m_textureData[ texIndex ][ u1 + m_texWidths[ texIndex ] * v1 ];
 
          // The value of the lower, added bits is effectively the distance of
          // the precise sampling position to 00, its inverse the distance to 11.
@@ -342,6 +342,10 @@ protected:
 
    /*
     * Helper functions for handling VertexVariables.
+    *
+    * The code below uses template magic to auto-generate the code for applying
+    * mathematical operations to VertexVariables only consisting of floats
+    * and structs with floats or other structs in them.
     */
 
    final T scale( T )( T vector, float factor ) {
@@ -353,7 +357,8 @@ protected:
          } else static if ( is ( ElementType == struct )  ) {
             result.tupleof[ i ] = scale( value, factor );
          } else {
-            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+            static assert( false,
+               "Invalid type used in VertexVariables: " ~ ElementType.stringof );
          }
       }
       return result;
@@ -368,7 +373,8 @@ protected:
          } else static if ( is ( ElementType == struct ) ) {
             result.tupleof[ i ] = add( first.tupleof[ i ], second.tupleof[ i ] );
          } else {
-            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+            static assert( false,
+               "Invalid type used in VertexVariables: " ~ ElementType.stringof );
          }
       }
       return result;
@@ -383,7 +389,8 @@ protected:
          } else static if ( is ( ElementType == struct ) ) {
             result.tupleof[ i ] = substract( first.tupleof[ i ], second.tupleof[ i ] );
          } else {
-            static assert( false, "Invalid type used in VertexVariables: " ~ ElementType.stringof );
+            static assert( false,
+               "Invalid type used in VertexVariables: " ~ ElementType.stringof );
          }
       }
       return result;
@@ -401,7 +408,8 @@ protected:
     * Returns:
     *    first * position + second * (1-position)
     */
-   final VertexVariables lerp( VertexVariables first, VertexVariables second, float position ) {
+   final VertexVariables lerp( VertexVariables first, VertexVariables second,
+      float position ) {
       return add( first, scale( substract( second, first ), position ) );
    }
 
@@ -428,6 +436,7 @@ protected:
     * It is set by setRenderTarget.
     */
    Surface m_colorBuffer;
+
    /**
     * The Z buffer to use for the visibility calculations.
     * It is set by <code>setRenderTarget</code>.
@@ -488,7 +497,8 @@ private:
    /**
     * Renders a transformed triangle to the screen.
     */
-   void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1, TransformedVertex vertex2 ) {
+   void renderTriangle( TransformedVertex vertex0, TransformedVertex vertex1,
+      TransformedVertex vertex2 ) {
       // Clip all vertices against the view frustrum, which is now a cuboid from
       // [ -1; -1; 0 ] to [ 1, 1, 1 ]. To do this, we us homogeneous clipping,
       // which is fast and happens before the coordinates are divided by w.
@@ -506,10 +516,12 @@ private:
       foreach ( i, plane; CLIPPING_PLANES ) {
          if ( i & 1 ) {
             // Even (second, forth, ...) pass (i==0 on the first pass).
-            vertexCount = clipToPlane( m_clippingBuffer1, m_clippingBuffer0, vertexCount, plane );
+            vertexCount = clipToPlane( m_clippingBuffer1, m_clippingBuffer0,
+               vertexCount, plane );
          } else {
             // Uneven (first, third, ...) pass.
-            vertexCount = clipToPlane( m_clippingBuffer0, m_clippingBuffer1, vertexCount, plane );
+            vertexCount = clipToPlane( m_clippingBuffer0, m_clippingBuffer1,
+               vertexCount, plane );
          }
          if ( vertexCount < 3 ) {
             // There is nothing left to be drawn.
@@ -558,7 +570,8 @@ private:
          Vector4 p1 = m_clippingBuffer0[ 1 ].pos;
          Vector4 p2 = m_clippingBuffer0[ 2 ].pos;
 
-         float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) - ( p1.y - p0.y ) * ( p2.x - p0.x );
+         float crossZ = ( p1.x - p0.x ) * ( p2.y - p0.y ) -
+            ( p1.y - p0.y ) * ( p2.x - p0.x );
          if ( ( m_backfaceCulling == BackfaceCulling.CULL_CCW ) && ( crossZ < 0 ) ) {
             return;
          }
@@ -600,8 +613,9 @@ private:
       alias d4.math.Vector4.lerp lerpVector;
       alias lerp lerpVars;
 
-      TransformedVertex lerpVertex( TransformedVertex first, TransformedVertex second, float position ) {
-         TransformedVertex result;
+      TransformedVertex lerpVertex( TransformedVertex first,
+         TransformedVertex second, float position ) {
+         TransformedVertex result = void;
          result.pos = lerpVector( first.pos, second.pos, position );
          result.vars = lerpVars( first.vars, second.vars, position );
          return result;
@@ -621,21 +635,31 @@ private:
 
          if ( currDist >= 0.f ) {
             // The current vertex is »inside«, append it to the result.
-            assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
+            assert( newCount < CLIPPING_BUFFER_SIZE,
+               "Created too many vertices during clipping!" );
             targetBuffer[ newCount++ ] = sourceBuffer[ i ];
 
             if ( nextDist < 0.f ) {
-               // The edge to the next vertex is crossing the plane, interpolate the
-               // vertex which is exactly on the plane and append it to the result.
-               assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
-               targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
-                  currDist / ( currDist - nextDist ) );
+               // The edge to the next vertex is crossing the plane, interpolate
+               // the vertex which is exactly on the plane and append it to the
+               // result.
+               assert( newCount < CLIPPING_BUFFER_SIZE,
+                  "Created too many vertices during clipping!" );
+               targetBuffer[ newCount++ ] = lerpVertex(
+                  sourceBuffer[ i ],
+                  sourceBuffer[ j ],
+                  currDist / ( currDist - nextDist )
+               );
             }
          } else if ( nextDist >= 0.f ) {
             // The next vertex is inside, also append the vertex on the plane.
-            assert( newCount < CLIPPING_BUFFER_SIZE, "Created too many vertices during clipping!" );
-            targetBuffer[ newCount++ ] = lerpVertex( sourceBuffer[ i ], sourceBuffer[ j ],
-               currDist / ( currDist - nextDist ) );
+            assert( newCount < CLIPPING_BUFFER_SIZE,
+               "Created too many vertices during clipping!" );
+            targetBuffer[ newCount++ ] = lerpVertex(
+               sourceBuffer[ i ],
+               sourceBuffer[ j ],
+               currDist / ( currDist - nextDist )
+            );
          }
       }
 
@@ -673,8 +697,8 @@ private:
     * The number of bits in the subpixel part of the fixed-point texture
     * coordinates used for bilinear interpolation.
     *
-    * For instance, if the value is 8, the integer coordinates are shifted 8 bits
-    * to the left, so 24 bits are remaining for the integer part.
+    * For instance, if the value is 8, the integer coordinates are shifted
+    * 8 bits to the left, so 24 bits are remaining for the integer part.
     */
    const TEX_COORD_SHIFT = 8;
 }

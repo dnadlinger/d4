@@ -86,6 +86,13 @@ public:
       m_meshes ~= mesh;
    }
 
+   /**
+    * Accepts an ISceneVisitor, invoking its handling methods on the node and
+    * all of its child meshes and nodes.
+    *
+    * Params:
+    *     visitor = The ISceneVisitor to accept.
+    */
    void accept( ISceneVisitor visitor ) {
       visitor.visitNode( this );
 
@@ -111,6 +118,14 @@ public:
       invalidateWorldMatrix();
    }
 
+   /**
+    * The world matrix of the node, i.e. the local transformation matrix
+    * concatenated with the transformation matrices of all the parent nodes.
+    *
+    * This approach origined from before a »proper« scene graph was implemented,
+    * it should be rethought if the half-baken scene graph is ever replaced with
+    * a proper design.
+    */
    Matrix4 worldMatrix() {
       // If our cached world matrix is invalid, we have to update it.
       if ( !m_worldMatrixValid ) {
@@ -124,10 +139,6 @@ public:
       }
 
       return m_worldMatrix;
-   }
-
-   Mesh[] meshes() {
-      return m_meshes;
    }
 
 protected:

@@ -24,8 +24,12 @@ module d4.shader.TextureShader;
 template TextureShader() {
    import d4.scene.TexturedNormalVertex;
 
-   void vertexShader( in Vertex vertex, out Vector4 position, out VertexVariables variables ) {
+   void vertexShader( in Vertex vertex,
+      out Vector4 position, out VertexVariables variables ) {
+
       // TODO: Allow other vertex types.
+      // This is a direct consequence of the design flaw mentioned in the
+      // documentation for Vertex.
       TexturedNormalVertex tnv = cast( TexturedNormalVertex ) vertex;
       assert( tnv !is null );
 

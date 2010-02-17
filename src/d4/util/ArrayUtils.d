@@ -16,7 +16,17 @@
 
 module d4.util.ArrayUtils;
 
-// Thanks to DanielKeep (freenode#d) for this gem.
+/**
+ * Applies an operation to each array element, returning the result in a new
+ * array of the same size.
+ *
+ * Params:
+ *    source = The source array.
+ *    func = The transformation function.
+ * Returns:
+ *    An array containing the results of the transformation function for each
+ *    element.
+ */
 U[] map( T, U )( T[] source, U delegate( T ) func ) {
     U[] result;
     result.length = source.length;
@@ -26,6 +36,13 @@ U[] map( T, U )( T[] source, U delegate( T ) func ) {
     return result;
 }
 
+/**
+ * Flattens a two-dimensional array into one dimension.
+ *
+ * Params:
+ *    source = The source array.
+ * Returns: The flattened array.
+ */
 T[] flatten( T )( T[][] source ) {
    T[] result;
    foreach ( element; source ) {
@@ -34,6 +51,14 @@ T[] flatten( T )( T[][] source ) {
    return result;
 }
 
-T[] add( T )( T[] source, T summand ) {
+/**
+ * Adds a fixed value to each array element.
+ *
+ * Params:
+ *    source = The source array.
+ *    summand = The summand to add to each element of the source array.
+ * Returns: A new array containing the resulting values.
+ */
+T[] add( T, U )( T[] source, U summand ) {
    return source.map( ( T t ){ return t + summand; } );
 }

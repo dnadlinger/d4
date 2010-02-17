@@ -46,7 +46,6 @@ import d4.scene.BasicMaterial;
 import d4.scene.IBasicRasterizerFactory;
 import d4.scene.ISceneVisitor;
 import d4.scene.Node;
-import d4.scene.Scene;
 import d4.scene.FixedMaterialRenderVisitor;
 import d4.scene.GenericBasicRasterizerFactory;
 import d4.scene.RenderVisitor;
@@ -246,7 +245,7 @@ private:
    bool m_generateSmoothNormals;
    bool m_fakeColors;
 
-   Scene m_scene;
+   AssimpScene m_scene;
 
    ShadingMode m_shadingMode;
    WireframeMode m_wireframeMode;

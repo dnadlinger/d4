@@ -34,7 +34,9 @@ import d4.math.Vector4;
  *     factorZ = The scaling factor along the z axis.
  * Returns: The scaling matix.
  */
-static Matrix4 scalingMatrix( float factorX = 1.f, float factorY = 1.f, float factorZ = 1.f ) {
+static Matrix4 scalingMatrix( float factorX = 1.f, float factorY = 1.f,
+   float factorZ = 1.f ) {
+
    Matrix4 m = Matrix4.identity();
 
    m.m11 = factorX;
@@ -123,7 +125,8 @@ static Matrix4 zRotationMatrix( float angleRadians ) {
 }
 
 /**
- * Constructs a rotation quaternion from the rotation axis and the rotation angle.
+ * Constructs a rotation quaternion from the rotation axis and the rotation
+ * angle.
  *
  * Params:
  *     angle = The angle to rotate about (in radians).
@@ -194,7 +197,9 @@ static Matrix4 rotationMatrix( Quaternion q ) {
  *     deltaZ = The distance to move along the z axis.
  * Returns: The translation matrix.
  */
-static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f, float deltaZ = 0.f ) {
+static Matrix4 translationMatrix( float deltaX = 0.f, float deltaY = 0.f,
+   float deltaZ = 0.f ) {
+
    Matrix4 m = Matrix4.identity();
 
    m.m14 = deltaX;
@@ -249,6 +254,7 @@ static Matrix4 cameraMatrix( Vector3 position, Vector3 direction, Vector3 up ) {
 
 /**
  * Constructs a view matrix from the camera position and a target.
+ *
  * The world up vector is used to derive the camera up vector and must not be
  * too close to the direction vector.
  *
@@ -265,7 +271,8 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
    Vector3 cameraUp = worldUp - ( direction.dot( worldUp ) * direction );
 
    if ( cameraUp.sqrLength() < 1e-6f ) {
-      throw new Exception( "Unsuitable world up vector (looking straight up or down?).");
+      throw new Exception(
+         "Unsuitable world up vector (looking straight up or down?).");
    }
 
    cameraUp.normalize();
@@ -278,7 +285,7 @@ static Matrix4 lookAtMatrix( Vector3 position, Vector3 target, Vector3 worldUp )
  *
  * Params:
  *     fovRadians = The vertical view angle.
- *     aspectRatio = The aspect ratio of the viewing window (i.e. the output device).
+ *     aspectRatio = The aspect ratio of the viewing window.
  *     nearDistance = The distance of the near clipping plane (>0).
  *     farDistance = The distance of the far clipping plane (>nearDistance).
  * Returns: The projection matrix.

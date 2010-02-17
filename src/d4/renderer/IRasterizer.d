@@ -32,7 +32,8 @@ enum BackfaceCulling {
 }
 
 /**
- * The basic interface every rasterizer must implement.
+ * The basic interface every rasterizer must implement to be usable in the
+ * renderer.
  */
 interface IRasterizer {
    /**

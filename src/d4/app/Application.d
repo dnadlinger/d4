@@ -373,6 +373,10 @@ protected:
    }
 
 private:
+   /**
+    * Parses the m_args array, calling the handleXyzArgument() handlers along
+    * the way.
+    */
    void parseCommandLineArgs() {
       char[][] unnamedArguments;
 

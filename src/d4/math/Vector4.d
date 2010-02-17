@@ -23,6 +23,7 @@ module d4.math.Vector4;
 struct Vector4 {
    /**
     * Constructs a new vector.
+    *
     * Params:
     *     newX = The x component of the vector.
     *     newY = The y component of the vector.
@@ -30,7 +31,9 @@ struct Vector4 {
     *     newW = The w component of the vector.
     * Returns: The new vector.
     */
-   static Vector4 opCall( float newX = 0.f, float newY = 0.f, float newZ = 0.f, float newW = 1.f ) {
+   static Vector4 opCall( float newX = 0.f, float newY = 0.f, float newZ = 0.f,
+      float newW = 1.f ) {
+
       Vector4 result;
       result.x = newX;
       result.y = newY;
@@ -57,7 +60,9 @@ struct Vector4 {
    }
 
    /**
-    * Scales the vector (all four components) and saves the result to this object.
+    * Scales the vector (all four components) and saves the result to this
+    * object.
+    *
     * Params:
     *     factor = The scaling factor.
     */

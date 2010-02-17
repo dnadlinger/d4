@@ -36,6 +36,7 @@ struct Color {
 
    /**
     * Constructs a Color instance from the color specified component-wise.
+    *
     * Params:
     *     r = The red value.
     *     g = The green value.

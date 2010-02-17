@@ -20,9 +20,6 @@
  *
  * If a model file is passed at the command line, it is loaded. A simple »room«
  * is displayed otherwise.
- *
- * Additional parameters:
- *  -display-room: Displays the »room« even if a model file is specified.
  */
 module SpinningLights;
 

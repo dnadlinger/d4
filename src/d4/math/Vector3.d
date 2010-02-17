@@ -16,7 +16,7 @@
 
 module d4.math.Vector3;
 
-import tango.math.Math : sin, cos, acos, sqrt;
+import tango.math.Math : acos, sqrt;
 
 /**
  * A vector in three-dimensional space.

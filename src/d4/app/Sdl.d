@@ -213,7 +213,6 @@ private:
    const uint MAX_SCREEN_HEIGHT = 1500;
 
    uint m_videoFlags;
-   // TODO: Also make bit depth configurable.
    const uint BITS_PER_PIXEL = 32;
 
    SdlSurface m_screen;

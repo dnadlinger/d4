@@ -22,6 +22,10 @@ import d4.scene.ISceneVisitor;
 import d4.scene.Mesh;
 import d4.scene.Node;
 
+/**
+ * An ISceneVisitor which collects the positions of all vertices in all the
+ * meshes in the scene, converting them to the root coordinate system on the fly.
+ */
 class CollectPointsVisitor : ISceneVisitor {
 public:
    this() {

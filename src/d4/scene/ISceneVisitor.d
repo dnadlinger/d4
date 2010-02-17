@@ -19,7 +19,25 @@ module d4.scene.ISceneVisitor;
 import d4.scene.Mesh;
 import d4.scene.Node;
 
+/**
+ * Visits the elements of a scene, invoking an arbitrary action on them.
+ *
+ * Look up the Vistor pattern for an explanation.
+ */
 interface ISceneVisitor {
+   /**
+    * Visits a scene Mesh.
+    *
+    * Params:
+    *     mesh = The mesh to visit.
+    */
    void visitMesh( Mesh mesh );
+
+   /**
+    * Visits a scene Node.
+    *
+    * Params:
+    *     node = The node to visit.
+    */
    void visitNode( Node node );
 }

@@ -22,8 +22,8 @@ import d4.scene.ISceneVisitor;
 import d4.scene.Vertex;
 
 /**
- * A triangle mesh consisting of an indexed triangle list.
- * All the triangles are rendered with one material.
+ * A mesh consisting of an indexed triangle list and a material used for
+ * rendering it.
  */
 class Mesh : ISceneElement {
 public:

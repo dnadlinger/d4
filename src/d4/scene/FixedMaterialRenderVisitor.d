@@ -22,8 +22,19 @@ import d4.scene.ISceneVisitor;
 import d4.scene.Mesh;
 import d4.scene.Node;
 
+/**
+ * An ISceneVisitor which renders the scene with single fixed material, not
+ * taking the mesh materials into account.
+ */
 class FixedMaterialRenderVisitor : ISceneVisitor {
 public:
+   /**
+    * Constructs a new instance.
+    *
+    * Params:
+    *    renderer = The target renderer.
+    *    material = The material to use for rendering.
+    */
    this( Renderer renderer, IMaterial material ) {
       m_renderer = renderer;
       m_material = material;

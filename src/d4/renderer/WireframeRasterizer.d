@@ -32,7 +32,8 @@ final class WireframeRasterizer( alias Shader, ShaderParams... ) :
 protected:
    void drawTriangle( Vector4 pos0, VertexVariables vars0, Vector4 pos1,
       VertexVariables vars1, Vector4 pos2, VertexVariables vars2 ) {
-      // Use either one to get the color, the variables are not interpolated anyway.
+      // Use either one to get the color, the variables are not interpolated
+      // anyway.
       Color color = pixelShader( vars0 );
       drawLine( pos0, pos1, color );
       drawLine( pos1, pos2, color );
@@ -41,7 +42,7 @@ protected:
 
 private:
    /**
-    * Helper function to draw a line on the screen using the
+    * Helper function to draw a line to the target surface using the
     * Bresenham line algorithm.
     */
    void drawLine( Vector4 startPos, Vector4 endPos, Color color ) {
