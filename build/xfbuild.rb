@@ -4,13 +4,19 @@ TARGETS = {
   "viewer" => "../src/Viewer.d",
 }
 
+INCLUDE_DIRS = [
+  "../libs/dAssimp",
+  "../libs/derelict",
+  "../src"
+]
+
 #
 # Parse the command line arguments.
 #
 require 'optparse'
 
 compiler = "ldc"
-target = "spinninglights"
+target = TARGETS.keys.first
 debug = false
 verbose = false
 
@@ -44,12 +50,13 @@ end.parse!
 #
 require 'rbconfig'
 os = Config::CONFIG['target_os']
-raise "Operating system not supported" unless os == "linux"
 
 #
 # Construct the xfbuild command string.
 #
-command = "xfbuild -I../libs/dAssimp -I../libs/derelict -I../src -w"
+command = "xfbuild -w"
+INCLUDE_DIRS.each { |path| command += " -I#{path}" }
+
 build = "#{target}-#{os}-#{compiler}-#{debug ? "debug" : "release"}"
 command += " +D.deps-#{build} +O.objs-#{build}"
 
@@ -61,6 +68,7 @@ when "ldc"
   # +modLimit1 is required because LDC does not optimize well otherwise. This
   # is a bug, but has not been tracked down yet.
   command += " +cldc +q +modLimit1"
+  command += " +C.o" if os =~ /mswin/
   release_opts = " -O5 -release"
   debug_opts = " -gc -d-debug"
 when "dmd"
@@ -78,16 +86,22 @@ else
 end
 
 if TARGETS.include? target
-  command += " +o../bin/#{target} #{TARGETS[target]}"
+  outfile = "../bin/#{target}"
+  outfile += ".exe" if os =~ /mswin/
+  command += " +o#{outfile} #{TARGETS[target]}"
 else
   raise "Target does not exist"
 end
 
+# Pass any additional command line options to xfBuild.
 command += " " + ARGV.join(" ") unless ARGV.empty?
+
+# Use a backslash as path separator if building on Windows.
+command.gsub!(File::SEPARATOR, File::ALT_SEPARATOR) if File::ALT_SEPARATOR
 
 #
 # Invoke xfBuild.
 #
 puts "Building #{target}..."
 puts command if verbose
-system command
+raise "Build failed!" unless system command
