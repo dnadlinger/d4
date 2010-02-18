@@ -16,10 +16,10 @@
 
 module d4.scene.GenericBasicRasterizerFactory;
 
+import d4.math.Texture;
 import d4.renderer.IRasterizer;
 import d4.renderer.SolidRasterizer;
 import d4.renderer.WireframeRasterizer;
-import d4.scene.BasicMaterial;
 import d4.scene.IBasicRasterizerFactory;
 import d4.shader.LitVertexColorShader;
 import d4.shader.LitSingleColorShader;
@@ -37,16 +37,17 @@ import d4.shader.VertexColorShader;
  * (1, -1, -1) is used.
  */
 class GenericBasicRasterizerFactory : IBasicRasterizerFactory {
-   IRasterizer createRasterizer( BasicMaterial m ) {
-      if ( m.wireframe ) {
+   IRasterizer createRasterizer( bool wireframe, bool lighting,
+      bool gouraudShading, bool vertexColors, Texture diffuseTexture ) {
+      if ( wireframe ) {
          // This causes dmd to segfault:
          // return new WireframeRasterizer!( SingleColorShader, Color() )();
          return new WireframeRasterizer!( SingleColorShader )();
       }
 
-      if ( m.gouraudShading ) {
-         if ( m.vertexColors ) {
-            if ( m.lighting ) {
+      if ( gouraudShading ) {
+         if ( vertexColors ) {
+            if ( lighting ) {
                // Simply doing the following does not work:
                // return renderer.registerRasterizer( new SolidGouraudRasterizer!( ColorGouraudShader, lightDirection )() );
                //
@@ -57,18 +58,18 @@ class GenericBasicRasterizerFactory : IBasicRasterizerFactory {
             } else {
                return new SolidRasterizer!( true, VertexColorShader )();
             }
-         } else if ( m.diffuseTexture !is null ) {
-            if ( m.lighting ) {
+         } else if ( diffuseTexture !is null ) {
+            if ( lighting ) {
                auto rasterizer = new SolidRasterizer!( true, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-               rasterizer.textures = [ m.diffuseTexture ];
+               rasterizer.textures = [ diffuseTexture ];
                return rasterizer;
             } else {
                auto rasterizer = new SolidRasterizer!( true, TextureShader )();
-               rasterizer.textures = [ m.diffuseTexture ];
+               rasterizer.textures = [ diffuseTexture ];
                return rasterizer;
             }
          } else {
-            if ( m.lighting ) {
+            if ( lighting ) {
                return new SolidRasterizer!( true, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
                // See above.
@@ -77,24 +78,24 @@ class GenericBasicRasterizerFactory : IBasicRasterizerFactory {
             }
          }
       } else {
-         if ( m.vertexColors ) {
-            if ( m.lighting ) {
+         if ( vertexColors ) {
+            if ( lighting ) {
                return new SolidRasterizer!( false, LitVertexColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
                return new SolidRasterizer!( false, VertexColorShader )();
             }
-         } else if ( m.diffuseTexture !is null ) {
-            if ( m.lighting ) {
+         } else if ( diffuseTexture !is null ) {
+            if ( lighting ) {
                auto rasterizer = new SolidRasterizer!( false, LitTextureShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
-               rasterizer.textures = [ m.diffuseTexture ];
+               rasterizer.textures = [ diffuseTexture ];
                return rasterizer;
             } else {
                auto rasterizer = new SolidRasterizer!( false, TextureShader )();
-               rasterizer.textures = [ m.diffuseTexture ];
+               rasterizer.textures = [ diffuseTexture ];
                return rasterizer;
             }
          } else {
-            if ( m.lighting ) {
+            if ( lighting ) {
                return new SolidRasterizer!( false, LitSingleColorShader, AMBIENT_LIGHT_LEVEL, 1, -1, -1 )();
             } else {
                return new SolidRasterizer!( false, SingleColorShader )();

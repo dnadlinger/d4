@@ -116,7 +116,8 @@ public:
    * to draw the material.
    */
    IRasterizer createRasterizer() {
-      return m_rasterizerFactory.createRasterizer( this );
+      return m_rasterizerFactory.createRasterizer( m_wireframe,
+         m_lighting, m_gouraudShading, m_vertexColors, m_diffuseTexture );
    }
 
    void prepareForRendering( Renderer renderer ) {

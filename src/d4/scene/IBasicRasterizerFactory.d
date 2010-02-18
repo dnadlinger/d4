@@ -16,12 +16,12 @@
 
 module d4.scene.IBasicRasterizerFactory;
 
-import d4.scene.BasicMaterial;
+import d4.math.Texture;
 import d4.renderer.IRasterizer;
 
 /**
- * Serves as an extra layer of indirection between BasicMaterial and the default
- * shader creation.
+ * Serves as an extra layer of indirection between BasicMaterial and the
+ * creation of rasterizers for it.
  *
  * The rationale behind this is to avoid instancing RasterizerBase several times
  * for the generic default shaders if they are not nedeed (and so bloating the
@@ -29,12 +29,16 @@ import d4.renderer.IRasterizer;
  */
 interface IBasicRasterizerFactory {
    /**
-    * Creates a rasterizer fitting the properties of the given BasicMaterial.
+    * Creates a rasterizer with the given properties.
     *
     * Params:
-    *    material = The material to create the IRasterizer for.
-    * Returns:
-    *    The newly created rasterizer.
+    *    wireframe = Whether wireframe mode is used.
+    *    lighting = Whether lighting is used.
+    *    gouraudShading = Whether Gouraud shading is used.
+    *    vertexColors = Whether vertex colors are used.
+    *    diffuseTexture = The diffuse color textur, null for none.
+    * Returns: The new rasterizer.
     */
-   IRasterizer createRasterizer( BasicMaterial material );
+   IRasterizer createRasterizer( bool wireframe, bool lighting,
+      bool gouraudShading, bool vertexColors, Texture diffuseTexture );
 }

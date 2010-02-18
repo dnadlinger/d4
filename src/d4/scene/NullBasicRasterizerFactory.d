@@ -16,8 +16,8 @@
 
 module d4.scene.NullBasicRasterizerFactory;
 
+import d4.math.Texture;
 import d4.renderer.IRasterizer;
-import d4.scene.BasicMaterial;
 import d4.scene.IBasicRasterizerFactory;
 
 /**
@@ -27,7 +27,8 @@ import d4.scene.IBasicRasterizerFactory;
  * importer for rendering.
  */
 class NullBasicRasterizerFactory : IBasicRasterizerFactory {
-   IRasterizer createRasterizer( BasicMaterial material ) {
+   IRasterizer createRasterizer( bool wireframe, bool lighting,
+      bool gouraudShading, bool vertexColors, Texture diffuseTexture ) {
       return null;
    }
 }
