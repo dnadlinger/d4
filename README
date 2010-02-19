@@ -9,3 +9,10 @@ This software is distributed under the terms of the GNU GPLv3, see COPYING for
 details.
 
 Please refer to http://klickverbot.github.com/d4/ for further information.
+
+---
+Copyright 2010, klickverbot <klickverbot@gmail.com>
+
+Assimp, Derelict, DevIL and SDL, the libraries used by this project, are
+the work of other parties and are distributed under different licenses, see the
+licenses/ directory for details.
