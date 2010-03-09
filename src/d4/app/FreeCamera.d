@@ -90,9 +90,7 @@ private:
             rotationQuaternion( rotationSpeed * deltaTime, Vector3( 0, 1, 0 ) ) );
       }
 
-      // TODO: File LDC bug about this.
-      Matrix4 invMat = renderer().viewMatrix;
-      invMat = invMat.inversed();
+      Matrix4 invMat = renderer().viewMatrix.inversed();
       Vector3 forwardDirection = -Vector3( invMat.m13, invMat.m23, invMat.m33 );
       Vector3 leftDirection = -Vector3( invMat.m11, invMat.m21, invMat.m31 );
 
