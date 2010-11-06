@@ -42,7 +42,7 @@ public:
     * The size of this must always be dividable by three, because there are
     * only completed trinagles allowed.
     */
-   uint[] indices;
+   size_t[] indices;
 
    /**
     * The material to use for the mesh.

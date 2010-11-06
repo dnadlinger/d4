@@ -71,7 +71,7 @@ public:
    Texture importData( void[] rawData ) {
       ILuint imageId = createDevilImage();
 
-      if ( !ilLoadL( IL_TYPE_UNKNOWN, &rawData[0], rawData.length ) ) {
+      if ( !ilLoadL( IL_TYPE_UNKNOWN, &rawData[0], cast( uint ) rawData.length ) ) {
          throw new Exception( "Couldn't load image from raw data." );
       }
 

@@ -89,7 +89,7 @@ public:
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
-   final void renderTriangleList( Vertex[] vertices, uint[] indices ) {
+   final void renderTriangleList( Vertex[] vertices, size_t[] indices ) {
       assert( ( indices.length % 3 == 0 ),
          "There must be no incomplete triangles." );
 
@@ -107,7 +107,7 @@ public:
          transformed[ i ] = current;
       }
 
-      for ( uint i = 0; i < indices.length; i += 3 ) {
+      for ( size_t i = 0; i < indices.length; i += 3 ) {
          renderTriangle( transformed[ indices[ i ] ],
             transformed[ indices[ i + 1 ] ], transformed[ indices[ i + 2 ] ] );
       }

@@ -46,7 +46,7 @@ interface IRasterizer {
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
-   void renderTriangleList( Vertex[] vertices, uint[] indices );
+   void renderTriangleList( Vertex[] vertices, size_t[] indices );
 
    /**
     * Sets the render target to use, which is a framebuffer and its z buffer

@@ -360,7 +360,7 @@ protected:
       Option[] options = helpOptions();
       options.sort();
 
-      uint maxLength = 0;
+      size_t maxLength = 0;
       foreach ( option; options ) {
          maxLength = max( maxLength, option.name.length );
       }

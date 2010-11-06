@@ -29,7 +29,7 @@ import tango.core.Memory;
  *     array = The array to allocate space for.
  *     numItems = The number of elements to allocate space for.
  */
-void allocate( Type )( inout Type array, uint numItems ) {
+void allocate( Type )( ref Type array, size_t numItems ) {
    alias typeof( Type[ 0 ] ) ItemType;
    array = ( cast( ItemType* ) GC.malloc( ItemType.sizeof * numItems ) )
       [ 0 .. numItems ];
@@ -42,7 +42,7 @@ void allocate( Type )( inout Type array, uint numItems ) {
  *     array = The array whose space to reallocate.
  *     numItems = The new size of the array.
  */
-void reallocate( Type )( inout Type array, uint numItems ) {
+void reallocate( Type )( ref Type array, size_t numItems ) {
    alias typeof( Type[ 0 ] ) ItemType;
 
    uint oldLength = array.length;
@@ -57,7 +57,7 @@ void reallocate( Type )( inout Type array, uint numItems ) {
  * Params:
  *     array = The array whose space to release.
  */
-void free( Type )( inout Type array ) {
+void free( Type )( ref Type array ) {
    assert( array !is null );
    GC.free( array.ptr );
    array = null;

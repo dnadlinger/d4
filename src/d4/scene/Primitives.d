@@ -38,7 +38,7 @@ import d4.util.ArrayUtils;
 Mesh makeCube( Vector3 min, Vector3 max, bool inwards = false ) {
    Mesh mesh = new Mesh();
 
-   uint[] faceIndices;
+   size_t[] faceIndices;
    if ( inwards ) {
       faceIndices = [ 0, 1, 2, 2, 1, 3 ];
    } else {

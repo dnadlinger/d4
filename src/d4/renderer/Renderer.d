@@ -91,7 +91,7 @@ public:
     *     vertices = The vertices to render.
     *     indices = The indices referring to the passed vertex array.
     */
-   void renderTriangleList( Vertex[] vertices, uint[] indices ) {
+   void renderTriangleList( Vertex[] vertices, size_t[] indices ) {
       assert( m_rendering );
 
       m_activeRasterizer.renderTriangleList( vertices, indices );
