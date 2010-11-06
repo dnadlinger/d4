@@ -65,9 +65,9 @@ debug_opts = ""
 
 case compiler
 when "ldc"
-  # +modLimit1 is required because LDC does not optimize well otherwise. This
+  # +mod-limit1 is required because LDC does not optimize well otherwise. This
   # is a bug, but has not been tracked down yet.
-  command += " +cldc +q +modLimit1"
+  command += " +cldc +q +mod-limit=1"
   command += " +C.o" if os =~ /mswin/
   release_opts = " -O5 -release"
   debug_opts = " -gc -d-debug"
